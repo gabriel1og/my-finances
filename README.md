@@ -4,6 +4,7 @@ App desktop web de finanças pessoais com lançamento 100% manual (sem integraç
 Referências: YNAB (orçamento base zero) + Organizze (UX limpa).
 
 ## Stack
+
 Next.js 15 (App Router) · TypeScript · Supabase (auth + Postgres + RLS) · Tailwind CSS · Recharts · Deploy na Vercel.
 
 ## Setup
@@ -33,6 +34,7 @@ supabase/migrations/  schema, views e seeds
 ```
 
 ## Convenções do design system
+
 - Tokens de cor e animações estão em `tailwind.config.ts` — usar sempre as classes (`bg-surface`, `text-income`, ...).
 - **JetBrains Mono (`font-mono` / classe `.num`) é obrigatório para todo valor monetário, data e percentual.**
 - Border-radius: sm 4 / md 8 / lg 12. Sem glassmorphism, sem gradientes genéricos, sombras mínimas.
