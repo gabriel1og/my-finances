@@ -1,8 +1,9 @@
-import { CategoryBar } from '@/components/ui/CategoryBar';
+import { CategoryCard } from '@/components/categories/CategoryCard';
+import { CategoryFormModal } from '@/components/categories/CategoryFormModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { currentMonth, formatCurrency } from '@/lib/format';
-import { getCategorySpending } from '@/lib/queries';
+import { currentMonth } from '@/lib/format';
+import { getCategories, getCategorySpending, getMonthBudgets } from '@/lib/queries';
 
 export default async function CategoriesPage({
   searchParams,
@@ -10,34 +11,64 @@ export default async function CategoriesPage({
   searchParams: Promise<{ month?: string }>;
 }) {
   const { month = currentMonth() } = await searchParams;
-  const spending = await getCategorySpending(month);
+
+  const [categories, spending, budgets] = await Promise.all([
+    getCategories(true),
+    getCategorySpending(month),
+    getMonthBudgets(month),
+  ]);
+
+  const spentByCategory = new Map(spending.map((row) => [row.category_id, Number(row.spent)]));
+  const overrideByCategory = new Map(budgets.map((row) => [row.category_id, Number(row.amount)]));
+
+  const active = categories.filter((category) => !category.is_archived);
+  const archived = categories.filter((category) => category.is_archived);
 
   return (
     <>
-      <PageHeader title="Categorias" subtitle="Limites e consumo do mês" />
+      <PageHeader
+        title="Categorias"
+        subtitle="Limites e consumo do mês"
+        action={<CategoryFormModal />}
+      />
 
-      {spending.length ? (
+      {active.length ? (
         <div className="grid grid-cols-3 gap-4">
-          {spending.map((row) => (
-            <div key={row.category_id} className="card">
-              <div className="flex items-center justify-between">
-                <span className="label-caps">{row.name}</span>
-                <span className="num text-xs text-textMuted">
-                  restam {formatCurrency(Math.max(Number(row.budget) - Number(row.spent), 0))}
-                </span>
-              </div>
-              <CategoryBar
-                name={row.name}
-                color={row.color}
-                spent={Number(row.spent)}
-                budget={Number(row.budget)}
+          {active.map((category) => {
+            const override = overrideByCategory.get(category.id) ?? null;
+            return (
+              <CategoryCard
+                key={category.id}
+                category={category}
+                month={month}
+                spent={spentByCategory.get(category.id) ?? 0}
+                budget={override ?? Number(category.budget)}
+                monthOverride={override}
               />
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
-        <EmptyState message="Nenhuma categoria com movimentação neste mês." />
+        <EmptyState message="Nenhuma categoria ativa. Crie a primeira." />
       )}
+
+      {archived.length ? (
+        <section className="mt-8">
+          <span className="label-caps">Arquivadas</span>
+          <div className="mt-3 grid grid-cols-3 gap-4">
+            {archived.map((category) => (
+              <CategoryCard
+                key={category.id}
+                category={category}
+                month={month}
+                spent={spentByCategory.get(category.id) ?? 0}
+                budget={Number(category.budget)}
+                monthOverride={overrideByCategory.get(category.id) ?? null}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </>
   );
 }

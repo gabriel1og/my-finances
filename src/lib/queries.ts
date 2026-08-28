@@ -43,13 +43,22 @@ export async function getCategorySpending(month: string) {
   return (data ?? []) as CategorySpending[];
 }
 
-export async function getCategories() {
+export async function getCategories(includeArchived = false) {
+  const supabase = await createClient();
+  let query = supabase.from('categories').select('*').order('position');
+  if (!includeArchived) query = query.eq('is_archived', false);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getMonthBudgets(month: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('is_archived', false)
-    .order('position');
+    .from('budgets')
+    .select('category_id, amount')
+    .eq('month', `${month.slice(0, 7)}-01`);
   if (error) throw error;
   return data ?? [];
 }
