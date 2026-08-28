@@ -1,5 +1,6 @@
 'use client';
 
+import type { Route } from 'next';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { currentMonth } from '@/lib/format';
 
@@ -15,7 +16,7 @@ export function MonthPicker() {
     const next = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
     const search = new URLSearchParams(params.toString());
     search.set('month', next);
-    router.push(`${pathname}?${search.toString()}`);
+    router.push(`${pathname}?${search.toString()}` as Route);
   }
 
   const label = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(
