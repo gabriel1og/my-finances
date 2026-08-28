@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NAV_ITEMS } from '@/lib/constants';
@@ -35,7 +36,9 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-auto border-t border-border p-4">
-        <MonthPicker />
+        <Suspense fallback={<div className="h-[26px]" />}>
+          <MonthPicker />
+        </Suspense>
       </div>
     </aside>
   );
