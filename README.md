@@ -1,4 +1,4 @@
-# flowly — Finanças Pessoais
+# Flowly — Finanças Pessoais
 
 App desktop web de finanças pessoais com lançamento 100% manual (sem integração bancária).
 Referências: YNAB (orçamento base zero) + Organizze (UX limpa).
@@ -6,14 +6,6 @@ Referências: YNAB (orçamento base zero) + Organizze (UX limpa).
 ## Stack
 
 Next.js 15 (App Router) · TypeScript · Supabase (auth + Postgres + RLS) · Tailwind CSS · Recharts · Deploy na Vercel.
-
-## Setup
-
-1. `npm install`
-2. Criar o projeto no Supabase e rodar, na ordem, as migrations de `supabase/migrations/`:
-   `0001_init.sql`, `0002_views.sql`, `0003_seed_defaults.sql`.
-3. Copiar `.env.local.example` para `.env.local` e preencher `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-4. `npm run dev` → http://localhost:3000
 
 ## Estrutura
 
