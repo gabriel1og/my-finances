@@ -25,6 +25,7 @@ export interface Database {
           currency: string;
           locale: string;
           monthly_goal: number | null;
+          monthly_spending_cap: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -34,6 +35,7 @@ export interface Database {
           currency?: string;
           locale?: string;
           monthly_goal?: number | null;
+          monthly_spending_cap?: number | null;
         };
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
         Relationships: [

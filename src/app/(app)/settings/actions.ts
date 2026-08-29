@@ -7,13 +7,20 @@ export type ProfileInput = {
   displayName: string;
   currency: string;
   monthlyGoal: number | null;
+  monthlySpendingCap: number | null;
 };
 
 export async function updateProfile(input: ProfileInput): Promise<{ error: string | null }> {
   if (input.displayName.length > 60) return { error: 'Nome muito longo (máx. 60).' };
   if (!/^[A-Z]{3}$/.test(input.currency)) return { error: 'Moeda inválida (use o código ISO, ex.: BRL).' };
   if (input.monthlyGoal !== null && (!Number.isFinite(input.monthlyGoal) || input.monthlyGoal < 0)) {
-    return { error: 'Meta inválida.' };
+    return { error: 'Meta de economia inválida.' };
+  }
+  if (
+    input.monthlySpendingCap !== null &&
+    (!Number.isFinite(input.monthlySpendingCap) || input.monthlySpendingCap < 0)
+  ) {
+    return { error: 'Teto de gastos inválido.' };
   }
 
   const supabase = await createClient();
@@ -28,6 +35,7 @@ export async function updateProfile(input: ProfileInput): Promise<{ error: strin
       display_name: input.displayName.trim() || null,
       currency: input.currency,
       monthly_goal: input.monthlyGoal,
+      monthly_spending_cap: input.monthlySpendingCap,
     })
     .eq('id', user.id);
 

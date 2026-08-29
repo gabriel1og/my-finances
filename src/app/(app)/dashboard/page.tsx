@@ -4,12 +4,14 @@ import { CategoryBar } from '@/components/ui/CategoryBar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { GoalProgress } from '@/components/ui/GoalProgress';
 import { TxRow } from '@/components/ui/TxRow';
 import { currentMonth } from '@/lib/format';
 import {
   getCategories,
   getCategorySpending,
   getMonthlyFlow,
+  getProfile,
   getTransactions,
 } from '@/lib/queries';
 
@@ -20,11 +22,12 @@ export default async function DashboardPage({
 }) {
   const { month = currentMonth() } = await searchParams;
 
-  const [flow, spending, transactions, categories] = await Promise.all([
+  const [flow, spending, transactions, categories, profile] = await Promise.all([
     getMonthlyFlow(6),
     getCategorySpending(month),
     getTransactions(month, 6),
     getCategories(),
+    getProfile(),
   ]);
 
   const income = transactions.reduce((sum, tx) => (tx.type === 'income' ? sum + Number(tx.amount) : sum), 0);
@@ -47,6 +50,23 @@ export default async function DashboardPage({
         <KpiCard label="Receitas" value={totalIncome} tone="income" />
         <KpiCard label="Despesas" value={totalExpense} tone="expense" />
       </section>
+
+      {profile?.monthly_goal || profile?.monthly_spending_cap ? (
+        <section className="mt-4 grid grid-cols-2 gap-4">
+          <GoalProgress
+            variant="saving"
+            current={totalIncome - totalExpense}
+            target={profile.monthly_goal}
+            currency={profile.currency}
+          />
+          <GoalProgress
+            variant="cap"
+            current={totalExpense}
+            target={profile.monthly_spending_cap}
+            currency={profile.currency}
+          />
+        </section>
+      ) : null}
 
       <section className="mt-4 grid grid-cols-3 gap-4">
         <div className="card col-span-2">

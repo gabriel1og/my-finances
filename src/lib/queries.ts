@@ -1,6 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { monthRange } from '@/lib/format';
-import type { CategorySpending, MonthlyFlow, TransactionWithCategory } from '@/types/database.types';
+import type {
+  CategorySpending,
+  MonthlyFlow,
+  Profile,
+  TransactionWithCategory,
+} from '@/types/database.types';
 
 export async function getTransactions(month?: string, limit?: number) {
   const supabase = await createClient();
@@ -61,4 +66,16 @@ export async function getMonthBudgets(month: string) {
     .eq('month', `${month.slice(0, 7)}-01`);
   if (error) throw error;
   return data ?? [];
+}
+
+export async function getProfile() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+  if (error) throw error;
+  return data as Profile;
 }

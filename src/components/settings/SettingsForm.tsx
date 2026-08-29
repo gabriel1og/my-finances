@@ -13,6 +13,11 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
   const [monthlyGoal, setMonthlyGoal] = useState(
     profile.monthly_goal !== null ? String(profile.monthly_goal).replace('.', ',') : '',
   );
+  const [spendingCap, setSpendingCap] = useState(
+    profile.monthly_spending_cap !== null
+      ? String(profile.monthly_spending_cap).replace('.', ',')
+      : '',
+  );
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -22,17 +27,27 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
     setError(null);
     setSaved(false);
 
-    const trimmed = monthlyGoal.trim();
-    const goal = trimmed === '' ? null : Number(trimmed.replace(',', '.'));
+    const parse = (raw: string) =>
+      raw.trim() === '' ? null : Number(raw.trim().replace(',', '.'));
 
     startTransition(async () => {
-      const result = await updateProfile({ displayName, currency, monthlyGoal: goal });
+      const result = await updateProfile({
+        displayName,
+        currency,
+        monthlyGoal: parse(monthlyGoal),
+        monthlySpendingCap: parse(spendingCap),
+      });
       if (result.error) return setError(result.error);
       setSaved(true);
     });
   }
 
-  const goalPreview = Number(monthlyGoal.replace(',', '.'));
+  const preview = (raw: string) => {
+    const parsed = Number(raw.replace(',', '.'));
+    return raw.trim() && Number.isFinite(parsed) && parsed >= 0
+      ? formatCurrency(parsed, currency)
+      : null;
+  };
 
   return (
     <form onSubmit={submit} className="card max-w-lg">
@@ -78,9 +93,21 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
             placeholder="0,00"
           />
           <p className="num mt-1 text-[11px] text-textMuted">
-            {monthlyGoal.trim() && Number.isFinite(goalPreview) && goalPreview >= 0
-              ? formatCurrency(goalPreview, currency)
-              : 'Deixe em branco para não definir meta.'}
+            {preview(monthlyGoal) ?? 'Quanto você quer que sobre no fim do mês.'}
+          </p>
+        </div>
+
+        <div>
+          <label className="label-caps">Teto de gastos do mês</label>
+          <input
+            className="input-base num mt-1"
+            inputMode="decimal"
+            value={spendingCap}
+            onChange={(e) => setSpendingCap(e.target.value)}
+            placeholder="0,00"
+          />
+          <p className="num mt-1 text-[11px] text-textMuted">
+            {preview(spendingCap) ?? 'Limite total de despesas. Deixe em branco para não usar.'}
           </p>
         </div>
       </div>
