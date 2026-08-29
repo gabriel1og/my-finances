@@ -62,7 +62,11 @@ export function TransactionsList({
 
       <div className="card">
         {filtered.length ? (
-          filtered.map((tx) => <TxRow key={tx.id} tx={tx} />)
+          filtered.map((tx) => (
+            // updated_at na key remonta a linha após uma edição, descartando o
+            // estado local do modal.
+            <TxRow key={`${tx.id}-${tx.updated_at}`} tx={tx} categories={categories} />
+          ))
         ) : (
           <EmptyState message="Nenhuma transação encontrada." />
         )}

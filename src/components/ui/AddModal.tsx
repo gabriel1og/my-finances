@@ -1,63 +1,84 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createTransaction } from '@/app/(app)/transactions/actions';
-import type { Category, TransactionType } from '@/types/database.types';
+import { createTransaction, updateTransaction } from '@/app/(app)/transactions/actions';
+import type { Category, TransactionType, TransactionWithCategory } from '@/types/database.types';
 
-export function AddModal({ categories }: { categories: Category[] }) {
+/**
+ * Serve para criar e editar lançamentos.
+ * Sem `transaction` -> modo criação (botão "Novo lançamento").
+ * Com `transaction`  -> modo edição, acionado pelo `trigger` recebido.
+ */
+export function TransactionModal({
+  categories,
+  transaction,
+  trigger,
+}: {
+  categories: Category[];
+  transaction?: TransactionWithCategory;
+  trigger?: React.ReactNode;
+}) {
+  const editing = Boolean(transaction);
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<TransactionType>('expense');
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [categoryId, setCategoryId] = useState<string>('');
+  const [type, setType] = useState<TransactionType>(transaction?.type ?? 'expense');
+  const [description, setDescription] = useState(transaction?.description ?? '');
+  const [amount, setAmount] = useState(
+    transaction ? String(transaction.amount).replace('.', ',') : '',
+  );
+  const [date, setDate] = useState(
+    transaction?.date.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
+  );
+  const [categoryId, setCategoryId] = useState(transaction?.category_id ?? '');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function reset() {
-    setDescription('');
-    setAmount('');
-    setCategoryId('');
+  function close() {
     setError(null);
+    setOpen(false);
+    if (!editing) {
+      setDescription('');
+      setAmount('');
+      setCategoryId('');
+    }
   }
 
   function submit() {
+    setError(null);
     const parsed = Number(amount.replace(',', '.'));
-    if (!description.trim()) return setError('Informe uma descrição.');
-    if (!Number.isFinite(parsed) || parsed <= 0) return setError('Informe um valor maior que zero.');
+    const input = { type, description, amount: parsed, date, categoryId: categoryId || null };
 
     startTransition(async () => {
-      const result = await createTransaction({
-        type,
-        description,
-        amount: parsed,
-        date,
-        categoryId: categoryId || null,
-      });
+      const result = editing
+        ? await updateTransaction(transaction!.id, input)
+        : await createTransaction(input);
+
       if (result.error) return setError(result.error);
-      reset();
-      setOpen(false);
+      close();
     });
   }
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
-      >
-        Novo lançamento
-      </button>
+      <span onClick={() => setOpen(true)}>
+        {trigger ?? (
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
+            Novo lançamento
+          </button>
+        )}
+      </span>
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md animate-fadeUp rounded-lg border border-border bg-surface p-6">
-            <h2 className="text-base font-medium">Novo lançamento</h2>
+            <h2 className="text-base font-medium">
+              {editing ? 'Editar lançamento' : 'Novo lançamento'}
+            </h2>
 
             <div className="mt-4 grid grid-cols-2 gap-2 rounded-md border border-border p-1">
               {(['income', 'expense'] as const).map((option) => (
                 <button
                   key={option}
+                  type="button"
                   onClick={() => setType(option)}
                   className={[
                     'rounded-sm py-1.5 text-sm transition-colors',
@@ -79,6 +100,7 @@ export function AddModal({ categories }: { categories: Category[] }) {
                 <input
                   className="input-base mt-1"
                   value={description}
+                  maxLength={120}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Mercado, salário, aluguel..."
                 />
@@ -127,10 +149,7 @@ export function AddModal({ categories }: { categories: Category[] }) {
 
             <div className="mt-5 flex justify-end gap-2">
               <button
-                onClick={() => {
-                  reset();
-                  setOpen(false);
-                }}
+                onClick={close}
                 className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
               >
                 Cancelar
@@ -149,3 +168,6 @@ export function AddModal({ categories }: { categories: Category[] }) {
     </>
   );
 }
+
+/** Alias mantido para as chamadas existentes no dashboard e em /transactions. */
+export const AddModal = TransactionModal;
