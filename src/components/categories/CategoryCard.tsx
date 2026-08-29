@@ -26,6 +26,7 @@ export function CategoryCard({
   budget: number;
   monthOverride: number | null;
 }) {
+  const isIncome = category.kind === 'income';
   const [editingBudget, setEditingBudget] = useState(false);
   const [value, setValue] = useState(String(budget).replace('.', ','));
   const [error, setError] = useState<string | null>(null);
@@ -52,17 +53,29 @@ export function CategoryCard({
         </span>
 
         <span className="num text-xs text-textMuted">
-          restam {formatCurrency(Math.max(budget - spent, 0))}
+          {isIncome
+            ? `recebido ${formatCurrency(spent)}`
+            : `restam ${formatCurrency(Math.max(budget - spent, 0))}`}
         </span>
       </div>
 
-      <CategoryBar name={category.name} color={category.color} spent={spent} budget={budget} />
+      {isIncome ? (
+        <p className="num mt-3 text-lg text-income">{formatCurrency(spent)}</p>
+      ) : (
+        <>
+          <CategoryBar
+            name={category.name}
+            color={category.color}
+            spent={spent}
+            budget={budget}
+          />
+          {monthOverride !== null ? (
+            <p className="num mt-1 text-[11px] text-accent">limite específico deste mês</p>
+          ) : null}
+        </>
+      )}
 
-      {monthOverride !== null ? (
-        <p className="num mt-1 text-[11px] text-accent">limite específico deste mês</p>
-      ) : null}
-
-      {editingBudget ? (
+      {editingBudget && !isIncome ? (
         <div className="mt-3 flex gap-2">
           <input
             className="input-base num"
@@ -100,14 +113,16 @@ export function CategoryCard({
           }
         />
 
-        <button
-          onClick={() => setEditingBudget((v) => !v)}
-          className="text-textSecondary transition-colors hover:text-textPrimary"
-        >
-          Limite do mês
-        </button>
+        {!isIncome ? (
+          <button
+            onClick={() => setEditingBudget((v) => !v)}
+            className="text-textSecondary transition-colors hover:text-textPrimary"
+          >
+            Limite do mês
+          </button>
+        ) : null}
 
-        {monthOverride !== null ? (
+        {!isIncome && monthOverride !== null ? (
           <button
             disabled={pending}
             onClick={() => run(() => clearMonthlyBudget(category.id, month))}

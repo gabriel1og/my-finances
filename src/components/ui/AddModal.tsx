@@ -32,6 +32,17 @@ export function TransactionModal({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // Categoria de receita não faz sentido num lançamento de despesa e vice-versa.
+  const options = categories.filter((category) => category.kind === type);
+
+  function changeType(next: TransactionType) {
+    setType(next);
+    const stillValid = categories.some(
+      (category) => category.id === categoryId && category.kind === next,
+    );
+    if (!stillValid) setCategoryId('');
+  }
+
   function close() {
     setError(null);
     setOpen(false);
@@ -79,7 +90,7 @@ export function TransactionModal({
                 <button
                   key={option}
                   type="button"
-                  onClick={() => setType(option)}
+                  onClick={() => changeType(option)}
                   className={[
                     'rounded-sm py-1.5 text-sm transition-colors',
                     type === option
@@ -135,8 +146,10 @@ export function TransactionModal({
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
                 >
-                  <option value="">Sem categoria</option>
-                  {categories.map((category) => (
+                  <option value="">
+                    {options.length ? 'Sem categoria' : 'Nenhuma categoria deste tipo'}
+                  </option>
+                  {options.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>

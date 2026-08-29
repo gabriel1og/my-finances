@@ -30,6 +30,8 @@ export default async function DashboardPage({
     getProfile(),
   ]);
 
+  const expenseSpending = spending.filter((row) => row.kind === 'expense');
+
   const income = transactions.reduce((sum, tx) => (tx.type === 'income' ? sum + Number(tx.amount) : sum), 0);
   const expense = transactions.reduce((sum, tx) => (tx.type === 'expense' ? sum + Number(tx.amount) : sum), 0);
 
@@ -79,8 +81,8 @@ export default async function DashboardPage({
         <div className="card">
           <span className="label-caps">Orçamento por categoria</span>
           <div className="mt-2">
-            {spending.length ? (
-              spending.map((row) => (
+            {expenseSpending.length ? (
+              expenseSpending.map((row) => (
                 <CategoryBar
                   key={row.category_id}
                   name={row.name}

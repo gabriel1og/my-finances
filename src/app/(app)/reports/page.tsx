@@ -14,6 +14,8 @@ export default async function ReportsPage({
   const { month = currentMonth() } = await searchParams;
   const [flow, spending] = await Promise.all([getMonthlyFlow(3), getCategorySpending(month)]);
 
+  const expenseSpending = spending.filter((row) => row.kind === 'expense');
+
   const income = flow.reduce((sum, row) => sum + Number(row.income), 0);
   const expense = flow.reduce((sum, row) => sum + Number(row.expense), 0);
 
@@ -38,8 +40,8 @@ export default async function ReportsPage({
         <div className="card">
           <span className="label-caps">Despesas por categoria</span>
           <div className="mt-2">
-            {spending.length ? (
-              spending.map((row) => (
+            {expenseSpending.length ? (
+              expenseSpending.map((row) => (
                 <CategoryBar
                   key={row.category_id}
                   name={row.name}

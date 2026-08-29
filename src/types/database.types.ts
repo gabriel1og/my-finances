@@ -176,6 +176,7 @@ export interface Database {
           category_id: string;
           name: string;
           color: string;
+          kind: TransactionType;
           month: string;
           spent: number;
           budget: number;
