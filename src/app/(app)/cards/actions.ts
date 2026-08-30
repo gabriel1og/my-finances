@@ -28,11 +28,11 @@ function validate(input: CardInput): string | null {
   if (!input.accountId) return 'Escolha a conta que paga a fatura.';
   if (!/^#[0-9a-fA-F]{6}$/.test(input.color)) return 'Cor inválida.';
   if (!Number.isFinite(input.creditLimit) || input.creditLimit < 0) return 'Limite inválido.';
-  if (!Number.isInteger(input.closingDay) || input.closingDay < 1 || input.closingDay > 28) {
-    return 'Dia de fechamento deve estar entre 1 e 28.';
+  if (!Number.isInteger(input.closingDay) || input.closingDay < 1 || input.closingDay > 31) {
+    return 'Dia de fechamento deve estar entre 1 e 31.';
   }
-  if (!Number.isInteger(input.dueDay) || input.dueDay < 1 || input.dueDay > 28) {
-    return 'Dia de vencimento deve estar entre 1 e 28.';
+  if (!Number.isInteger(input.dueDay) || input.dueDay < 1 || input.dueDay > 31) {
+    return 'Dia de vencimento deve estar entre 1 e 31.';
   }
   return null;
 }

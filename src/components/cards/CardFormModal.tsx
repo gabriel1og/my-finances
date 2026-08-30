@@ -5,7 +5,7 @@ import { CATEGORY_PALETTE } from '@/lib/constants';
 import { createCard, updateCard } from '@/app/(app)/cards/actions';
 import type { Account, CreditCard } from '@/types/database.types';
 
-const DAYS = Array.from({ length: 28 }, (_, index) => index + 1);
+const DAYS = Array.from({ length: 31 }, (_, index) => index + 1);
 
 export function CardFormModal({
   accounts,
@@ -132,8 +132,10 @@ export function CardFormModal({
 
               <p className="text-[11px] text-textMuted">
                 Compras feitas antes do dia {closingDay} entram na fatura do próprio mês; do dia{' '}
-                {closingDay} em diante, na fatura do mês seguinte. Só dias de 1 a 28, para o mesmo
-                comportamento em fevereiro.
+                {closingDay} em diante, na fatura do mês seguinte.
+                {closingDay > 28 || dueDay > 28
+                  ? ' Em meses mais curtos, como fevereiro, vale o último dia do mês.'
+                  : ''}
               </p>
 
               <div className="grid grid-cols-2 gap-3">

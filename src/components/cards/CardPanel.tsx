@@ -28,9 +28,13 @@ export function CardPanel({
   const open = statement ? Number(statement.open_amount) : 0;
   const usedPct = card.credit_limit > 0 ? (total / Number(card.credit_limit)) * 100 : 0;
 
+  // Fallback quando ainda não há linha na view: grampeia ao último dia do mês,
+  // mesma regra do day_in_month() no banco.
+  const [year, monthIndex] = month.slice(0, 7).split('-').map(Number);
+  const lastDay = new Date(year, monthIndex, 0).getDate();
   const dueDate =
     statement?.due_date ??
-    `${month.slice(0, 7)}-${String(card.due_day).padStart(2, '0')}`;
+    `${month.slice(0, 7)}-${String(Math.min(card.due_day, lastDay)).padStart(2, '0')}`;
 
   const [amount, setAmount] = useState(String(open || total).replace('.', ','));
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
