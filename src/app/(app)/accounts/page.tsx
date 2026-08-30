@@ -1,5 +1,6 @@
 import { AccountCard } from '@/components/accounts/AccountCard';
 import { AccountFormModal } from '@/components/accounts/AccountFormModal';
+import { TransferModal } from '@/components/accounts/TransferModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -36,7 +37,12 @@ export default async function AccountsPage({
       <PageHeader
         title="Contas bancárias"
         subtitle="Saldo atual e faturas vinculadas"
-        action={<AccountFormModal />}
+        action={
+          <div className="flex gap-2">
+            <TransferModal accounts={active} />
+            <AccountFormModal />
+          </div>
+        }
       />
 
       <section className="mb-6 grid grid-cols-3 gap-4">
