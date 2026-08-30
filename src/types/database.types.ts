@@ -101,6 +101,11 @@ export interface Database {
           payment_method: PaymentMethod | null;
           is_card_payment: boolean;
           card_payment_for: string | null;
+          installment_group: string | null;
+          installment_no: number | null;
+          installment_total: number | null;
+          is_transfer: boolean;
+          transfer_group: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -119,6 +124,11 @@ export interface Database {
           payment_method?: PaymentMethod | null;
           is_card_payment?: boolean;
           card_payment_for?: string | null;
+          installment_group?: string | null;
+          installment_no?: number | null;
+          installment_total?: number | null;
+          is_transfer?: boolean;
+          transfer_group?: string | null;
         };
         Update: Partial<Database['public']['Tables']['transactions']['Insert']>;
         Relationships: [

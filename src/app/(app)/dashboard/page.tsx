@@ -8,6 +8,7 @@ import { GoalProgress } from '@/components/ui/GoalProgress';
 import { TxRow } from '@/components/ui/TxRow';
 import { currentMonth } from '@/lib/format';
 import {
+  getAccountBalances,
   getAccounts,
   getCards,
   getCategories,
@@ -32,13 +33,22 @@ export default async function DashboardPage({
     getProfile(),
   ]);
 
-  const [accounts, cards] = await Promise.all([getAccounts(), getCards()]);
+  const [accounts, cards, balances] = await Promise.all([
+    getAccounts(),
+    getCards(),
+    getAccountBalances(),
+  ]);
+
+  // Saldo consolidado: só contas ativas.
+  const consolidated = balances
+    .filter((row) => !row.is_archived)
+    .reduce((sum, row) => sum + Number(row.balance), 0);
 
   const expenseSpending = spending.filter((row) => row.kind === 'expense');
 
   // Fallback quando a view ainda não tem linha para o mês. Pagamento de fatura
   // fica de fora: a compra já contou como despesa quando foi feita.
-  const countable = transactions.filter((tx) => !tx.is_card_payment);
+  const countable = transactions.filter((tx) => !tx.is_card_payment && !tx.is_transfer);
   const income = countable.reduce(
     (sum, tx) => (tx.type === 'income' ? sum + Number(tx.amount) : sum),
     0,
@@ -60,7 +70,12 @@ export default async function DashboardPage({
         action={<AddModal categories={categories} accounts={accounts} cards={cards} />}
       />
 
-      <section className="grid grid-cols-3 gap-4">
+      <section className="grid grid-cols-4 gap-4">
+        <KpiCard
+          label="Saldo em contas"
+          value={consolidated}
+          subtitle={`${balances.filter((row) => !row.is_archived).length} conta(s) ativa(s)`}
+        />
         <KpiCard label="Saldo do mês" value={totalIncome - totalExpense} subtitle="Receitas − despesas" />
         <KpiCard label="Receitas" value={totalIncome} tone="income" />
         <KpiCard label="Despesas" value={totalExpense} tone="expense" />
