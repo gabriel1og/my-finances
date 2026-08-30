@@ -1,7 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { monthRange } from '@/lib/format';
 import type {
+  AccountBalance,
+  Account,
+  CardStatement,
+  CardStatementItem,
   CategorySpending,
+  CreditCard,
   MonthlyFlow,
   Profile,
   TransactionWithCategory,
@@ -11,7 +16,13 @@ export async function getTransactions(month?: string, limit?: number) {
   const supabase = await createClient();
   let query = supabase
     .from('transactions')
-    .select('*, category:categories(id, name, color)')
+    .select(
+      // FKs explícitas: transactions aponta duas vezes para credit_cards
+      // (card_id e card_payment_for), então o embed precisa dizer qual usar.
+      '*, category:categories!transactions_category_id_fkey(id, name, color)' +
+        ', account:accounts!transactions_account_id_fkey(id, name, color)' +
+        ', card:credit_cards!transactions_card_id_fkey(id, name, color)',
+    )
     .order('date', { ascending: false })
     .order('created_at', { ascending: false });
 
@@ -78,4 +89,56 @@ export async function getProfile() {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
   if (error) throw error;
   return data as Profile;
+}
+
+export async function getAccounts(includeArchived = false) {
+  const supabase = await createClient();
+  let query = supabase.from('accounts').select('*').order('position');
+  if (!includeArchived) query = query.eq('is_archived', false);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []) as Account[];
+}
+
+export async function getAccountBalances() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('account_balances')
+    .select('*')
+    .order('name');
+  if (error) throw error;
+  return (data ?? []) as AccountBalance[];
+}
+
+export async function getCards(includeArchived = false) {
+  const supabase = await createClient();
+  let query = supabase.from('credit_cards').select('*').order('position');
+  if (!includeArchived) query = query.eq('is_archived', false);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []) as CreditCard[];
+}
+
+/** Faturas de um mês específico (o mês da fatura, não o da compra). */
+export async function getCardStatements(month: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('card_statements')
+    .select('*')
+    .eq('statement_month', `${month.slice(0, 7)}-01`);
+  if (error) throw error;
+  return (data ?? []) as CardStatement[];
+}
+
+export async function getStatementItems(month: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('card_statement_items')
+    .select('*')
+    .eq('statement_month', `${month.slice(0, 7)}-01`)
+    .order('date', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as CardStatementItem[];
 }
