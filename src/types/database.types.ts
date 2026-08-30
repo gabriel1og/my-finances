@@ -14,6 +14,9 @@ export type Json =
   | Json[];
 
 export type TransactionType = 'income' | 'expense';
+export type AccountKind = 'checking' | 'savings' | 'cash' | 'investment';
+export type SettlementKind = 'account' | 'card';
+export type PaymentMethod = 'debit' | 'pix' | 'cash' | 'transfer' | 'boleto' | 'credit';
 
 export interface Database {
   public: {
@@ -92,6 +95,12 @@ export interface Database {
           amount: number;
           date: string;
           notes: string | null;
+          settlement: SettlementKind;
+          account_id: string | null;
+          card_id: string | null;
+          payment_method: PaymentMethod | null;
+          is_card_payment: boolean;
+          card_payment_for: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -104,6 +113,12 @@ export interface Database {
           amount: number;
           date?: string;
           notes?: string | null;
+          settlement?: SettlementKind;
+          account_id?: string | null;
+          card_id?: string | null;
+          payment_method?: PaymentMethod | null;
+          is_card_payment?: boolean;
+          card_payment_for?: string | null;
         };
         Update: Partial<Database['public']['Tables']['transactions']['Insert']>;
         Relationships: [
@@ -112,6 +127,20 @@ export interface Database {
             columns: ['category_id'];
             isOneToOne: false;
             referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'transactions_account_id_fkey';
+            columns: ['account_id'];
+            isOneToOne: false;
+            referencedRelation: 'accounts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'transactions_card_id_fkey';
+            columns: ['card_id'];
+            isOneToOne: false;
+            referencedRelation: 'credit_cards';
             referencedColumns: ['id'];
           },
           {
@@ -158,6 +187,89 @@ export interface Database {
           },
         ];
       };
+      accounts: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          kind: AccountKind;
+          institution: string | null;
+          color: string;
+          opening_balance: number;
+          is_archived: boolean;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          kind?: AccountKind;
+          institution?: string | null;
+          color?: string;
+          opening_balance?: number;
+          is_archived?: boolean;
+          position?: number;
+        };
+        Update: Partial<Database['public']['Tables']['accounts']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'accounts_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      credit_cards: {
+        Row: {
+          id: string;
+          user_id: string;
+          account_id: string;
+          name: string;
+          brand: string | null;
+          color: string;
+          credit_limit: number;
+          closing_day: number;
+          due_day: number;
+          is_archived: boolean;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          account_id: string;
+          name: string;
+          brand?: string | null;
+          color?: string;
+          credit_limit?: number;
+          closing_day: number;
+          due_day: number;
+          is_archived?: boolean;
+          position?: number;
+        };
+        Update: Partial<Database['public']['Tables']['credit_cards']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'credit_cards_account_id_fkey';
+            columns: ['account_id'];
+            isOneToOne: false;
+            referencedRelation: 'accounts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'credit_cards_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       monthly_flow: {
@@ -167,6 +279,50 @@ export interface Database {
           income: number;
           expense: number;
           balance: number;
+        };
+        Relationships: [];
+      };
+      account_balances: {
+        Row: {
+          user_id: string;
+          account_id: string;
+          name: string;
+          kind: AccountKind;
+          color: string;
+          opening_balance: number;
+          is_archived: boolean;
+          balance: number;
+        };
+        Relationships: [];
+      };
+      card_statement_items: {
+        Row: {
+          user_id: string;
+          card_id: string;
+          statement_month: string;
+          transaction_id: string;
+          description: string;
+          amount: number;
+          date: string;
+          category_id: string | null;
+        };
+        Relationships: [];
+      };
+      card_statements: {
+        Row: {
+          user_id: string;
+          card_id: string;
+          name: string;
+          color: string;
+          credit_limit: number;
+          closing_day: number;
+          due_day: number;
+          statement_month: string;
+          total: number;
+          paid: number;
+          open_amount: number;
+          due_date: string;
+          closing_date: string;
         };
         Relationships: [];
       };
@@ -203,6 +359,14 @@ export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type MonthlyFlow = Database['public']['Views']['monthly_flow']['Row'];
 export type CategorySpending = Database['public']['Views']['category_month_spending']['Row'];
 
+export type Account = Database['public']['Tables']['accounts']['Row'];
+export type CreditCard = Database['public']['Tables']['credit_cards']['Row'];
+export type AccountBalance = Database['public']['Views']['account_balances']['Row'];
+export type CardStatement = Database['public']['Views']['card_statements']['Row'];
+export type CardStatementItem = Database['public']['Views']['card_statement_items']['Row'];
+
 export type TransactionWithCategory = Transaction & {
   category: Pick<Category, 'id' | 'name' | 'color'> | null;
+  account: Pick<Account, 'id' | 'name' | 'color'> | null;
+  card: Pick<CreditCard, 'id' | 'name' | 'color'> | null;
 };

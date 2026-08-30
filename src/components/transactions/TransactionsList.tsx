@@ -3,16 +3,26 @@
 import { useMemo, useState } from 'react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { TxRow } from '@/components/ui/TxRow';
-import type { Category, TransactionType, TransactionWithCategory } from '@/types/database.types';
+import type {
+  Account,
+  Category,
+  CreditCard,
+  TransactionType,
+  TransactionWithCategory,
+} from '@/types/database.types';
 
 type Filter = TransactionType | 'all';
 
 export function TransactionsList({
   transactions,
   categories,
+  accounts,
+  cards,
 }: {
   transactions: TransactionWithCategory[];
   categories: Category[];
+  accounts: Account[];
+  cards: CreditCard[];
 }) {
   const [search, setSearch] = useState('');
   const [type, setType] = useState<Filter>('all');
@@ -65,7 +75,13 @@ export function TransactionsList({
           filtered.map((tx) => (
             // updated_at na key remonta a linha após uma edição, descartando o
             // estado local do modal.
-            <TxRow key={`${tx.id}-${tx.updated_at}`} tx={tx} categories={categories} />
+            <TxRow
+              key={`${tx.id}-${tx.updated_at}`}
+              tx={tx}
+              categories={categories}
+              accounts={accounts}
+              cards={cards}
+            />
           ))
         ) : (
           <EmptyState message="Nenhuma transação encontrada." />

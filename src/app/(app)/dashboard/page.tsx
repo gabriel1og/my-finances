@@ -8,6 +8,8 @@ import { GoalProgress } from '@/components/ui/GoalProgress';
 import { TxRow } from '@/components/ui/TxRow';
 import { currentMonth } from '@/lib/format';
 import {
+  getAccounts,
+  getCards,
   getCategories,
   getCategorySpending,
   getMonthlyFlow,
@@ -30,10 +32,21 @@ export default async function DashboardPage({
     getProfile(),
   ]);
 
+  const [accounts, cards] = await Promise.all([getAccounts(), getCards()]);
+
   const expenseSpending = spending.filter((row) => row.kind === 'expense');
 
-  const income = transactions.reduce((sum, tx) => (tx.type === 'income' ? sum + Number(tx.amount) : sum), 0);
-  const expense = transactions.reduce((sum, tx) => (tx.type === 'expense' ? sum + Number(tx.amount) : sum), 0);
+  // Fallback quando a view ainda não tem linha para o mês. Pagamento de fatura
+  // fica de fora: a compra já contou como despesa quando foi feita.
+  const countable = transactions.filter((tx) => !tx.is_card_payment);
+  const income = countable.reduce(
+    (sum, tx) => (tx.type === 'income' ? sum + Number(tx.amount) : sum),
+    0,
+  );
+  const expense = countable.reduce(
+    (sum, tx) => (tx.type === 'expense' ? sum + Number(tx.amount) : sum),
+    0,
+  );
 
   const current = flow.find((row) => row.month.slice(0, 7) === month.slice(0, 7));
   const totalIncome = current ? Number(current.income) : income;
@@ -44,7 +57,7 @@ export default async function DashboardPage({
       <PageHeader
         title="Dashboard"
         subtitle="Visão geral do mês"
-        action={<AddModal categories={categories} />}
+        action={<AddModal categories={categories} accounts={accounts} cards={cards} />}
       />
 
       <section className="grid grid-cols-3 gap-4">

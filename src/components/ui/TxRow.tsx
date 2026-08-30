@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { TransactionModal } from '@/components/ui/AddModal';
 import { deleteTransaction } from '@/app/(app)/transactions/actions';
 import { formatCurrency, formatDate } from '@/lib/format';
-import type { Category, TransactionWithCategory } from '@/types/database.types';
+import type { Account, Category, CreditCard, TransactionWithCategory } from '@/types/database.types';
 
 /**
  * `categories` é opcional: quando informado, a linha ganha as ações de editar
@@ -13,9 +13,13 @@ import type { Category, TransactionWithCategory } from '@/types/database.types';
 export function TxRow({
   tx,
   categories,
+  accounts = [],
+  cards = [],
 }: {
   tx: TransactionWithCategory;
   categories?: Category[];
+  accounts?: Account[];
+  cards?: CreditCard[];
 }) {
   const isIncome = tx.type === 'income';
   const [confirming, setConfirming] = useState(false);
@@ -53,6 +57,7 @@ export function TxRow({
               style={{ backgroundColor: tx.category?.color ?? '#4A5070' }}
             />
             {tx.category?.name ?? 'Sem categoria'}
+            {tx.card ? ` · ${tx.card.name}` : tx.account ? ` · ${tx.account.name}` : ''}
           </p>
         </div>
 
@@ -79,6 +84,8 @@ export function TxRow({
               <>
                 <TransactionModal
                   categories={categories}
+                  accounts={accounts}
+                  cards={cards}
                   transaction={tx}
                   trigger={
                     <button className="text-textSecondary transition-colors hover:text-textPrimary">
