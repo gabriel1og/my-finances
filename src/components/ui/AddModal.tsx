@@ -2,7 +2,16 @@
 
 import { useState, useTransition } from 'react';
 import { createTransaction, updateTransaction } from '@/app/(app)/transactions/actions';
-import type { Category, TransactionType, TransactionWithCategory } from '@/types/database.types';
+import { ACCOUNT_METHODS, PAYMENT_METHOD_LABEL } from '@/lib/constants';
+import type {
+  Account,
+  Category,
+  CreditCard,
+  PaymentMethod,
+  SettlementKind,
+  TransactionType,
+  TransactionWithCategory,
+} from '@/types/database.types';
 
 /**
  * Serve para criar e editar lançamentos.
@@ -11,10 +20,14 @@ import type { Category, TransactionType, TransactionWithCategory } from '@/types
  */
 export function TransactionModal({
   categories,
+  accounts,
+  cards,
   transaction,
   trigger,
 }: {
   categories: Category[];
+  accounts: Account[];
+  cards: CreditCard[];
   transaction?: TransactionWithCategory;
   trigger?: React.ReactNode;
 }) {
@@ -29,6 +42,14 @@ export function TransactionModal({
     transaction?.date.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
   );
   const [categoryId, setCategoryId] = useState(transaction?.category_id ?? '');
+  const [settlement, setSettlement] = useState<SettlementKind>(
+    transaction?.settlement ?? 'account',
+  );
+  const [accountId, setAccountId] = useState(transaction?.account_id ?? accounts[0]?.id ?? '');
+  const [cardId, setCardId] = useState(transaction?.card_id ?? cards[0]?.id ?? '');
+  const [method, setMethod] = useState<PaymentMethod>(
+    transaction?.payment_method ?? 'debit',
+  );
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -37,10 +58,22 @@ export function TransactionModal({
 
   function changeType(next: TransactionType) {
     setType(next);
+    // Receita nunca cai em fatura de cartão.
+    if (next === 'income') changeSettlement('account');
     const stillValid = categories.some(
       (category) => category.id === categoryId && category.kind === next,
     );
     if (!stillValid) setCategoryId('');
+  }
+
+  function changeSettlement(next: SettlementKind) {
+    setSettlement(next);
+    if (next === 'card') {
+      setMethod('credit');
+      if (!cardId) setCardId(cards[0]?.id ?? '');
+    } else if (method === 'credit') {
+      setMethod('debit');
+    }
   }
 
   function close() {
@@ -56,7 +89,18 @@ export function TransactionModal({
   function submit() {
     setError(null);
     const parsed = Number(amount.replace(',', '.'));
-    const input = { type, description, amount: parsed, date, categoryId: categoryId || null };
+    const onCard = type === 'expense' && settlement === 'card';
+    const input = {
+      type,
+      description,
+      amount: parsed,
+      date,
+      categoryId: categoryId || null,
+      settlement: onCard ? ('card' as const) : ('account' as const),
+      accountId: onCard ? null : accountId || null,
+      cardId: onCard ? cardId || null : null,
+      paymentMethod: onCard ? ('credit' as const) : method,
+    };
 
     startTransition(async () => {
       const result = editing
@@ -138,6 +182,82 @@ export function TransactionModal({
                   />
                 </div>
               </div>
+
+              {type === 'expense' ? (
+                <div>
+                  <label className="label-caps">Onde essa despesa cai</label>
+                  <div className="mt-1 grid grid-cols-2 gap-2 rounded-md border border-border p-1">
+                    {(['account', 'card'] as const).map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => changeSettlement(option)}
+                        disabled={option === 'card' && cards.length === 0}
+                        className={[
+                          'rounded-sm py-1.5 text-sm transition-colors disabled:opacity-40',
+                          settlement === option
+                            ? 'bg-surfaceAlt text-textPrimary'
+                            : 'text-textSecondary hover:text-textPrimary',
+                        ].join(' ')}
+                      >
+                        {option === 'account' ? 'Direto na conta' : 'Fatura do cartão'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {type === 'expense' && settlement === 'card' ? (
+                <div>
+                  <label className="label-caps">Cartão</label>
+                  <select
+                    className="input-base mt-1"
+                    value={cardId}
+                    onChange={(e) => setCardId(e.target.value)}
+                  >
+                    {cards.map((card) => (
+                      <option key={card.id} value={card.id}>
+                        {card.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-[11px] text-textMuted">
+                    O saldo da conta só muda quando você pagar a fatura.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label-caps">Conta</label>
+                    <select
+                      className="input-base mt-1"
+                      value={accountId}
+                      onChange={(e) => setAccountId(e.target.value)}
+                    >
+                      <option value="">Sem conta</option>
+                      {accounts.map((account) => (
+                        <option key={account.id} value={account.id}>
+                          {account.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label-caps">Forma</label>
+                    <select
+                      className="input-base mt-1"
+                      value={method}
+                      onChange={(e) => setMethod(e.target.value as PaymentMethod)}
+                    >
+                      {ACCOUNT_METHODS.map((option) => (
+                        <option key={option} value={option}>
+                          {PAYMENT_METHOD_LABEL[option]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="label-caps">Categoria</label>
