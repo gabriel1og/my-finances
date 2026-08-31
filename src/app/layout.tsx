@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
-// @ts-expect-error CSS imports are handled by Next.js
 import "./globals.css";
 
 const dmSans = DM_Sans({
