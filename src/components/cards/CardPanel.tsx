@@ -28,13 +28,19 @@ export function CardPanel({
   const open = statement ? Number(statement.open_amount) : 0;
   const usedPct = card.credit_limit > 0 ? (total / Number(card.credit_limit)) * 100 : 0;
 
-  // Fallback quando ainda não há linha na view: grampeia ao último dia do mês,
-  // mesma regra do day_in_month() no banco.
+  // Fallback quando ainda não há linha na view: mesma regra do banco — a fatura
+  // fecha no closing_day deste mês, então só vence no próprio mês quando o
+  // vencimento é depois do fechamento; senão, cai no mês seguinte. O dia é
+  // grampeado ao último dia do mês, como day_in_month().
   const [year, monthIndex] = month.slice(0, 7).split('-').map(Number);
-  const lastDay = new Date(year, monthIndex, 0).getDate();
+  const dueMonthIndex = card.due_day > card.closing_day ? monthIndex : monthIndex + 1;
+  const dueMonth = new Date(year, dueMonthIndex - 1, 1);
+  const lastDay = new Date(year, dueMonthIndex, 0).getDate();
   const dueDate =
     statement?.due_date ??
-    `${month.slice(0, 7)}-${String(Math.min(card.due_day, lastDay)).padStart(2, '0')}`;
+    `${dueMonth.getFullYear()}-${String(dueMonth.getMonth() + 1).padStart(2, '0')}-${String(
+      Math.min(card.due_day, lastDay),
+    ).padStart(2, '0')}`;
 
   const [amount, setAmount] = useState(String(open || total).replace('.', ','));
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
