@@ -2,7 +2,11 @@
 
 import { useState, useTransition } from 'react';
 import { TransactionModal } from '@/components/ui/AddModal';
-import { deleteTransaction } from '@/app/(app)/transactions/actions';
+import {
+  deleteInstallmentGroup,
+  deleteTransaction,
+  deleteTransfer,
+} from '@/app/(app)/transactions/actions';
 import { formatCurrency, formatDate } from '@/lib/format';
 import type { Account, Category, CreditCard, TransactionWithCategory } from '@/types/database.types';
 
@@ -26,16 +30,24 @@ export function TxRow({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function remove() {
+  function remove(scope: 'one' | 'group' = 'one') {
     setError(null);
     startTransition(async () => {
-      const result = await deleteTransaction(tx.id);
+      const result =
+        scope === 'group'
+          ? tx.transfer_group
+            ? await deleteTransfer(tx.transfer_group)
+            : await deleteInstallmentGroup(tx.installment_group!)
+          : await deleteTransaction(tx.id);
+
       if (result.error) {
         setError(result.error);
         setConfirming(false);
       }
     });
   }
+
+  const hasGroup = Boolean(tx.installment_group || tx.transfer_group);
 
   return (
     <div className="group border-b border-border py-3 last:border-b-0">
@@ -56,7 +68,7 @@ export function TxRow({
               className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle"
               style={{ backgroundColor: tx.category?.color ?? '#4A5070' }}
             />
-            {tx.category?.name ?? 'Sem categoria'}
+            {tx.is_transfer ? 'Transferência' : (tx.category?.name ?? 'Sem categoria')}
             {tx.card ? ` · ${tx.card.name}` : tx.account ? ` · ${tx.account.name}` : ''}
           </p>
         </div>
@@ -68,11 +80,20 @@ export function TxRow({
                 <span className="text-textSecondary">Excluir?</span>
                 <button
                   disabled={pending}
-                  onClick={remove}
+                  onClick={() => remove('one')}
                   className="text-expense transition-opacity hover:opacity-80 disabled:opacity-50"
                 >
-                  {pending ? '...' : 'Sim'}
+                  {pending ? '...' : hasGroup ? 'Só esta' : 'Sim'}
                 </button>
+                {hasGroup ? (
+                  <button
+                    disabled={pending}
+                    onClick={() => remove('group')}
+                    className="text-expense transition-opacity hover:opacity-80 disabled:opacity-50"
+                  >
+                    {tx.transfer_group ? 'Os dois lados' : 'Todas as parcelas'}
+                  </button>
+                ) : null}
                 <button
                   onClick={() => setConfirming(false)}
                   className="text-textSecondary transition-colors hover:text-textPrimary"

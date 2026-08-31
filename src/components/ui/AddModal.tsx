@@ -50,6 +50,7 @@ export function TransactionModal({
   const [method, setMethod] = useState<PaymentMethod>(
     transaction?.payment_method ?? 'debit',
   );
+  const [installments, setInstallments] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -100,6 +101,8 @@ export function TransactionModal({
       accountId: onCard ? null : accountId || null,
       cardId: onCard ? cardId || null : null,
       paymentMethod: onCard ? ('credit' as const) : method,
+      // Parcelar só faz sentido no cartão; editar uma parcela não re-parcela.
+      installments: onCard && !editing ? installments : 1,
     };
 
     startTransition(async () => {
@@ -224,6 +227,33 @@ export function TransactionModal({
                   <p className="mt-1 text-[11px] text-textMuted">
                     O saldo da conta só muda quando você pagar a fatura.
                   </p>
+
+                  {editing ? null : (
+                    <div className="mt-3">
+                      <label className="label-caps">Parcelas</label>
+                      <select
+                        className="input-base num mt-1"
+                        value={installments}
+                        onChange={(e) => setInstallments(Number(e.target.value))}
+                      >
+                        {Array.from({ length: 24 }, (_, index) => index + 1).map((count) => (
+                          <option key={count} value={count}>
+                            {count === 1 ? 'À vista' : `${count}x`}
+                          </option>
+                        ))}
+                      </select>
+                      {installments > 1 && Number(amount.replace(',', '.')) > 0 ? (
+                        <p className="num mt-1 text-[11px] text-textMuted">
+                          {installments}x de aproximadamente{' '}
+                          {(Number(amount.replace(',', '.')) / installments).toLocaleString(
+                            'pt-BR',
+                            { style: 'currency', currency: 'BRL' },
+                          )}
+                          , uma por mês a partir da data escolhida.
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
