@@ -17,6 +17,7 @@ import {
   getCategorySpending,
   getMonthlyFlow,
   getProfile,
+  getTags,
   getTransactions,
 } from '@/lib/queries';
 
@@ -35,10 +36,11 @@ export default async function DashboardPage({
     getProfile(),
   ]);
 
-  const [accounts, cards, balances] = await Promise.all([
+  const [accounts, cards, balances, tags] = await Promise.all([
     getAccounts(),
     getCards(),
     getAccountBalances(),
+    getTags(),
   ]);
 
   // Saldo consolidado: só contas ativas.
@@ -69,7 +71,9 @@ export default async function DashboardPage({
       <PageHeader
         title="Dashboard"
         subtitle="Visão geral do mês"
-        action={<AddModal categories={categories} accounts={accounts} cards={cards} />}
+        action={
+          <AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />
+        }
       />
 
       <section className="grid grid-cols-4 gap-4">

@@ -28,6 +28,7 @@ function tx(overrides: Partial<TransactionWithCategory> & { id: string }): Trans
     category: null,
     account: null,
     card: null,
+    tags: [],
     ...overrides,
   } as TransactionWithCategory;
 }

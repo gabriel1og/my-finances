@@ -280,6 +280,62 @@ export interface Database {
           },
         ];
       };
+      tags: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          color: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          color?: string;
+        };
+        Update: Partial<Database['public']['Tables']['tags']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'tags_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      transaction_tags: {
+        Row: {
+          transaction_id: string;
+          tag_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          transaction_id: string;
+          tag_id: string;
+          user_id: string;
+        };
+        Update: Partial<Database['public']['Tables']['transaction_tags']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'transaction_tags_tag_id_fkey';
+            columns: ['tag_id'];
+            isOneToOne: false;
+            referencedRelation: 'tags';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'transaction_tags_transaction_id_fkey';
+            columns: ['transaction_id'];
+            isOneToOne: false;
+            referencedRelation: 'transactions';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       monthly_flow: {
@@ -315,6 +371,19 @@ export interface Database {
           amount: number;
           date: string;
           category_id: string | null;
+        };
+        Relationships: [];
+      };
+      tag_month_totals: {
+        Row: {
+          user_id: string;
+          tag_id: string;
+          name: string;
+          color: string;
+          month: string;
+          expense: number;
+          income: number;
+          items: number;
         };
         Relationships: [];
       };
@@ -376,8 +445,13 @@ export type AccountBalance = Database['public']['Views']['account_balances']['Ro
 export type CardStatement = Database['public']['Views']['card_statements']['Row'];
 export type CardStatementItem = Database['public']['Views']['card_statement_items']['Row'];
 
+export type Tag = Database['public']['Tables']['tags']['Row'];
+export type TagTotals = Database['public']['Views']['tag_month_totals']['Row'];
+
 export type TransactionWithCategory = Transaction & {
   category: Pick<Category, 'id' | 'name' | 'color'> | null;
   account: Pick<Account, 'id' | 'name' | 'color'> | null;
   card: Pick<CreditCard, 'id' | 'name' | 'color'> | null;
+  /** Embed many-to-many através de transaction_tags. */
+  tags: Pick<Tag, 'id' | 'name' | 'color'>[];
 };

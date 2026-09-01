@@ -9,6 +9,7 @@ import type {
   Account,
   Category,
   CreditCard,
+  Tag,
   TransactionType,
   TransactionWithCategory,
 } from '@/types/database.types';
@@ -20,21 +21,26 @@ export function TransactionsList({
   categories,
   accounts,
   cards,
+  tags,
 }: {
   transactions: TransactionWithCategory[];
   categories: Category[];
   accounts: Account[];
   cards: CreditCard[];
+  tags: Tag[];
 }) {
   const [search, setSearch] = useState('');
   const [type, setType] = useState<Filter>('all');
   const [categoryId, setCategoryId] = useState('');
+  const [tagId, setTagId] = useState('');
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
 
     return groupTransfers(transactions).filter((entry) => {
       if (term && !entry.tx.description.toLowerCase().includes(term)) return false;
+
+      if (tagId && !entry.tx.tags?.some((tag) => tag.id === tagId)) return false;
 
       if (entry.kind === 'transfer') {
         // Transferência não é receita nem despesa: só aparece em "Todos" ou no
@@ -49,7 +55,7 @@ export function TransactionsList({
       if (categoryId && entry.tx.category_id !== categoryId) return false;
       return true;
     });
-  }, [transactions, search, type, categoryId]);
+  }, [transactions, search, type, categoryId, tagId]);
 
   return (
     <>
@@ -82,6 +88,18 @@ export function TransactionsList({
             </option>
           ))}
         </select>
+        <select
+          className="input-base max-w-[180px]"
+          value={tagId}
+          onChange={(e) => setTagId(e.target.value)}
+        >
+          <option value="">Todas as tags</option>
+          {tags.map((tag) => (
+            <option key={tag.id} value={tag.id}>
+              {tag.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="card">
@@ -104,6 +122,7 @@ export function TransactionsList({
                 categories={categories}
                 accounts={accounts}
                 cards={cards}
+                tags={tags}
               />
             ),
           )
