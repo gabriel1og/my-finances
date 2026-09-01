@@ -2,7 +2,8 @@ import { CategoryCard } from '@/components/categories/CategoryCard';
 import { CategoryFormModal } from '@/components/categories/CategoryFormModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { currentMonth, formatCurrency } from '@/lib/format';
+import { currentMonth } from '@/lib/format';
+import { Money } from '@/lib/currency';
 import { getCategories, getCategorySpending, getMonthBudgets } from '@/lib/queries';
 import type { Category } from '@/types/database.types';
 
@@ -61,7 +62,7 @@ export default async function CategoriesPage({
       <section>
         <div className="mb-3 flex items-baseline justify-between">
           <span className="label-caps">Despesas</span>
-          <span className="num text-xs text-expense">{formatCurrency(expenseTotal)}</span>
+          <Money value={expenseTotal} className="num text-xs text-expense" />
         </div>
 
         {expense.length ? (
@@ -74,7 +75,7 @@ export default async function CategoriesPage({
       <section className="mt-8">
         <div className="mb-3 flex items-baseline justify-between">
           <span className="label-caps">Receitas</span>
-          <span className="num text-xs text-income">{formatCurrency(incomeTotal)}</span>
+          <Money value={incomeTotal} className="num text-xs text-income" />
         </div>
 
         {income.length ? (

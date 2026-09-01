@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { CategoryBar } from '@/components/ui/CategoryBar';
 import { CategoryFormModal } from '@/components/categories/CategoryFormModal';
-import { formatCurrency } from '@/lib/format';
+import { useMoney } from '@/lib/currency';
 import {
   archiveCategory,
   clearMonthlyBudget,
@@ -26,6 +26,7 @@ export function CategoryCard({
   budget: number;
   monthOverride: number | null;
 }) {
+  const money = useMoney();
   const isIncome = category.kind === 'income';
   const [editingBudget, setEditingBudget] = useState(false);
   const [value, setValue] = useState(String(budget).replace('.', ','));
@@ -54,13 +55,13 @@ export function CategoryCard({
 
         <span className="num text-xs text-textMuted">
           {isIncome
-            ? `recebido ${formatCurrency(spent)}`
-            : `restam ${formatCurrency(Math.max(budget - spent, 0))}`}
+            ? `recebido ${money(spent)}`
+            : `restam ${money(Math.max(budget - spent, 0))}`}
         </span>
       </div>
 
       {isIncome ? (
-        <p className="num mt-3 text-lg text-income">{formatCurrency(spent)}</p>
+        <p className="num mt-3 text-lg text-income">{money(spent)}</p>
       ) : (
         <>
           <CategoryBar

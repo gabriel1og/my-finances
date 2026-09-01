@@ -9,10 +9,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { formatCompact, formatCurrency, formatMonthLabel } from '@/lib/format';
+import { formatCompact, formatMonthLabel } from '@/lib/format';
+import { useMoney } from '@/lib/currency';
 import type { MonthlyFlow } from '@/types/database.types';
 
 export function FlowChart({ data }: { data: MonthlyFlow[] }) {
+  const money = useMoney();
   const rows = data.map((row) => ({
     month: formatMonthLabel(row.month),
     income: Number(row.income),
@@ -50,7 +52,7 @@ export function FlowChart({ data }: { data: MonthlyFlow[] }) {
             }}
             labelStyle={{ color: '#7B82A0' }}
             formatter={(value: number, name) => [
-              formatCurrency(value),
+              money(value),
               name === 'income' ? 'Receitas' : 'Despesas',
             ]}
           />

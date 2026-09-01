@@ -8,7 +8,7 @@ import {
   restoreAccount,
 } from '@/app/(app)/accounts/actions';
 import { ACCOUNT_KIND_LABEL } from '@/lib/constants';
-import { formatCurrency } from '@/lib/format';
+import { useMoney } from '@/lib/currency';
 import type { Account, CreditCard } from '@/types/database.types';
 
 export function AccountCard({
@@ -22,6 +22,7 @@ export function AccountCard({
   cards: CreditCard[];
   openCardTotal: number;
 }) {
+  const money = useMoney();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -50,14 +51,14 @@ export function AccountCard({
       </div>
 
       <p className={`num mt-4 text-2xl ${balance < 0 ? 'text-expense' : 'text-textPrimary'}`}>
-        {formatCurrency(balance)}
+        {money(balance)}
       </p>
 
       {openCardTotal > 0 ? (
         <p className="num mt-1 text-[11px] text-warning">
-          {formatCurrency(openCardTotal)} em faturas em aberto ·{' '}
+          {money(openCardTotal)} em faturas em aberto ·{' '}
           <span className="text-textSecondary">
-            saldo previsto {formatCurrency(balance - openCardTotal)}
+            saldo previsto {money(balance - openCardTotal)}
           </span>
         </p>
       ) : null}

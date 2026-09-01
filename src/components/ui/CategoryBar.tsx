@@ -1,5 +1,8 @@
+'use client';
+
 import { BUDGET_ALERT_THRESHOLD } from '@/lib/constants';
-import { formatCurrency, formatPercent } from '@/lib/format';
+import { formatPercent } from '@/lib/format';
+import { useMoney } from '@/lib/currency';
 
 export function CategoryBar({
   name,
@@ -12,6 +15,7 @@ export function CategoryBar({
   spent: number;
   budget: number;
 }) {
+  const money = useMoney();
   const pct = budget > 0 ? (spent / budget) * 100 : 0;
   const alert = pct >= BUDGET_ALERT_THRESHOLD;
 
@@ -23,8 +27,8 @@ export function CategoryBar({
           {name}
         </span>
         <span className={`num text-xs ${alert ? 'text-warning' : 'text-textSecondary'}`}>
-          {formatCurrency(spent)}
-          {budget > 0 ? ` / ${formatCurrency(budget)}` : ''}
+          {money(spent)}
+          {budget > 0 ? ` / ${money(budget)}` : ''}
         </span>
       </div>
 

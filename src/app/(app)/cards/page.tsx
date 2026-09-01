@@ -2,6 +2,7 @@ import { CardFormModal } from '@/components/cards/CardFormModal';
 import { CardPanel } from '@/components/cards/CardPanel';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
+import { Money } from '@/lib/currency';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { currentMonth } from '@/lib/format';
 import { getAccounts, getCardStatements, getCards, getStatementItems } from '@/lib/queries';
@@ -53,7 +54,7 @@ export default async function CardsPage({
             <KpiCard
               label="Limite disponível"
               value={totalLimit - totalUsed}
-              subtitle={`De ${totalLimit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}
+              subtitle={<>De <Money value={totalLimit} /></>}
             />
           </section>
 

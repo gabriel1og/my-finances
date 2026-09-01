@@ -7,7 +7,8 @@ import {
   deleteTransaction,
   deleteTransfer,
 } from '@/app/(app)/transactions/actions';
-import { formatCurrency, formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
+import { useMoney } from '@/lib/currency';
 import type { Account, Category, CreditCard, TransactionWithCategory } from '@/types/database.types';
 
 /**
@@ -25,6 +26,7 @@ export function TxRow({
   accounts?: Account[];
   cards?: CreditCard[];
 }) {
+  const money = useMoney();
   const isIncome = tx.type === 'income';
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -127,7 +129,7 @@ export function TxRow({
 
         <div className="w-32 shrink-0 text-right">
           <p className={`num text-sm ${isIncome ? 'text-income' : 'text-expense'}`}>
-            {isIncome ? '+' : '−'} {formatCurrency(tx.amount)}
+            {isIncome ? '+' : '−'} {money(tx.amount)}
           </p>
           <p className="num text-[11px] text-textMuted">{formatDate(tx.date)}</p>
         </div>

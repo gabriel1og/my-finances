@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { CardFormModal } from '@/components/cards/CardFormModal';
 import { archiveCard, deleteCard, payStatement, restoreCard } from '@/app/(app)/cards/actions';
-import { formatCurrency, formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
+import { useMoney } from '@/lib/currency';
 import type { Account, CardStatement, CardStatementItem, CreditCard } from '@/types/database.types';
 
 export function CardPanel({
@@ -19,6 +20,7 @@ export function CardPanel({
   items: CardStatementItem[];
   month: string;
 }) {
+  const money = useMoney();
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -81,13 +83,13 @@ export function CardPanel({
       <div className="mt-4 flex items-baseline justify-between">
         <span className="label-caps">Fatura do mês</span>
         <span className={`num text-xl ${open > 0 ? 'text-expense' : 'text-income'}`}>
-          {formatCurrency(open > 0 ? open : total)}
+          {money(open > 0 ? open : total)}
         </span>
       </div>
 
       {paid > 0 ? (
         <p className="num mt-1 text-[11px] text-income">
-          {formatCurrency(paid)} já pago de {formatCurrency(total)}
+          {money(paid)} já pago de {money(total)}
         </p>
       ) : null}
 
@@ -103,7 +105,7 @@ export function CardPanel({
             />
           </div>
           <p className="num mt-1 text-[11px] text-textMuted">
-            {formatCurrency(total)} de {formatCurrency(Number(card.credit_limit))} do limite
+            {money(total)} de {money(Number(card.credit_limit))} do limite
           </p>
         </>
       ) : null}
@@ -114,7 +116,7 @@ export function CardPanel({
             <div key={item.transaction_id} className="flex items-center justify-between py-1">
               <span className="truncate pr-2 text-xs text-textSecondary">{item.description}</span>
               <span className="num shrink-0 text-xs text-textPrimary">
-                {formatCurrency(Number(item.amount))}
+                {money(Number(item.amount))}
               </span>
             </div>
           ))}

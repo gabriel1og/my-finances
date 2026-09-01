@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { createTransaction, updateTransaction } from '@/app/(app)/transactions/actions';
 import { ACCOUNT_METHODS, PAYMENT_METHOD_LABEL } from '@/lib/constants';
+import { useMoney } from '@/lib/currency';
 import type {
   Account,
   Category,
@@ -50,6 +51,7 @@ export function TransactionModal({
   const [method, setMethod] = useState<PaymentMethod>(
     transaction?.payment_method ?? 'debit',
   );
+  const money = useMoney();
   const [installments, setInstallments] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -245,10 +247,7 @@ export function TransactionModal({
                       {installments > 1 && Number(amount.replace(',', '.')) > 0 ? (
                         <p className="num mt-1 text-[11px] text-textMuted">
                           {installments}x de aproximadamente{' '}
-                          {(Number(amount.replace(',', '.')) / installments).toLocaleString(
-                            'pt-BR',
-                            { style: 'currency', currency: 'BRL' },
-                          )}
+                          {money(Number(amount.replace(',', '.')) / installments)}
                           , uma por mês a partir da data escolhida.
                         </p>
                       ) : null}
