@@ -11,6 +11,7 @@ import type {
   CreditCard,
   MonthlyFlow,
   Profile,
+  RecurringWithRelations,
   TransactionWithCategory,
 } from '@/types/database.types';
 
@@ -161,4 +162,33 @@ export async function getTagTotals(month: string) {
     .order('expense', { ascending: false });
   if (error) throw error;
   return (data ?? []) as TagTotals[];
+}
+
+export async function getRecurring() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('recurring_transactions')
+    .select(
+      '*, category:categories(id,name,color)' +
+        ', account:accounts(id,name,color)' +
+        ', card:credit_cards(id,name,color)' +
+        ', tags(id,name,color)',
+    )
+    .order('day_of_month');
+
+  if (error) throw error;
+  return (data ?? []) as unknown as RecurringWithRelations[];
+}
+
+/** Ids dos modelos que já viraram lançamento no mês. */
+export async function getPostedRecurringIds(month: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('recurring_id')
+    .eq('recurring_month', `${month.slice(0, 7)}-01`)
+    .not('recurring_id', 'is', null);
+
+  if (error) throw error;
+  return new Set((data ?? []).map((row) => row.recurring_id as string));
 }
