@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { TransferRow } from '@/components/ui/TransferRow';
 import { TxRow } from '@/components/ui/TxRow';
+import { groupTransfers } from '@/lib/transactions';
 import type {
   Account,
   Category,
@@ -11,7 +13,7 @@ import type {
   TransactionWithCategory,
 } from '@/types/database.types';
 
-type Filter = TransactionType | 'all';
+type Filter = TransactionType | 'all' | 'transfer';
 
 export function TransactionsList({
   transactions,
@@ -30,10 +32,21 @@ export function TransactionsList({
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return transactions.filter((tx) => {
-      if (type !== 'all' && tx.type !== type) return false;
-      if (categoryId && tx.category_id !== categoryId) return false;
-      if (term && !tx.description.toLowerCase().includes(term)) return false;
+
+    return groupTransfers(transactions).filter((entry) => {
+      if (term && !entry.tx.description.toLowerCase().includes(term)) return false;
+
+      if (entry.kind === 'transfer') {
+        // Transferência não é receita nem despesa: só aparece em "Todos" ou no
+        // filtro próprio, e nunca quando se filtra por categoria.
+        if (type !== 'all' && type !== 'transfer') return false;
+        if (categoryId) return false;
+        return true;
+      }
+
+      if (type === 'transfer') return false;
+      if (type !== 'all' && entry.tx.type !== type) return false;
+      if (categoryId && entry.tx.category_id !== categoryId) return false;
       return true;
     });
   }, [transactions, search, type, categoryId]);
@@ -55,6 +68,7 @@ export function TransactionsList({
           <option value="all">Todos</option>
           <option value="income">Receitas</option>
           <option value="expense">Despesas</option>
+          <option value="transfer">Transferências</option>
         </select>
         <select
           className="input-base max-w-[180px]"
@@ -72,17 +86,21 @@ export function TransactionsList({
 
       <div className="card">
         {filtered.length ? (
-          filtered.map((tx) => (
-            // updated_at na key remonta a linha após uma edição, descartando o
-            // estado local do modal.
-            <TxRow
-              key={`${tx.id}-${tx.updated_at}`}
-              tx={tx}
-              categories={categories}
-              accounts={accounts}
-              cards={cards}
-            />
-          ))
+          filtered.map((entry) =>
+            entry.kind === 'transfer' ? (
+              <TransferRow key={entry.key} entry={entry} editable />
+            ) : (
+              // updated_at na key remonta a linha após uma edição, descartando
+              // o estado local do modal.
+              <TxRow
+                key={`${entry.key}-${entry.tx.updated_at}`}
+                tx={entry.tx}
+                categories={categories}
+                accounts={accounts}
+                cards={cards}
+              />
+            ),
+          )
         ) : (
           <EmptyState message="Nenhuma transação encontrada." />
         )}

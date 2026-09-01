@@ -5,7 +5,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { GoalProgress } from '@/components/ui/GoalProgress';
+import { TransferRow } from '@/components/ui/TransferRow';
 import { TxRow } from '@/components/ui/TxRow';
+import { groupTransfers } from '@/lib/transactions';
 import { currentMonth } from '@/lib/format';
 import {
   getAccountBalances,
@@ -130,7 +132,13 @@ export default async function DashboardPage({
         <span className="label-caps">Últimas transações</span>
         <div className="mt-2">
           {transactions.length ? (
-            transactions.map((tx) => <TxRow key={tx.id} tx={tx} />)
+            groupTransfers(transactions).map((entry) =>
+              entry.kind === 'transfer' ? (
+                <TransferRow key={entry.key} entry={entry} />
+              ) : (
+                <TxRow key={entry.key} tx={entry.tx} />
+              ),
+            )
           ) : (
             <EmptyState message="Nenhum lançamento neste mês." />
           )}
