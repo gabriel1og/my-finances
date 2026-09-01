@@ -28,9 +28,8 @@ export default async function AccountsPage({
   const archived = accounts.filter((account) => account.is_archived);
 
   const total = active.reduce((sum, account) => sum + (balanceById.get(account.id) ?? 0), 0);
-  const totalOpen = cards
-    .filter((card) => !card.is_archived)
-    .reduce((sum, card) => sum + (openByCard.get(card.id) ?? 0), 0);
+  // Arquivado com fatura em aberto continua comprometendo o saldo.
+  const totalOpen = cards.reduce((sum, card) => sum + (openByCard.get(card.id) ?? 0), 0);
 
   return (
     <>
@@ -54,9 +53,7 @@ export default async function AccountsPage({
       {active.length ? (
         <div className="grid grid-cols-3 gap-4">
           {active.map((account) => {
-            const accountCards = cards.filter(
-              (card) => card.account_id === account.id && !card.is_archived,
-            );
+            const accountCards = cards.filter((card) => card.account_id === account.id);
             const openTotal = accountCards.reduce(
               (sum, card) => sum + (openByCard.get(card.id) ?? 0),
               0,

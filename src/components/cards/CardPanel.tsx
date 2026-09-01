@@ -87,6 +87,12 @@ export function CardPanel({
         </span>
       </div>
 
+      {card.is_archived && open > 0 ? (
+        <p className="mt-2 text-[11px] text-warning">
+          Cartão arquivado com fatura em aberto. Você ainda pode registrar o pagamento.
+        </p>
+      ) : null}
+
       {paid > 0 ? (
         <p className="num mt-1 text-[11px] text-income">
           {money(paid)} já pago de {money(total)}
@@ -188,7 +194,7 @@ export function CardPanel({
       {error ? <p className="mt-2 text-xs text-expense">{error}</p> : null}
 
       <div className="mt-3 flex flex-wrap gap-3 border-t border-border pt-3 text-xs">
-        {!card.is_archived && open > 0 ? (
+        {open > 0 ? (
           <button
             onClick={() => setPaying((value) => !value)}
             className="text-accent transition-opacity hover:opacity-80"

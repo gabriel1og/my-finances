@@ -65,7 +65,10 @@ export function AccountCard({
 
       {cards.length ? (
         <p className="mt-2 text-[11px] text-textMuted">
-          Cartões: {cards.map((card) => card.name).join(', ')}
+          Cartões:{' '}
+          {cards
+            .map((card) => (card.is_archived ? `${card.name} (arquivado)` : card.name))
+            .join(', ')}
         </p>
       ) : null}
 

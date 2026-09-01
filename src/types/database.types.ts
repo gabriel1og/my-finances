@@ -327,6 +327,7 @@ export interface Database {
           credit_limit: number;
           closing_day: number;
           due_day: number;
+          is_archived: boolean;
           statement_month: string;
           total: number;
           paid: number;

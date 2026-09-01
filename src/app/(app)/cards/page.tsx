@@ -26,7 +26,8 @@ export default async function CardsPage({
   const active = cards.filter((card) => !card.is_archived);
   const archived = cards.filter((card) => card.is_archived);
 
-  const totalOpen = active.reduce(
+  // Fatura em aberto de cartão arquivado continua sendo dívida: entra no total.
+  const totalOpen = cards.reduce(
     (sum, card) => sum + Number(statementByCard.get(card.id)?.open_amount ?? 0),
     0,
   );
