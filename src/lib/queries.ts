@@ -192,3 +192,27 @@ export async function getPostedRecurringIds(month: string) {
   if (error) throw error;
   return new Set((data ?? []).map((row) => row.recurring_id as string));
 }
+
+/**
+ * Faturas do mês informado em diante. As parcelas futuras já existem como
+ * transações com data futura, então a view `card_statements` produz esses
+ * meses sozinha — não há previsão inventada aqui, só o que já foi comprado.
+ */
+export async function getUpcomingStatements(fromMonth: string, monthsAhead = 6) {
+  const supabase = await createClient();
+
+  const start = `${fromMonth.slice(0, 7)}-01`;
+  const startDate = new Date(`${start}T12:00:00`);
+  const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + monthsAhead, 1);
+  const end = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-01`;
+
+  const { data, error } = await supabase
+    .from('card_statements')
+    .select('*')
+    .gte('statement_month', start)
+    .lt('statement_month', end)
+    .order('statement_month');
+
+  if (error) throw error;
+  return (data ?? []) as CardStatement[];
+}
