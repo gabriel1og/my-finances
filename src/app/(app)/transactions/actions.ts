@@ -17,6 +17,7 @@ export type TransactionInput = {
   paymentMethod: PaymentMethod | null;
   /** Só para compra no cartão. 1 = à vista. */
   installments?: number;
+  tagIds?: string[];
 };
 
 type Result = { error: string | null };
@@ -92,9 +93,25 @@ export async function createTransaction(input: TransactionInput): Promise<Result
         }))
       : [{ ...base, description, amount: input.amount, date: input.date }];
 
-  const { error } = await supabase.from('transactions').insert(rows);
+  const { data: inserted, error } = await supabase.from('transactions').insert(rows).select('id');
 
   if (error) return { error: error.message };
+
+  // Numa compra parcelada, as tags valem para todas as parcelas: é a mesma
+  // compra vista em pedaços.
+  const tagIds = input.tagIds ?? [];
+  if (tagIds.length > 0 && inserted?.length) {
+    const { error: tagError } = await supabase.from('transaction_tags').insert(
+      inserted.flatMap((row) =>
+        tagIds.map((tagId) => ({
+          transaction_id: row.id,
+          tag_id: tagId,
+          user_id: user.id,
+        })),
+      ),
+    );
+    if (tagError) return { error: tagError.message };
+  }
 
   revalidateAll();
   return { error: null };
@@ -121,6 +138,30 @@ export async function updateTransaction(id: string, input: TransactionInput): Pr
     .eq('id', id);
 
   if (error) return { error: error.message };
+
+  if (input.tagIds) {
+    const { error: clearError } = await supabase
+      .from('transaction_tags')
+      .delete()
+      .eq('transaction_id', id);
+    if (clearError) return { error: clearError.message };
+
+    if (input.tagIds.length > 0) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return { error: 'Sessão expirada.' };
+
+      const { error: tagError } = await supabase.from('transaction_tags').insert(
+        input.tagIds.map((tagId) => ({
+          transaction_id: id,
+          tag_id: tagId,
+          user_id: user.id,
+        })),
+      );
+      if (tagError) return { error: tagError.message };
+    }
+  }
 
   revalidateAll();
   return { error: null };

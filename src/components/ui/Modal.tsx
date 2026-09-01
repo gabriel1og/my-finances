@@ -24,59 +24,74 @@ export function Modal({
   const previouslyFocused = useRef<HTMLElement | null>(null);
   const titleId = useId();
 
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        onClose();
-        return;
-      }
+  // `onClose` é recriado a cada render do componente pai (cada tecla digitada
+  // num input muda o estado dele). Guardar num ref mantém o handler abaixo
+  // estável, senão o efeito de foco rodava de novo a cada caractere e jogava o
+  // cursor de volta para o primeiro campo do modal.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
-      if (event.key !== 'Tab' || !panelRef.current) return;
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      onCloseRef.current();
+      return;
+    }
 
-      const focusable = Array.from(
-        panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE),
-      ).filter((element) => element.offsetParent !== null);
+    if (event.key !== 'Tab' || !panelRef.current) return;
 
-      if (focusable.length === 0) return;
+    const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+      (element) => element.offsetParent !== null,
+    );
 
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const active = document.activeElement;
+    if (focusable.length === 0) return;
 
-      // Ciclo: Tab no último volta ao primeiro, Shift+Tab no primeiro vai ao
-      // último. Sem isso o foco escapa para a página atrás do modal.
-      if (event.shiftKey && active === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    },
-    [onClose],
-  );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
 
+    // Ciclo: Tab no último volta ao primeiro, Shift+Tab no primeiro vai ao
+    // último. Sem isso o foco escapa para a página atrás do modal.
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }, []);
+
+  // Só depende de `open`: abre -> foca o primeiro campo e trava o scroll;
+  // fecha -> devolve o foco ao gatilho. Nunca reexecuta durante a digitação.
   useEffect(() => {
     if (!open) return;
 
     previouslyFocused.current = document.activeElement as HTMLElement | null;
-    document.addEventListener('keydown', handleKeyDown);
 
     const { overflow } = document.body.style;
     document.body.style.overflow = 'hidden';
 
-    // Foca o primeiro campo, não o "×" — quem abre o modal quer digitar.
+    // Foca o primeiro campo de digitação, não o "×" nem um toggle — quem abre
+    // o modal quer digitar.
     const focusables = Array.from(panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
+    const usable = focusables.filter((element) => !element.hasAttribute('data-modal-close'));
     const firstField =
-      focusables.find((element) => !element.hasAttribute('data-modal-close')) ?? focusables[0];
+      usable.find((element) => element instanceof HTMLInputElement) ?? usable[0] ?? focusables[0];
     firstField?.focus();
 
+    const trigger = previouslyFocused.current;
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = overflow;
-      previouslyFocused.current?.focus();
+      trigger?.focus();
     };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, handleKeyDown]);
 
   if (!open) return null;

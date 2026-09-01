@@ -9,10 +9,12 @@ import {
 } from '@/app/(app)/transactions/actions';
 import { formatDate } from '@/lib/format';
 import { useMoney } from '@/lib/currency';
+import { TagChip } from '@/components/ui/TagChip';
 import type {
   Account,
   Category,
   CreditCard,
+  Tag,
   TransactionWithCategory,
 } from '@/types/database.types';
 
@@ -25,11 +27,13 @@ export function TxRow({
   categories,
   accounts = [],
   cards = [],
+  tags = [],
 }: {
   tx: TransactionWithCategory;
   categories?: Category[];
   accounts?: Account[];
   cards?: CreditCard[];
+  tags?: Tag[];
 }) {
   const money = useMoney();
   const isIncome = tx.type === 'income';
@@ -69,7 +73,17 @@ export function TxRow({
         </span>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm text-textPrimary">{tx.description}</p>
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm text-textPrimary">{tx.description}</p>
+
+            {tx.tags?.length ? (
+              <div className="flex shrink-0 items-center gap-1">
+                {tx.tags.map((tag) => (
+                  <TagChip key={tag.id} name={tag.name} color={tag.color} />
+                ))}
+              </div>
+            ) : null}
+          </div>
           <p className="text-xs text-textSecondary">
             <span
               className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle"
@@ -114,6 +128,7 @@ export function TxRow({
                   categories={categories}
                   accounts={accounts}
                   cards={cards}
+                  tags={tags}
                   transaction={tx}
                   trigger={
                     <button className="text-textSecondary transition-colors hover:text-textPrimary">

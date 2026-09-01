@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { monthRange } from '@/lib/format';
 import type {
   AccountBalance,
+  Tag,
+  TagTotals,
   Account,
   CardStatement,
   CardStatementItem,
@@ -19,9 +21,12 @@ export async function getTransactions(month?: string, limit?: number) {
     .select(
       // FKs explícitas: transactions aponta duas vezes para credit_cards
       // (card_id e card_payment_for), então o embed precisa dizer qual usar.
-      '*, category:categories!transactions_category_id_fkey(id, name, color)' +
-        ', account:accounts!transactions_account_id_fkey(id, name, color)' +
-        ', card:credit_cards!transactions_card_id_fkey(id, name, color)',
+      // `tags(...)` é embed many-to-many: o PostgREST atravessa
+      // transaction_tags sozinho porque a PK dela é composta pelas duas FKs.
+      '*, category:categories!transactions_category_id_fkey(id,name,color)' +
+        ', account:accounts!transactions_account_id_fkey(id,name,color)' +
+        ', card:credit_cards!transactions_card_id_fkey(id,name,color)' +
+        ', tags(id,name,color)',
     )
     .order('date', { ascending: false })
     .order('created_at', { ascending: false });
@@ -138,4 +143,22 @@ export async function getStatementItems(month: string) {
     .order('date', { ascending: false });
   if (error) throw error;
   return (data ?? []) as CardStatementItem[];
+}
+
+export async function getTags() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('tags').select('*').order('name');
+  if (error) throw error;
+  return (data ?? []) as Tag[];
+}
+
+export async function getTagTotals(month: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('tag_month_totals')
+    .select('*')
+    .eq('month', `${month.slice(0, 7)}-01`)
+    .order('expense', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as TagTotals[];
 }

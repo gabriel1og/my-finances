@@ -6,10 +6,12 @@ import { createTransaction, updateTransaction } from '@/app/(app)/transactions/a
 import { ACCOUNT_METHODS, PAYMENT_METHOD_LABEL } from '@/lib/constants';
 import { useMoney } from '@/lib/currency';
 import { statementMonth } from '@/lib/statements';
+import { TagPicker } from '@/components/ui/TagPicker';
 import type {
   Account,
   Category,
   CreditCard,
+  Tag,
   PaymentMethod,
   SettlementKind,
   TransactionType,
@@ -25,12 +27,14 @@ export function TransactionModal({
   categories,
   accounts,
   cards,
+  tags = [],
   transaction,
   trigger,
 }: {
   categories: Category[];
   accounts: Account[];
   cards: CreditCard[];
+  tags?: Tag[];
   transaction?: TransactionWithCategory;
   trigger?: React.ReactNode;
 }) {
@@ -53,6 +57,7 @@ export function TransactionModal({
   const [method, setMethod] = useState<PaymentMethod>(transaction?.payment_method ?? 'debit');
   const money = useMoney();
   const [installments, setInstallments] = useState(1);
+  const [tagIds, setTagIds] = useState<string[]>(transaction?.tags?.map((tag) => tag.id) ?? []);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -112,6 +117,7 @@ export function TransactionModal({
       paymentMethod: onCard ? ('credit' as const) : method,
       // Parcelar só faz sentido no cartão; editar uma parcela não re-parcela.
       installments: onCard && !editing ? installments : 1,
+      tagIds,
     };
 
     startTransition(async () => {
@@ -309,6 +315,8 @@ export function TransactionModal({
               ))}
             </select>
           </div>
+
+          <TagPicker tags={tags} selected={tagIds} onChange={setTagIds} />
         </div>
 
         {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
