@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Modal, ModalTrigger } from '@/components/ui/Modal';
 import { createTransaction, updateTransaction } from '@/app/(app)/transactions/actions';
 import { ACCOUNT_METHODS, PAYMENT_METHOD_LABEL } from '@/lib/constants';
 import { useMoney } from '@/lib/currency';
@@ -119,20 +120,17 @@ export function TransactionModal({
 
   return (
     <>
-      <span onClick={() => setOpen(true)}>
-        {trigger ?? (
-          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
-            Novo lançamento
-          </button>
-        )}
-      </span>
+      <ModalTrigger
+        trigger={trigger}
+        onOpen={() => setOpen(true)}
+        fallback={
+        <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
+          Novo lançamento
+        </button>
+        }
+      />
 
-      {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md animate-fadeUp rounded-lg border border-border bg-surface p-6">
-            <h2 className="text-base font-medium">
-              {editing ? 'Editar lançamento' : 'Novo lançamento'}
-            </h2>
+      <Modal open={open} onClose={close} title={editing ? 'Editar lançamento' : 'Novo lançamento'}>
 
             <div className="mt-4 grid grid-cols-2 gap-2 rounded-md border border-border p-1">
               {(['income', 'expense'] as const).map((option) => (
@@ -324,9 +322,7 @@ export function TransactionModal({
                 {pending ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
-          </div>
-        </div>
-      ) : null}
+      </Modal>
     </>
   );
 }

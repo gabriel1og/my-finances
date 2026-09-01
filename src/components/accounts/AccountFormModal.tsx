@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Modal, ModalTrigger } from '@/components/ui/Modal';
 import { ACCOUNT_KIND_LABEL, CATEGORY_PALETTE } from '@/lib/constants';
 import { createAccount, updateAccount } from '@/app/(app)/accounts/actions';
 import type { Account, AccountKind } from '@/types/database.types';
@@ -48,18 +49,17 @@ export function AccountFormModal({
 
   return (
     <>
-      <span onClick={() => setOpen(true)}>
-        {trigger ?? (
-          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
-            Nova conta
-          </button>
-        )}
-      </span>
+      <ModalTrigger
+        trigger={trigger}
+        onOpen={() => setOpen(true)}
+        fallback={
+        <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
+          Nova conta
+        </button>
+        }
+      />
 
-      {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md animate-fadeUp rounded-lg border border-border bg-surface p-6">
-            <h2 className="text-base font-medium">{editing ? 'Editar conta' : 'Nova conta'}</h2>
+      <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Editar conta' : 'Nova conta'}>
 
             <div className="mt-4 space-y-3">
               <div>
@@ -152,9 +152,7 @@ export function AccountFormModal({
                 {pending ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
-          </div>
-        </div>
-      ) : null}
+      </Modal>
     </>
   );
 }

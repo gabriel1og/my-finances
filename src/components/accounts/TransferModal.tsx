@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Modal, ModalTrigger } from '@/components/ui/Modal';
 import { createTransfer, updateTransfer } from '@/app/(app)/transactions/actions';
 import type { Account } from '@/types/database.types';
 
@@ -65,24 +66,21 @@ export function TransferModal({
 
   return (
     <>
-      <span onClick={() => setOpen(true)}>
-        {trigger ?? (
-          <button
-            disabled={accounts.length < 2}
-            title={accounts.length < 2 ? 'Cadastre ao menos duas contas' : undefined}
-            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary disabled:opacity-40"
-          >
-            Transferir
-          </button>
-        )}
-      </span>
+      <ModalTrigger
+        trigger={trigger}
+        onOpen={() => setOpen(true)}
+        fallback={
+        <button
+          disabled={accounts.length < 2}
+          title={accounts.length < 2 ? 'Cadastre ao menos duas contas' : undefined}
+          className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary disabled:opacity-40"
+        >
+          Transferir
+        </button>
+        }
+      />
 
-      {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md animate-fadeUp rounded-lg border border-border bg-surface p-6">
-            <h2 className="text-base font-medium">
-              {editing ? 'Editar transferência' : 'Transferência entre contas'}
-            </h2>
+      <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Editar transferência' : 'Transferência entre contas'}>
             <p className="mt-1 text-xs text-textSecondary">
               Move saldo de uma conta para outra. Não conta como receita nem despesa.
             </p>
@@ -170,9 +168,7 @@ export function TransferModal({
                 {pending ? 'Salvando...' : editing ? 'Salvar' : 'Transferir'}
               </button>
             </div>
-          </div>
-        </div>
-      ) : null}
+      </Modal>
     </>
   );
 }
