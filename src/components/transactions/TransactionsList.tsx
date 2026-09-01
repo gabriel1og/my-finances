@@ -88,7 +88,13 @@ export function TransactionsList({
         {filtered.length ? (
           filtered.map((entry) =>
             entry.kind === 'transfer' ? (
-              <TransferRow key={entry.key} entry={entry} editable />
+              // updated_at na key remonta a linha após uma edição, como no TxRow.
+              <TransferRow
+                key={`${entry.key}-${entry.tx.updated_at}`}
+                entry={entry}
+                editable
+                accounts={accounts}
+              />
             ) : (
               // updated_at na key remonta a linha após uma edição, descartando
               // o estado local do modal.

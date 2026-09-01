@@ -2,9 +2,11 @@
 
 import { useState, useTransition } from 'react';
 import { deleteTransfer } from '@/app/(app)/transactions/actions';
+import { TransferModal } from '@/components/accounts/TransferModal';
 import { useMoney } from '@/lib/currency';
 import { formatDate } from '@/lib/format';
 import type { Entry } from '@/lib/transactions';
+import type { Account } from '@/types/database.types';
 
 /**
  * As duas pontas de uma transferência numa linha só. O valor fica em
@@ -14,9 +16,11 @@ import type { Entry } from '@/lib/transactions';
 export function TransferRow({
   entry,
   editable = false,
+  accounts = [],
 }: {
   entry: Extract<Entry, { kind: 'transfer' }>;
   editable?: boolean;
+  accounts?: Account[];
 }) {
   const money = useMoney();
   const [confirming, setConfirming] = useState(false);
@@ -72,12 +76,32 @@ export function TransferRow({
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => setConfirming(true)}
-                className="text-textMuted transition-colors hover:text-expense"
-              >
-                Excluir
-              </button>
+              <>
+                {entry.fromId && entry.toId ? (
+                  <TransferModal
+                    accounts={accounts}
+                    transfer={{
+                      group: entry.group,
+                      fromAccountId: entry.fromId,
+                      toAccountId: entry.toId,
+                      amount: entry.amount,
+                      date: entry.date,
+                      description: entry.description,
+                    }}
+                    trigger={
+                      <button className="text-textSecondary transition-colors hover:text-textPrimary">
+                        Editar
+                      </button>
+                    }
+                  />
+                ) : null}
+                <button
+                  onClick={() => setConfirming(true)}
+                  className="text-textMuted transition-colors hover:text-expense"
+                >
+                  Excluir
+                </button>
+              </>
             )}
           </div>
         ) : null}

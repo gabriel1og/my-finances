@@ -222,6 +222,69 @@ export async function createTransfer(input: TransferInput): Promise<Result> {
   return { error: null };
 }
 
+/**
+ * Edita as duas pontas de uma vez. A ponta de despesa carrega a conta de
+ * origem e a de receita, a de destino — trocar as contas é reescrever esses
+ * dois account_id, não criar linhas novas.
+ */
+export async function updateTransfer(
+  groupId: string,
+  input: TransferInput,
+): Promise<Result> {
+  if (!input.fromAccountId || !input.toAccountId) return { error: 'Escolha as duas contas.' };
+  if (input.fromAccountId === input.toAccountId) {
+    return { error: 'Origem e destino precisam ser contas diferentes.' };
+  }
+  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+    return { error: 'Informe um valor maior que zero.' };
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) return { error: 'Data inválida.' };
+
+  const supabase = await createClient();
+
+  const { data: rows, error: rowsError } = await supabase
+    .from('transactions')
+    .select('id, type')
+    .eq('transfer_group', groupId);
+
+  if (rowsError) return { error: rowsError.message };
+
+  const outgoing = (rows ?? []).find((row) => row.type === 'expense');
+  const incoming = (rows ?? []).find((row) => row.type === 'income');
+  if (!outgoing || !incoming) {
+    return { error: 'Transferência incompleta. Exclua e registre de novo.' };
+  }
+
+  const { data: accounts, error: accountsError } = await supabase
+    .from('accounts')
+    .select('id, name')
+    .in('id', [input.fromAccountId, input.toAccountId]);
+
+  if (accountsError) return { error: accountsError.message };
+  if ((accounts ?? []).length !== 2) return { error: 'Conta não encontrada.' };
+
+  const from = accounts!.find((account) => account.id === input.fromAccountId)!;
+  const to = accounts!.find((account) => account.id === input.toAccountId)!;
+  const label = input.description.trim() || `Transferência ${from.name} → ${to.name}`;
+
+  const shared = { amount: input.amount, date: input.date, description: label };
+
+  const { error: outError } = await supabase
+    .from('transactions')
+    .update({ ...shared, account_id: input.fromAccountId })
+    .eq('id', outgoing.id);
+  if (outError) return { error: outError.message };
+
+  const { error: inError } = await supabase
+    .from('transactions')
+    .update({ ...shared, account_id: input.toAccountId })
+    .eq('id', incoming.id);
+  if (inError) return { error: inError.message };
+
+  revalidateAll();
+  return { error: null };
+}
+
 /** Apaga os dois lados da transferência. */
 export async function deleteTransfer(groupId: string): Promise<Result> {
   const supabase = await createClient();

@@ -16,6 +16,8 @@ export type Entry =
       date: string;
       from: string | null;
       to: string | null;
+      fromId: string | null;
+      toId: string | null;
       /** A ponta de despesa, usada como referência para editar/excluir. */
       tx: TransactionWithCategory;
     };
@@ -46,6 +48,8 @@ export function groupTransfers(transactions: TransactionWithCategory[]): Entry[]
       date: tx.date,
       from: out?.account?.name ?? null,
       to: into?.account?.name ?? null,
+      fromId: out?.account_id ?? null,
+      toId: into?.account_id ?? null,
       // Se a outra ponta estiver fora do período carregado, a que temos serve.
       tx: out ?? tx,
     });

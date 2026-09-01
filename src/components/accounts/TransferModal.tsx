@@ -1,51 +1,88 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createTransfer } from '@/app/(app)/transactions/actions';
+import { createTransfer, updateTransfer } from '@/app/(app)/transactions/actions';
 import type { Account } from '@/types/database.types';
 
-export function TransferModal({ accounts }: { accounts: Account[] }) {
+/** Valores de uma transferência existente, para o modo edição. */
+export type TransferDraft = {
+  group: string;
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  date: string;
+  description: string;
+};
+
+export function TransferModal({
+  accounts,
+  transfer,
+  trigger,
+}: {
+  accounts: Account[];
+  transfer?: TransferDraft;
+  trigger?: React.ReactNode;
+}) {
+  const editing = Boolean(transfer);
   const [open, setOpen] = useState(false);
-  const [fromAccountId, setFromAccountId] = useState(accounts[0]?.id ?? '');
-  const [toAccountId, setToAccountId] = useState(accounts[1]?.id ?? '');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [description, setDescription] = useState('');
+  const [fromAccountId, setFromAccountId] = useState(
+    transfer?.fromAccountId ?? accounts[0]?.id ?? '',
+  );
+  const [toAccountId, setToAccountId] = useState(transfer?.toAccountId ?? accounts[1]?.id ?? '');
+  const [amount, setAmount] = useState(
+    transfer ? String(transfer.amount).replace('.', ',') : '',
+  );
+  const [date, setDate] = useState(
+    transfer?.date.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
+  );
+  const [description, setDescription] = useState(transfer?.description ?? '');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function submit() {
     setError(null);
+    const input = {
+      fromAccountId,
+      toAccountId,
+      amount: Number(amount.replace(',', '.')),
+      date,
+      description,
+    };
+
     startTransition(async () => {
-      const result = await createTransfer({
-        fromAccountId,
-        toAccountId,
-        amount: Number(amount.replace(',', '.')),
-        date,
-        description,
-      });
+      const result = editing
+        ? await updateTransfer(transfer!.group, input)
+        : await createTransfer(input);
+
       if (result.error) return setError(result.error);
-      setAmount('');
-      setDescription('');
+      if (!editing) {
+        setAmount('');
+        setDescription('');
+      }
       setOpen(false);
     });
   }
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        disabled={accounts.length < 2}
-        title={accounts.length < 2 ? 'Cadastre ao menos duas contas' : undefined}
-        className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary disabled:opacity-40"
-      >
-        Transferir
-      </button>
+      <span onClick={() => setOpen(true)}>
+        {trigger ?? (
+          <button
+            disabled={accounts.length < 2}
+            title={accounts.length < 2 ? 'Cadastre ao menos duas contas' : undefined}
+            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary disabled:opacity-40"
+          >
+            Transferir
+          </button>
+        )}
+      </span>
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md animate-fadeUp rounded-lg border border-border bg-surface p-6">
-            <h2 className="text-base font-medium">Transferência entre contas</h2>
+            <h2 className="text-base font-medium">
+              {editing ? 'Editar transferência' : 'Transferência entre contas'}
+            </h2>
             <p className="mt-1 text-xs text-textSecondary">
               Move saldo de uma conta para outra. Não conta como receita nem despesa.
             </p>
@@ -130,7 +167,7 @@ export function TransferModal({ accounts }: { accounts: Account[] }) {
                 disabled={pending}
                 className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                {pending ? 'Transferindo...' : 'Transferir'}
+                {pending ? 'Salvando...' : editing ? 'Salvar' : 'Transferir'}
               </button>
             </div>
           </div>
