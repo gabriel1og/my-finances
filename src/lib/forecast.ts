@@ -45,7 +45,9 @@ export function buildForecast({
   postedRecurringIds: Set<string>;
 }): ForecastMonth[] {
   return months.map((month) => {
-    const monthStatements = statements.filter((row) => row.statement_month.slice(0, 7) === month.slice(0, 7));
+    const monthStatements = statements.filter(
+      (row) => row.statement_month.slice(0, 7) === month.slice(0, 7),
+    );
     const cardTotal = monthStatements.reduce((sum, row) => sum + Number(row.total), 0);
 
     const applicable = recurring.filter(

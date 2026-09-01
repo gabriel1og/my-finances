@@ -52,8 +52,16 @@ export default async function ForecastPage({
           tone="expense"
           subtitle={`Somando ${MONTHS_AHEAD} meses`}
         />
-        <KpiCard label="Faturas de cartão" value={totalCards} subtitle="Compras e parcelas já feitas" />
-        <KpiCard label="Fixos previstos" value={totalRecurring} subtitle="Modelos ativos ainda não lançados" />
+        <KpiCard
+          label="Faturas de cartão"
+          value={totalCards}
+          subtitle="Compras e parcelas já feitas"
+        />
+        <KpiCard
+          label="Fixos previstos"
+          value={totalRecurring}
+          subtitle="Modelos ativos ainda não lançados"
+        />
       </section>
 
       {hasAnything ? (
@@ -72,8 +80,8 @@ export default async function ForecastPage({
       )}
 
       <p className="mt-4 text-[11px] text-textMuted">
-        Faturas vêm de compras já registradas — parcela futura é transação real com data futura,
-        não estimativa. Fixos são previsão: o valor pode mudar na hora de lançar.
+        Faturas vêm de compras já registradas — parcela futura é transação real com data futura, não
+        estimativa. Fixos são previsão: o valor pode mudar na hora de lançar.
       </p>
     </>
   );

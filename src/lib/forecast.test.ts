@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { buildForecast, monthSequence, recurringAppliesTo } from '@/lib/forecast';
 import type { CardStatement, RecurringWithRelations } from '@/types/database.types';
 
-function statement(overrides: Partial<CardStatement> & { card_id: string; statement_month: string }) {
+function statement(
+  overrides: Partial<CardStatement> & { card_id: string; statement_month: string },
+) {
   return {
     user_id: 'user-1',
     name: 'Cartão',
@@ -70,7 +72,9 @@ describe('recurringAppliesTo', () => {
   });
 
   it('aceita o mês exato do fim', () => {
-    expect(recurringAppliesTo(model({ id: 'a', end_month: '2026-09-01' }), '2026-09-01')).toBe(true);
+    expect(recurringAppliesTo(model({ id: 'a', end_month: '2026-09-01' }), '2026-09-01')).toBe(
+      true,
+    );
   });
 });
 
