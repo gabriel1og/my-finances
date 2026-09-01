@@ -42,9 +42,9 @@ export function Modal({
 
     if (event.key !== 'Tab' || !panelRef.current) return;
 
-    const focusable = Array.from(
-      panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE),
-    ).filter((element) => element.offsetParent !== null);
+    const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+      (element) => element.offsetParent !== null,
+    );
 
     if (focusable.length === 0) return;
 

@@ -71,9 +71,7 @@ export default async function DashboardPage({
       <PageHeader
         title="Dashboard"
         subtitle="Visão geral do mês"
-        action={
-          <AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />
-        }
+        action={<AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />}
       />
 
       <section className="grid grid-cols-4 gap-4">

@@ -66,7 +66,10 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
               key={tag.id}
               className="flex items-center gap-2 border-b border-border py-2 last:border-b-0"
             >
-              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: tag.color }} />
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: tag.color }}
+              />
 
               {editingId === tag.id ? (
                 <>
@@ -79,8 +82,9 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
                   <button
                     disabled={pending}
                     onClick={() =>
-                      run(() => updateTag(tag.id, { name: editName, color: tag.color }), () =>
-                        setEditingId(null),
+                      run(
+                        () => updateTag(tag.id, { name: editName, color: tag.color }),
+                        () => setEditingId(null),
                       )
                     }
                     className="shrink-0 text-xs text-accent"
@@ -131,7 +135,12 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
                       <span className="shrink-0 text-xs text-textSecondary">Excluir?</span>
                       <button
                         disabled={pending}
-                        onClick={() => run(() => deleteTag(tag.id), () => setConfirmingId(null))}
+                        onClick={() =>
+                          run(
+                            () => deleteTag(tag.id),
+                            () => setConfirmingId(null),
+                          )
+                        }
                         className="shrink-0 text-xs text-expense"
                       >
                         Sim

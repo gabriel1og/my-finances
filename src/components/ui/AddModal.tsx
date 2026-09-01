@@ -57,9 +57,7 @@ export function TransactionModal({
   const [method, setMethod] = useState<PaymentMethod>(transaction?.payment_method ?? 'debit');
   const money = useMoney();
   const [installments, setInstallments] = useState(1);
-  const [tagIds, setTagIds] = useState<string[]>(
-    transaction?.tags?.map((tag) => tag.id) ?? [],
-  );
+  const [tagIds, setTagIds] = useState<string[]>(transaction?.tags?.map((tag) => tag.id) ?? []);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 

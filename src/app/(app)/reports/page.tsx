@@ -73,9 +73,7 @@ export default async function ReportsPage({
                 <span className="flex items-center gap-2 text-sm text-textPrimary">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: row.color }} />
                   {row.name}
-                  <span className="num text-[11px] text-textMuted">
-                    {row.items} lançamento(s)
-                  </span>
+                  <span className="num text-[11px] text-textMuted">{row.items} lançamento(s)</span>
                 </span>
                 <Money value={Number(row.expense)} className="num text-sm text-expense" />
               </div>

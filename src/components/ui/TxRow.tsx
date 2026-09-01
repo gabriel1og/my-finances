@@ -92,7 +92,6 @@ export function TxRow({
             {tx.is_transfer ? 'Transferência' : (tx.category?.name ?? 'Sem categoria')}
             {tx.card ? ` · ${tx.card.name}` : tx.account ? ` · ${tx.account.name}` : ''}
           </p>
-
         </div>
 
         {categories ? (

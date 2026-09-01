@@ -23,9 +23,7 @@ export default async function TransactionsPage({
       <PageHeader
         title="Transações"
         subtitle="Todos os lançamentos do mês"
-        action={
-          <AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />
-        }
+        action={<AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />}
       />
       <TransactionsList
         transactions={transactions}

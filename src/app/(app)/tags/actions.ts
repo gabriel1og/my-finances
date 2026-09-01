@@ -78,10 +78,7 @@ export async function deleteTag(id: string): Promise<Result> {
 }
 
 /** Substitui o conjunto de tags de uma transação. */
-export async function setTransactionTags(
-  transactionId: string,
-  tagIds: string[],
-): Promise<Result> {
+export async function setTransactionTags(transactionId: string, tagIds: string[]): Promise<Result> {
   const supabase = await createClient();
   const {
     data: { user },
