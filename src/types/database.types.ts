@@ -101,6 +101,8 @@ export interface Database {
           payment_method: PaymentMethod | null;
           is_card_payment: boolean;
           card_payment_for: string | null;
+          recurring_id: string | null;
+          recurring_month: string | null;
           installment_group: string | null;
           installment_no: number | null;
           installment_total: number | null;
@@ -124,6 +126,8 @@ export interface Database {
           payment_method?: PaymentMethod | null;
           is_card_payment?: boolean;
           card_payment_for?: string | null;
+          recurring_id?: string | null;
+          recurring_month?: string | null;
           installment_group?: string | null;
           installment_no?: number | null;
           installment_total?: number | null;
@@ -336,6 +340,90 @@ export interface Database {
           },
         ];
       };
+      recurring_transactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          description: string;
+          amount: number;
+          type: TransactionType;
+          day_of_month: number;
+          category_id: string | null;
+          settlement: SettlementKind;
+          account_id: string | null;
+          card_id: string | null;
+          payment_method: PaymentMethod | null;
+          start_month: string;
+          end_month: string | null;
+          is_active: boolean;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          description: string;
+          amount: number;
+          type: TransactionType;
+          day_of_month: number;
+          category_id?: string | null;
+          settlement?: SettlementKind;
+          account_id?: string | null;
+          card_id?: string | null;
+          payment_method?: PaymentMethod | null;
+          start_month?: string;
+          end_month?: string | null;
+          is_active?: boolean;
+          notes?: string | null;
+        };
+        Update: Partial<Database['public']['Tables']['recurring_transactions']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'recurring_transactions_category_id_fkey';
+            columns: ['category_id'];
+            isOneToOne: false;
+            referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'recurring_transactions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      recurring_tags: {
+        Row: {
+          recurring_id: string;
+          tag_id: string;
+          user_id: string;
+        };
+        Insert: {
+          recurring_id: string;
+          tag_id: string;
+          user_id: string;
+        };
+        Update: Partial<Database['public']['Tables']['recurring_tags']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'recurring_tags_recurring_id_fkey';
+            columns: ['recurring_id'];
+            isOneToOne: false;
+            referencedRelation: 'recurring_transactions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'recurring_tags_tag_id_fkey';
+            columns: ['tag_id'];
+            isOneToOne: false;
+            referencedRelation: 'tags';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       monthly_flow: {
@@ -446,6 +534,14 @@ export type CardStatement = Database['public']['Views']['card_statements']['Row'
 export type CardStatementItem = Database['public']['Views']['card_statement_items']['Row'];
 
 export type Tag = Database['public']['Tables']['tags']['Row'];
+export type Recurring = Database['public']['Tables']['recurring_transactions']['Row'];
+
+export type RecurringWithRelations = Recurring & {
+  category: Pick<Category, 'id' | 'name' | 'color'> | null;
+  account: Pick<Account, 'id' | 'name' | 'color'> | null;
+  card: Pick<CreditCard, 'id' | 'name' | 'color'> | null;
+  tags: Pick<Tag, 'id' | 'name' | 'color'>[];
+};
 export type TagTotals = Database['public']['Views']['tag_month_totals']['Row'];
 
 export type TransactionWithCategory = Transaction & {

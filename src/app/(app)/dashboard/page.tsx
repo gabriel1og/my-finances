@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { GoalProgress } from '@/components/ui/GoalProgress';
+import { PendingBanner } from '@/components/recurring/PendingBanner';
 import { TransferRow } from '@/components/ui/TransferRow';
 import { TxRow } from '@/components/ui/TxRow';
 import { groupTransfers } from '@/lib/transactions';
@@ -16,7 +17,9 @@ import {
   getCategories,
   getCategorySpending,
   getMonthlyFlow,
+  getPostedRecurringIds,
   getProfile,
+  getRecurring,
   getTags,
   getTransactions,
 } from '@/lib/queries';
@@ -36,12 +39,23 @@ export default async function DashboardPage({
     getProfile(),
   ]);
 
-  const [accounts, cards, balances, tags] = await Promise.all([
+  const [accounts, cards, balances, tags, recurring, postedRecurring] = await Promise.all([
     getAccounts(),
     getCards(),
     getAccountBalances(),
     getTags(),
+    getRecurring(),
+    getPostedRecurringIds(month),
   ]);
+
+  const monthStart = `${month.slice(0, 7)}-01`;
+  const pendingRecurring = recurring.filter(
+    (item) =>
+      item.is_active &&
+      item.start_month <= monthStart &&
+      (!item.end_month || item.end_month >= monthStart) &&
+      !postedRecurring.has(item.id),
+  ).length;
 
   // Saldo consolidado: só contas ativas.
   const consolidated = balances
@@ -73,6 +87,8 @@ export default async function DashboardPage({
         subtitle="Visão geral do mês"
         action={<AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />}
       />
+
+      <PendingBanner count={pendingRecurring} month={month} />
 
       <section className="grid grid-cols-4 gap-4">
         <KpiCard
