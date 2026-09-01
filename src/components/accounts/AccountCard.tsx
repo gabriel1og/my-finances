@@ -2,11 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { AccountFormModal } from '@/components/accounts/AccountFormModal';
-import {
-  archiveAccount,
-  deleteAccount,
-  restoreAccount,
-} from '@/app/(app)/accounts/actions';
+import { archiveAccount, deleteAccount, restoreAccount } from '@/app/(app)/accounts/actions';
 import { ACCOUNT_KIND_LABEL } from '@/lib/constants';
 import { useMoney } from '@/lib/currency';
 import type { Account, CreditCard } from '@/types/database.types';

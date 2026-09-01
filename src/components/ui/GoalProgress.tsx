@@ -57,13 +57,14 @@ export function GoalProgress({
       : `Restam ${formatCurrency(remaining, currency)} para gastar`;
   }
 
-  const captionTone = negative || (!isSaving && reached)
-    ? 'text-expense'
-    : nearLimit
-      ? 'text-warning'
-      : isSaving && reached
-        ? 'text-income'
-        : 'text-textSecondary';
+  const captionTone =
+    negative || (!isSaving && reached)
+      ? 'text-expense'
+      : nearLimit
+        ? 'text-warning'
+        : isSaving && reached
+          ? 'text-income'
+          : 'text-textSecondary';
 
   return (
     <div className="card">

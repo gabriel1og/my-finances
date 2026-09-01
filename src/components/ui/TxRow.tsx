@@ -9,7 +9,12 @@ import {
 } from '@/app/(app)/transactions/actions';
 import { formatDate } from '@/lib/format';
 import { useMoney } from '@/lib/currency';
-import type { Account, Category, CreditCard, TransactionWithCategory } from '@/types/database.types';
+import type {
+  Account,
+  Category,
+  CreditCard,
+  TransactionWithCategory,
+} from '@/types/database.types';
 
 /**
  * `categories` é opcional: quando informado, a linha ganha as ações de editar

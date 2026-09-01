@@ -55,7 +55,11 @@ export default async function CardsPage({
             <KpiCard
               label="Limite disponível"
               value={totalLimit - totalUsed}
-              subtitle={<>De <Money value={totalLimit} /></>}
+              subtitle={
+                <>
+                  De <Money value={totalLimit} />
+                </>
+              }
             />
           </section>
 

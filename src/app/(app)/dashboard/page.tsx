@@ -78,7 +78,11 @@ export default async function DashboardPage({
           value={consolidated}
           subtitle={`${balances.filter((row) => !row.is_archived).length} conta(s) ativa(s)`}
         />
-        <KpiCard label="Saldo do mês" value={totalIncome - totalExpense} subtitle="Receitas − despesas" />
+        <KpiCard
+          label="Saldo do mês"
+          value={totalIncome - totalExpense}
+          subtitle="Receitas − despesas"
+        />
         <KpiCard label="Receitas" value={totalIncome} tone="income" />
         <KpiCard label="Despesas" value={totalExpense} tone="expense" />
       </section>

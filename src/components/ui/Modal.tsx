@@ -67,9 +67,7 @@ export function Modal({
     document.body.style.overflow = 'hidden';
 
     // Foca o primeiro campo, não o "×" — quem abre o modal quer digitar.
-    const focusables = Array.from(
-      panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [],
-    );
+    const focusables = Array.from(panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
     const firstField =
       focusables.find((element) => !element.hasAttribute('data-modal-close')) ?? focusables[0];
     firstField?.focus();

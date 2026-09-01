@@ -49,9 +49,7 @@ export function TransactionModal({
   );
   const [accountId, setAccountId] = useState(transaction?.account_id ?? accounts[0]?.id ?? '');
   const [cardId, setCardId] = useState(transaction?.card_id ?? cards[0]?.id ?? '');
-  const [method, setMethod] = useState<PaymentMethod>(
-    transaction?.payment_method ?? 'debit',
-  );
+  const [method, setMethod] = useState<PaymentMethod>(transaction?.payment_method ?? 'debit');
   const money = useMoney();
   const [installments, setInstallments] = useState(1);
   const [error, setError] = useState<string | null>(null);
@@ -124,204 +122,203 @@ export function TransactionModal({
         trigger={trigger}
         onOpen={() => setOpen(true)}
         fallback={
-        <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
-          Novo lançamento
-        </button>
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
+            Novo lançamento
+          </button>
         }
       />
 
       <Modal open={open} onClose={close} title={editing ? 'Editar lançamento' : 'Novo lançamento'}>
+        <div className="mt-4 grid grid-cols-2 gap-2 rounded-md border border-border p-1">
+          {(['income', 'expense'] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => changeType(option)}
+              className={[
+                'rounded-sm py-1.5 text-sm transition-colors',
+                type === option
+                  ? option === 'income'
+                    ? 'bg-incomeDim text-income'
+                    : 'bg-expenseDim text-expense'
+                  : 'text-textSecondary hover:text-textPrimary',
+              ].join(' ')}
+            >
+              {option === 'income' ? 'Receita' : 'Despesa'}
+            </button>
+          ))}
+        </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2 rounded-md border border-border p-1">
-              {(['income', 'expense'] as const).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => changeType(option)}
-                  className={[
-                    'rounded-sm py-1.5 text-sm transition-colors',
-                    type === option
-                      ? option === 'income'
-                        ? 'bg-incomeDim text-income'
-                        : 'bg-expenseDim text-expense'
-                      : 'text-textSecondary hover:text-textPrimary',
-                  ].join(' ')}
-                >
-                  {option === 'income' ? 'Receita' : 'Despesa'}
-                </button>
-              ))}
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="label-caps">Descrição</label>
+            <input
+              className="input-base mt-1"
+              value={description}
+              maxLength={120}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Mercado, salário, aluguel..."
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-caps">Valor</label>
+              <input
+                className="input-base num mt-1"
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0,00"
+              />
             </div>
+            <div>
+              <label className="label-caps">Data</label>
+              <input
+                type="date"
+                className="input-base num mt-1"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+          </div>
 
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="label-caps">Descrição</label>
-                <input
-                  className="input-base mt-1"
-                  value={description}
-                  maxLength={120}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Mercado, salário, aluguel..."
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-caps">Valor</label>
-                  <input
-                    className="input-base num mt-1"
-                    inputMode="decimal"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0,00"
-                  />
-                </div>
-                <div>
-                  <label className="label-caps">Data</label>
-                  <input
-                    type="date"
-                    className="input-base num mt-1"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {type === 'expense' ? (
-                <div>
-                  <label className="label-caps">Onde essa despesa cai</label>
-                  <div className="mt-1 grid grid-cols-2 gap-2 rounded-md border border-border p-1">
-                    {(['account', 'card'] as const).map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => changeSettlement(option)}
-                        disabled={option === 'card' && cards.length === 0}
-                        className={[
-                          'rounded-sm py-1.5 text-sm transition-colors disabled:opacity-40',
-                          settlement === option
-                            ? 'bg-surfaceAlt text-textPrimary'
-                            : 'text-textSecondary hover:text-textPrimary',
-                        ].join(' ')}
-                      >
-                        {option === 'account' ? 'Direto na conta' : 'Fatura do cartão'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {type === 'expense' && settlement === 'card' ? (
-                <div>
-                  <label className="label-caps">Cartão</label>
-                  <select
-                    className="input-base mt-1"
-                    value={cardId}
-                    onChange={(e) => setCardId(e.target.value)}
+          {type === 'expense' ? (
+            <div>
+              <label className="label-caps">Onde essa despesa cai</label>
+              <div className="mt-1 grid grid-cols-2 gap-2 rounded-md border border-border p-1">
+                {(['account', 'card'] as const).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => changeSettlement(option)}
+                    disabled={option === 'card' && cards.length === 0}
+                    className={[
+                      'rounded-sm py-1.5 text-sm transition-colors disabled:opacity-40',
+                      settlement === option
+                        ? 'bg-surfaceAlt text-textPrimary'
+                        : 'text-textSecondary hover:text-textPrimary',
+                    ].join(' ')}
                   >
-                    {cards.map((card) => (
-                      <option key={card.id} value={card.id}>
-                        {card.name}
+                    {option === 'account' ? 'Direto na conta' : 'Fatura do cartão'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {type === 'expense' && settlement === 'card' ? (
+            <div>
+              <label className="label-caps">Cartão</label>
+              <select
+                className="input-base mt-1"
+                value={cardId}
+                onChange={(e) => setCardId(e.target.value)}
+              >
+                {cards.map((card) => (
+                  <option key={card.id} value={card.id}>
+                    {card.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] text-textMuted">
+                O saldo da conta só muda quando você pagar a fatura.
+              </p>
+
+              {editing ? null : (
+                <div className="mt-3">
+                  <label className="label-caps">Parcelas</label>
+                  <select
+                    className="input-base num mt-1"
+                    value={installments}
+                    onChange={(e) => setInstallments(Number(e.target.value))}
+                  >
+                    {Array.from({ length: 24 }, (_, index) => index + 1).map((count) => (
+                      <option key={count} value={count}>
+                        {count === 1 ? 'À vista' : `${count}x`}
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-[11px] text-textMuted">
-                    O saldo da conta só muda quando você pagar a fatura.
-                  </p>
-
-                  {editing ? null : (
-                    <div className="mt-3">
-                      <label className="label-caps">Parcelas</label>
-                      <select
-                        className="input-base num mt-1"
-                        value={installments}
-                        onChange={(e) => setInstallments(Number(e.target.value))}
-                      >
-                        {Array.from({ length: 24 }, (_, index) => index + 1).map((count) => (
-                          <option key={count} value={count}>
-                            {count === 1 ? 'À vista' : `${count}x`}
-                          </option>
-                        ))}
-                      </select>
-                      {installments > 1 && Number(amount.replace(',', '.')) > 0 ? (
-                        <p className="num mt-1 text-[11px] text-textMuted">
-                          {installments}x de aproximadamente{' '}
-                          {money(Number(amount.replace(',', '.')) / installments)}
-                          , uma por mês a partir da data escolhida.
-                        </p>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="label-caps">Conta</label>
-                    <select
-                      className="input-base mt-1"
-                      value={accountId}
-                      onChange={(e) => setAccountId(e.target.value)}
-                    >
-                      <option value="">Sem conta</option>
-                      {accounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label-caps">Forma</label>
-                    <select
-                      className="input-base mt-1"
-                      value={method}
-                      onChange={(e) => setMethod(e.target.value as PaymentMethod)}
-                    >
-                      {ACCOUNT_METHODS.map((option) => (
-                        <option key={option} value={option}>
-                          {PAYMENT_METHOD_LABEL[option]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {installments > 1 && Number(amount.replace(',', '.')) > 0 ? (
+                    <p className="num mt-1 text-[11px] text-textMuted">
+                      {installments}x de aproximadamente{' '}
+                      {money(Number(amount.replace(',', '.')) / installments)}, uma por mês a partir
+                      da data escolhida.
+                    </p>
+                  ) : null}
                 </div>
               )}
-
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="label-caps">Categoria</label>
+                <label className="label-caps">Conta</label>
                 <select
                   className="input-base mt-1"
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
+                  value={accountId}
+                  onChange={(e) => setAccountId(e.target.value)}
                 >
-                  <option value="">
-                    {options.length ? 'Sem categoria' : 'Nenhuma categoria deste tipo'}
-                  </option>
-                  {options.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
+                  <option value="">Sem conta</option>
+                  {accounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label-caps">Forma</label>
+                <select
+                  className="input-base mt-1"
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value as PaymentMethod)}
+                >
+                  {ACCOUNT_METHODS.map((option) => (
+                    <option key={option} value={option}>
+                      {PAYMENT_METHOD_LABEL[option]}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
+          )}
 
-            {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
+          <div>
+            <label className="label-caps">Categoria</label>
+            <select
+              className="input-base mt-1"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">
+                {options.length ? 'Sem categoria' : 'Nenhuma categoria deste tipo'}
+              </option>
+              {options.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={close}
-                className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={submit}
-                disabled={pending}
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-              >
-                {pending ? 'Salvando...' : 'Salvar'}
-              </button>
-            </div>
+        {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            onClick={close}
+            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={submit}
+            disabled={pending}
+            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {pending ? 'Salvando...' : 'Salvar'}
+          </button>
+        </div>
       </Modal>
     </>
   );

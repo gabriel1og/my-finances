@@ -12,8 +12,12 @@ export type ProfileInput = {
 
 export async function updateProfile(input: ProfileInput): Promise<{ error: string | null }> {
   if (input.displayName.length > 60) return { error: 'Nome muito longo (máx. 60).' };
-  if (!/^[A-Z]{3}$/.test(input.currency)) return { error: 'Moeda inválida (use o código ISO, ex.: BRL).' };
-  if (input.monthlyGoal !== null && (!Number.isFinite(input.monthlyGoal) || input.monthlyGoal < 0)) {
+  if (!/^[A-Z]{3}$/.test(input.currency))
+    return { error: 'Moeda inválida (use o código ISO, ex.: BRL).' };
+  if (
+    input.monthlyGoal !== null &&
+    (!Number.isFinite(input.monthlyGoal) || input.monthlyGoal < 0)
+  ) {
     return { error: 'Meta de economia inválida.' };
   }
   if (

@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatCompact, formatMonthLabel } from '@/lib/format';
 import { useMoney } from '@/lib/currency';
 import type { MonthlyFlow } from '@/types/database.types';

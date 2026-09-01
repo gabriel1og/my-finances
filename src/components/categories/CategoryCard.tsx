@@ -54,9 +54,7 @@ export function CategoryCard({
         </span>
 
         <span className="num text-xs text-textMuted">
-          {isIncome
-            ? `recebido ${money(spent)}`
-            : `restam ${money(Math.max(budget - spent, 0))}`}
+          {isIncome ? `recebido ${money(spent)}` : `restam ${money(Math.max(budget - spent, 0))}`}
         </span>
       </div>
 
@@ -64,12 +62,7 @@ export function CategoryCard({
         <p className="num mt-3 text-lg text-income">{money(spent)}</p>
       ) : (
         <>
-          <CategoryBar
-            name={category.name}
-            color={category.color}
-            spent={spent}
-            budget={budget}
-          />
+          <CategoryBar name={category.name} color={category.color} spent={spent} budget={budget} />
           {monthOverride !== null ? (
             <p className="num mt-1 text-[11px] text-accent">limite específico deste mês</p>
           ) : null}
@@ -87,7 +80,9 @@ export function CategoryCard({
           <button
             disabled={pending}
             onClick={() =>
-              run(() => setMonthlyBudget(category.id, month, Number(value.replace(',', '.') || '0')))
+              run(() =>
+                setMonthlyBudget(category.id, month, Number(value.replace(',', '.') || '0')),
+              )
             }
             className="rounded-md bg-accent px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
           >

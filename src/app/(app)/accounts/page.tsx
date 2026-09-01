@@ -46,8 +46,17 @@ export default async function AccountsPage({
 
       <section className="mb-6 grid grid-cols-3 gap-4">
         <KpiCard label="Saldo total" value={total} subtitle="Soma das contas ativas" />
-        <KpiCard label="Faturas em aberto" value={totalOpen} tone="expense" subtitle="No mês selecionado" />
-        <KpiCard label="Saldo previsto" value={total - totalOpen} subtitle="Depois de pagar as faturas" />
+        <KpiCard
+          label="Faturas em aberto"
+          value={totalOpen}
+          tone="expense"
+          subtitle="No mês selecionado"
+        />
+        <KpiCard
+          label="Saldo previsto"
+          value={total - totalOpen}
+          subtitle="Depois de pagar as faturas"
+        />
       </section>
 
       {active.length ? (

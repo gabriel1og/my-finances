@@ -30,9 +30,7 @@ export function TransferModal({
     transfer?.fromAccountId ?? accounts[0]?.id ?? '',
   );
   const [toAccountId, setToAccountId] = useState(transfer?.toAccountId ?? accounts[1]?.id ?? '');
-  const [amount, setAmount] = useState(
-    transfer ? String(transfer.amount).replace('.', ',') : '',
-  );
+  const [amount, setAmount] = useState(transfer ? String(transfer.amount).replace('.', ',') : '');
   const [date, setDate] = useState(
     transfer?.date.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
   );
@@ -70,104 +68,108 @@ export function TransferModal({
         trigger={trigger}
         onOpen={() => setOpen(true)}
         fallback={
-        <button
-          disabled={accounts.length < 2}
-          title={accounts.length < 2 ? 'Cadastre ao menos duas contas' : undefined}
-          className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary disabled:opacity-40"
-        >
-          Transferir
-        </button>
+          <button
+            disabled={accounts.length < 2}
+            title={accounts.length < 2 ? 'Cadastre ao menos duas contas' : undefined}
+            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary disabled:opacity-40"
+          >
+            Transferir
+          </button>
         }
       />
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Editar transferência' : 'Transferência entre contas'}>
-            <p className="mt-1 text-xs text-textSecondary">
-              Move saldo de uma conta para outra. Não conta como receita nem despesa.
-            </p>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editing ? 'Editar transferência' : 'Transferência entre contas'}
+      >
+        <p className="mt-1 text-xs text-textSecondary">
+          Move saldo de uma conta para outra. Não conta como receita nem despesa.
+        </p>
 
-            <div className="mt-4 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-caps">De</label>
-                  <select
-                    className="input-base mt-1"
-                    value={fromAccountId}
-                    onChange={(e) => setFromAccountId(e.target.value)}
-                  >
-                    {accounts.map((account) => (
-                      <option key={account.id} value={account.id}>
-                        {account.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="label-caps">Para</label>
-                  <select
-                    className="input-base mt-1"
-                    value={toAccountId}
-                    onChange={(e) => setToAccountId(e.target.value)}
-                  >
-                    {accounts.map((account) => (
-                      <option key={account.id} value={account.id}>
-                        {account.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-caps">Valor</label>
-                  <input
-                    className="input-base num mt-1"
-                    inputMode="decimal"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0,00"
-                  />
-                </div>
-                <div>
-                  <label className="label-caps">Data</label>
-                  <input
-                    type="date"
-                    className="input-base num mt-1"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="label-caps">Descrição</label>
-                <input
-                  className="input-base mt-1"
-                  value={description}
-                  maxLength={120}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Opcional — por padrão, De → Para"
-                />
-              </div>
-            </div>
-
-            {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
-
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setOpen(false)}
-                className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
+        <div className="mt-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-caps">De</label>
+              <select
+                className="input-base mt-1"
+                value={fromAccountId}
+                onChange={(e) => setFromAccountId(e.target.value)}
               >
-                Cancelar
-              </button>
-              <button
-                onClick={submit}
-                disabled={pending}
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-              >
-                {pending ? 'Salvando...' : editing ? 'Salvar' : 'Transferir'}
-              </button>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </select>
             </div>
+            <div>
+              <label className="label-caps">Para</label>
+              <select
+                className="input-base mt-1"
+                value={toAccountId}
+                onChange={(e) => setToAccountId(e.target.value)}
+              >
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-caps">Valor</label>
+              <input
+                className="input-base num mt-1"
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0,00"
+              />
+            </div>
+            <div>
+              <label className="label-caps">Data</label>
+              <input
+                type="date"
+                className="input-base num mt-1"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="label-caps">Descrição</label>
+            <input
+              className="input-base mt-1"
+              value={description}
+              maxLength={120}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Opcional — por padrão, De → Para"
+            />
+          </div>
+        </div>
+
+        {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            onClick={() => setOpen(false)}
+            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={submit}
+            disabled={pending}
+            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {pending ? 'Salvando...' : editing ? 'Salvar' : 'Transferir'}
+          </button>
+        </div>
       </Modal>
     </>
   );

@@ -56,7 +56,8 @@ function shiftMonths(iso: string, months: number): string {
 function validate(input: TransactionInput): string | null {
   if (!input.description.trim()) return 'Informe uma descrição.';
   if (input.description.trim().length > 120) return 'Descrição muito longa (máx. 120).';
-  if (!Number.isFinite(input.amount) || input.amount <= 0) return 'Informe um valor maior que zero.';
+  if (!Number.isFinite(input.amount) || input.amount <= 0)
+    return 'Informe um valor maior que zero.';
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) return 'Data inválida.';
   if (input.settlement === 'card') {
     if (input.type === 'income') return 'Receita não entra em fatura de cartão.';
@@ -227,10 +228,7 @@ export async function createTransfer(input: TransferInput): Promise<Result> {
  * origem e a de receita, a de destino — trocar as contas é reescrever esses
  * dois account_id, não criar linhas novas.
  */
-export async function updateTransfer(
-  groupId: string,
-  input: TransferInput,
-): Promise<Result> {
+export async function updateTransfer(groupId: string, input: TransferInput): Promise<Result> {
   if (!input.fromAccountId || !input.toAccountId) return { error: 'Escolha as duas contas.' };
   if (input.fromAccountId === input.toAccountId) {
     return { error: 'Origem e destino precisam ser contas diferentes.' };

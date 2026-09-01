@@ -103,10 +103,7 @@ export async function getAccounts(includeArchived = false) {
 
 export async function getAccountBalances() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('account_balances')
-    .select('*')
-    .order('name');
+  const { data, error } = await supabase.from('account_balances').select('*').order('name');
   if (error) throw error;
   return (data ?? []) as AccountBalance[];
 }

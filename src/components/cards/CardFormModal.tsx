@@ -61,144 +61,147 @@ export function CardFormModal({
         trigger={trigger}
         onOpen={() => setOpen(true)}
         fallback={
-        <button
-          disabled={!accounts.length}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          Novo cartão
-        </button>
+          <button
+            disabled={!accounts.length}
+            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            Novo cartão
+          </button>
         }
       />
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Editar cartão' : 'Novo cartão'}>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editing ? 'Editar cartão' : 'Novo cartão'}
+      >
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="label-caps">Nome</label>
+            <input
+              className="input-base mt-1"
+              value={name}
+              maxLength={40}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nubank, Inter..."
+            />
+          </div>
 
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="label-caps">Nome</label>
-                <input
-                  className="input-base mt-1"
-                  value={name}
-                  maxLength={40}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Nubank, Inter..."
+          <div>
+            <label className="label-caps">Conta que paga a fatura</label>
+            <select
+              className="input-base mt-1"
+              value={accountId}
+              onChange={(e) => setAccountId(e.target.value)}
+            >
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-caps">Dia de fechamento</label>
+              <select
+                className="input-base num mt-1"
+                value={closingDay}
+                onChange={(e) => setClosingDay(Number(e.target.value))}
+              >
+                {DAYS.map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label-caps">Dia de vencimento</label>
+              <select
+                className="input-base num mt-1"
+                value={dueDay}
+                onChange={(e) => setDueDay(Number(e.target.value))}
+              >
+                {DAYS.map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-textMuted">
+            Compras feitas antes do dia {closingDay} entram na fatura do próprio mês; do dia{' '}
+            {closingDay} em diante, na fatura do mês seguinte.
+            {closingDay > 28 || dueDay > 28
+              ? ' Em meses mais curtos, como fevereiro, vale o último dia do mês.'
+              : ''}
+          </p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-caps">Limite</label>
+              <input
+                className="input-base num mt-1"
+                inputMode="decimal"
+                value={creditLimit}
+                onChange={(e) => setCreditLimit(e.target.value)}
+                placeholder="0,00"
+              />
+            </div>
+            <div>
+              <label className="label-caps">Bandeira</label>
+              <input
+                className="input-base mt-1"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="Opcional"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="label-caps">Cor</label>
+            <div className="mt-2 flex gap-2">
+              {CATEGORY_PALETTE.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setColor(option)}
+                  aria-label={`Cor ${option}`}
+                  className={[
+                    'h-6 w-6 rounded-full border-2 transition-colors',
+                    color.toLowerCase() === option.toLowerCase()
+                      ? 'border-textPrimary'
+                      : 'border-transparent',
+                  ].join(' ')}
+                  style={{ backgroundColor: option }}
                 />
-              </div>
-
-              <div>
-                <label className="label-caps">Conta que paga a fatura</label>
-                <select
-                  className="input-base mt-1"
-                  value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                >
-                  {accounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-caps">Dia de fechamento</label>
-                  <select
-                    className="input-base num mt-1"
-                    value={closingDay}
-                    onChange={(e) => setClosingDay(Number(e.target.value))}
-                  >
-                    {DAYS.map((day) => (
-                      <option key={day} value={day}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="label-caps">Dia de vencimento</label>
-                  <select
-                    className="input-base num mt-1"
-                    value={dueDay}
-                    onChange={(e) => setDueDay(Number(e.target.value))}
-                  >
-                    {DAYS.map((day) => (
-                      <option key={day} value={day}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <p className="text-[11px] text-textMuted">
-                Compras feitas antes do dia {closingDay} entram na fatura do próprio mês; do dia{' '}
-                {closingDay} em diante, na fatura do mês seguinte.
-                {closingDay > 28 || dueDay > 28
-                  ? ' Em meses mais curtos, como fevereiro, vale o último dia do mês.'
-                  : ''}
-              </p>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-caps">Limite</label>
-                  <input
-                    className="input-base num mt-1"
-                    inputMode="decimal"
-                    value={creditLimit}
-                    onChange={(e) => setCreditLimit(e.target.value)}
-                    placeholder="0,00"
-                  />
-                </div>
-                <div>
-                  <label className="label-caps">Bandeira</label>
-                  <input
-                    className="input-base mt-1"
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                    placeholder="Opcional"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="label-caps">Cor</label>
-                <div className="mt-2 flex gap-2">
-                  {CATEGORY_PALETTE.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => setColor(option)}
-                      aria-label={`Cor ${option}`}
-                      className={[
-                        'h-6 w-6 rounded-full border-2 transition-colors',
-                        color.toLowerCase() === option.toLowerCase()
-                          ? 'border-textPrimary'
-                          : 'border-transparent',
-                      ].join(' ')}
-                      style={{ backgroundColor: option }}
-                    />
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
+          </div>
+        </div>
 
-            {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
+        {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
 
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setOpen(false)}
-                className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={submit}
-                disabled={pending}
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-              >
-                {pending ? 'Salvando...' : 'Salvar'}
-              </button>
-            </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            onClick={() => setOpen(false)}
+            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={submit}
+            disabled={pending}
+            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {pending ? 'Salvando...' : 'Salvar'}
+          </button>
+        </div>
       </Modal>
     </>
   );
