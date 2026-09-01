@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { shiftMonths, splitInstallments } from '@/lib/installments';
 import type { PaymentMethod, SettlementKind, TransactionType } from '@/types/database.types';
 
 export type TransactionInput = {
@@ -27,30 +28,6 @@ function revalidateAll() {
   revalidatePath('/reports');
   revalidatePath('/accounts');
   revalidatePath('/cards');
-}
-
-/**
- * Divide o total em parcelas de centavos inteiros; a sobra vai para a
- * primeira, como fazem as operadoras. Garante que a soma das parcelas seja
- * exatamente o valor da compra.
- */
-function splitInstallments(total: number, count: number): number[] {
-  const totalCents = Math.round(total * 100);
-  const base = Math.floor(totalCents / count);
-  const remainder = totalCents - base * count;
-  return Array.from({ length: count }, (_, index) =>
-    index === 0 ? (base + remainder) / 100 : base / 100,
-  );
-}
-
-/** Mesmo dia nos meses seguintes, grampeado ao último dia do mês. */
-function shiftMonths(iso: string, months: number): string {
-  const [year, month, day] = iso.slice(0, 10).split('-').map(Number);
-  const target = new Date(year, month - 1 + months, 1);
-  const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
-  return `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(
-    Math.min(day, lastDay),
-  ).padStart(2, '0')}`;
 }
 
 function validate(input: TransactionInput): string | null {

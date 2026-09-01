@@ -5,6 +5,7 @@ import { Modal, ModalTrigger } from '@/components/ui/Modal';
 import { createTransaction, updateTransaction } from '@/app/(app)/transactions/actions';
 import { ACCOUNT_METHODS, PAYMENT_METHOD_LABEL } from '@/lib/constants';
 import { useMoney } from '@/lib/currency';
+import { statementMonth } from '@/lib/statements';
 import type {
   Account,
   Category,
@@ -57,6 +58,13 @@ export function TransactionModal({
 
   // Categoria de receita não faz sentido num lançamento de despesa e vice-versa.
   const options = categories.filter((category) => category.kind === type);
+
+  // Antecipa em qual fatura a compra cai, usando a mesma regra do banco.
+  const selectedCard = cards.find((card) => card.id === cardId) ?? null;
+  const invoiceMonth = selectedCard ? statementMonth(date, selectedCard.closing_day) : null;
+  const invoiceLabel = invoiceMonth
+    ? `${invoiceMonth.slice(5, 7)}/${invoiceMonth.slice(2, 4)}`
+    : null;
 
   function changeType(next: TransactionType) {
     setType(next);
@@ -223,6 +231,7 @@ export function TransactionModal({
               </select>
               <p className="mt-1 text-[11px] text-textMuted">
                 O saldo da conta só muda quando você pagar a fatura.
+                {invoiceLabel ? ` Entra na fatura de ${invoiceLabel}.` : ''}
               </p>
 
               {editing ? null : (
