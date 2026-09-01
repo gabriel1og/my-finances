@@ -3,11 +3,7 @@
 import { useState, useTransition } from 'react';
 import { RecurringFormModal } from '@/components/recurring/RecurringFormModal';
 import { TagChip } from '@/components/ui/TagChip';
-import {
-  deleteRecurring,
-  postRecurring,
-  setRecurringActive,
-} from '@/app/(app)/recurring/actions';
+import { deleteRecurring, postRecurring, setRecurringActive } from '@/app/(app)/recurring/actions';
 import { useMoney } from '@/lib/currency';
 import { dayInMonth } from '@/lib/statements';
 import { formatDate } from '@/lib/format';
@@ -130,7 +126,12 @@ export function RecurringRow({
               <span className="text-textSecondary">Excluir?</span>
               <button
                 disabled={pending}
-                onClick={() => run(() => deleteRecurring(recurring.id), () => setConfirming(false))}
+                onClick={() =>
+                  run(
+                    () => deleteRecurring(recurring.id),
+                    () => setConfirming(false),
+                  )
+                }
                 className="text-expense transition-opacity hover:opacity-80"
               >
                 Sim

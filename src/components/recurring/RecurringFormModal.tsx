@@ -37,9 +37,7 @@ export function RecurringFormModal({
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<TransactionType>(recurring?.type ?? 'expense');
   const [description, setDescription] = useState(recurring?.description ?? '');
-  const [amount, setAmount] = useState(
-    recurring ? String(recurring.amount).replace('.', ',') : '',
-  );
+  const [amount, setAmount] = useState(recurring ? String(recurring.amount).replace('.', ',') : '');
   const [dayOfMonth, setDayOfMonth] = useState(recurring?.day_of_month ?? 5);
   const [categoryId, setCategoryId] = useState(recurring?.category_id ?? '');
   const [settlement, setSettlement] = useState<SettlementKind>(recurring?.settlement ?? 'account');

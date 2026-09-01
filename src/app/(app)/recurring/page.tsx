@@ -33,8 +33,7 @@ export default async function RecurringPage({
 
   // Um modelo só vale para o mês se já começou e ainda não terminou.
   const inRange = recurring.filter(
-    (item) =>
-      item.start_month <= monthStart && (!item.end_month || item.end_month >= monthStart),
+    (item) => item.start_month <= monthStart && (!item.end_month || item.end_month >= monthStart),
   );
 
   const pending = inRange.filter((item) => item.is_active && !posted.has(item.id));

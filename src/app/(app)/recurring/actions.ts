@@ -35,7 +35,8 @@ function revalidateAll() {
 function validate(input: RecurringInput): string | null {
   if (!input.description.trim()) return 'Informe uma descrição.';
   if (input.description.trim().length > 120) return 'Descrição muito longa (máx. 120).';
-  if (!Number.isFinite(input.amount) || input.amount <= 0) return 'Informe um valor maior que zero.';
+  if (!Number.isFinite(input.amount) || input.amount <= 0)
+    return 'Informe um valor maior que zero.';
   if (!Number.isInteger(input.dayOfMonth) || input.dayOfMonth < 1 || input.dayOfMonth > 31) {
     return 'Dia do mês deve estar entre 1 e 31.';
   }
@@ -77,9 +78,9 @@ async function replaceTags(recurringId: string, tagIds: string[], userId: string
 
   if (tagIds.length === 0) return null;
 
-  const { error } = await supabase.from('recurring_tags').insert(
-    tagIds.map((tagId) => ({ recurring_id: recurringId, tag_id: tagId, user_id: userId })),
-  );
+  const { error } = await supabase
+    .from('recurring_tags')
+    .insert(tagIds.map((tagId) => ({ recurring_id: recurringId, tag_id: tagId, user_id: userId })));
   return error?.message ?? null;
 }
 
@@ -118,10 +119,7 @@ export async function updateRecurring(id: string, input: RecurringInput): Promis
   } = await supabase.auth.getUser();
   if (!user) return { error: 'Sessão expirada.' };
 
-  const { error } = await supabase
-    .from('recurring_transactions')
-    .update(toRow(input))
-    .eq('id', id);
+  const { error } = await supabase.from('recurring_transactions').update(toRow(input)).eq('id', id);
 
   if (error) return { error: error.message };
 
@@ -220,10 +218,7 @@ export async function postRecurring(input: {
     // 23505 = o unique (recurring_id, recurring_month). Clicar duas vezes não
     // duplica a despesa; a segunda tentativa só informa.
     return {
-      error:
-        error.code === '23505'
-          ? 'Este fixo já foi lançado neste mês.'
-          : error.message,
+      error: error.code === '23505' ? 'Este fixo já foi lançado neste mês.' : error.message,
     };
   }
 
