@@ -12,13 +12,13 @@ export const CATEGORY_PALETTE = [
 export const BUDGET_ALERT_THRESHOLD = 85;
 
 export const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/transactions', label: 'Transações' },
-  { href: '/accounts', label: 'Contas' },
-  { href: '/cards', label: 'Cartões' },
-  { href: '/categories', label: 'Categorias' },
-  { href: '/reports', label: 'Relatórios' },
-  { href: '/settings', label: 'Configurações' },
+  { href: '/dashboard', label: 'Dashboard', monthAware: true },
+  { href: '/transactions', label: 'Transações', monthAware: true },
+  { href: '/accounts', label: 'Contas', monthAware: true },
+  { href: '/cards', label: 'Cartões', monthAware: true },
+  { href: '/categories', label: 'Categorias', monthAware: true },
+  { href: '/reports', label: 'Relatórios', monthAware: true },
+  { href: '/settings', label: 'Configurações', monthAware: false },
 ] as const;
 
 export const ACCOUNT_KIND_LABEL = {

@@ -19,23 +19,22 @@ export function MonthPicker() {
     router.push(`${pathname}?${search.toString()}` as Route);
   }
 
-  const label = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(
-    new Date(`${month.slice(0, 7)}-01T12:00:00`),
-  );
+  // Formato compacto MM/AA — o nome por extenso não cabe ao lado do logo.
+  const label = `${month.slice(5, 7)}/${month.slice(2, 4)}`;
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex items-center gap-1">
       <button
         onClick={() => shift(-1)}
-        className="rounded-sm px-2 py-1 text-textSecondary transition-colors hover:text-textPrimary"
+        className="rounded-sm px-1 leading-none text-textSecondary transition-colors hover:text-textPrimary"
         aria-label="Mês anterior"
       >
         ‹
       </button>
-      <span className="num text-xs text-textPrimary">{label}</span>
+      <span className="num min-w-[42px] text-center text-xs text-textPrimary">{label}</span>
       <button
         onClick={() => shift(1)}
-        className="rounded-sm px-2 py-1 text-textSecondary transition-colors hover:text-textPrimary"
+        className="rounded-sm px-1 leading-none text-textSecondary transition-colors hover:text-textPrimary"
         aria-label="Próximo mês"
       >
         ›
