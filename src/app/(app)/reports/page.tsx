@@ -114,12 +114,11 @@ export default async function ReportsPage({
                   className="flex items-center justify-between border-b border-border py-2 last:border-b-0"
                 >
                   <span className="flex items-center gap-2 text-sm text-textPrimary">
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: row.color }}
-                    />
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: row.color }} />
                     {row.name}
-                    <span className="num text-[11px] text-textMuted">{row.items} lançamento(s)</span>
+                    <span className="num text-[11px] text-textMuted">
+                      {row.items} lançamento(s)
+                    </span>
                   </span>
                   <Money value={Number(row.expense)} className="num text-sm text-expense" />
                 </div>
@@ -132,9 +131,7 @@ export default async function ReportsPage({
 
         <div className="card">
           <span className="label-caps">Gastos por cartão</span>
-          <p className="mt-1 text-[11px] text-textMuted">
-            Pelo mês da compra, não o da fatura.
-          </p>
+          <p className="mt-1 text-[11px] text-textMuted">Pelo mês da compra, não o da fatura.</p>
           <div className="mt-2">
             {cards.length ? (
               cards.map((row) => (
@@ -143,10 +140,7 @@ export default async function ReportsPage({
                   className="flex items-center justify-between border-b border-border py-2 last:border-b-0"
                 >
                   <span className="flex items-center gap-2 text-sm text-textPrimary">
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: row.color }}
-                    />
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: row.color }} />
                     {row.name}
                     <span className="num text-[11px] text-textMuted">{row.items} compra(s)</span>
                   </span>

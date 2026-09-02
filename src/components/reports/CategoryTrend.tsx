@@ -18,7 +18,9 @@ export function CategoryTrend({ rows, months }: { rows: CategorySpending[]; mont
     categories.set(row.category_id, { name: row.name, color: row.color });
   }
 
-  const byKey = new Map(expense.map((row) => [`${row.category_id}:${row.month.slice(0, 7)}`, Number(row.spent)]));
+  const byKey = new Map(
+    expense.map((row) => [`${row.category_id}:${row.month.slice(0, 7)}`, Number(row.spent)]),
+  );
 
   const list = [...categories.entries()]
     .map(([id, meta]) => {

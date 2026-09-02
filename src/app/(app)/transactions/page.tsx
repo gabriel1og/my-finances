@@ -5,13 +5,7 @@ import { TransactionFilters } from '@/components/transactions/TransactionFilters
 import { TransactionsList } from '@/components/transactions/TransactionsList';
 import { TransactionsPagination } from '@/components/transactions/TransactionsPagination';
 import { currentMonth } from '@/lib/format';
-import {
-  getAccounts,
-  getCards,
-  getCategories,
-  getTags,
-  getTransactionsPage,
-} from '@/lib/queries';
+import { getAccounts, getCards, getCategories, getTags, getTransactionsPage } from '@/lib/queries';
 
 export default async function TransactionsPage({
   searchParams,
@@ -54,9 +48,7 @@ export default async function TransactionsPage({
       <PageHeader
         title="Transações"
         subtitle={allMonths ? 'Todos os meses' : 'Lançamentos do mês selecionado'}
-        action={
-          <AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />
-        }
+        action={<AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />}
       />
 
       {/* useSearchParams exige Suspense no App Router. */}
