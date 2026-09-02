@@ -76,15 +76,8 @@ export function CategoryCard({
             color={category.color}
             spent={spent}
             budget={available}
+            carry={rollover ? carry : 0}
           />
-
-          {rollover && carry !== 0 ? (
-            <p className={`num mt-1 text-2xs ${carry > 0 ? 'text-income' : 'text-warning'}`}>
-              {carry > 0 ? '+' : '−'}
-              {money(Math.abs(carry))} acumulado de meses anteriores
-              <span className="text-textMuted"> · limite do mês {money(budget)}</span>
-            </p>
-          ) : null}
 
           {monthOverride !== null ? (
             <p className="num mt-1 text-2xs text-accent">limite específico deste mês</p>

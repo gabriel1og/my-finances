@@ -55,3 +55,66 @@ export function computeRollover({
     monthsCounted: counted.length,
   };
 }
+
+/** Categoria com rollover, no mínimo que o cálculo precisa. */
+export type RolloverCategory = {
+  id: string;
+  kind: string;
+  rollover_enabled: boolean;
+  rollover_since: string | null;
+};
+
+export type RolloverRow = {
+  categoryId: string;
+  name: string;
+  color: string;
+  spent: number;
+  /** Limite definido para o mês, sem o acumulado. */
+  budget: number;
+  carry: number;
+  /** budget + carry. É contra ele que a barra é lida. */
+  available: number;
+};
+
+/**
+ * Junta o gasto do mês com o acumulado dos meses anteriores, para as telas que
+ * mostram orçamento sem serem `/categories`. Categoria sem rollover ligado sai
+ * com carry 0 — a leitura continua sendo mês a mês.
+ */
+export function buildRolloverRows({
+  spending,
+  history,
+  categories,
+  month,
+}: {
+  spending: CategorySpending[];
+  history: CategorySpending[];
+  categories: RolloverCategory[];
+  month: string;
+}): RolloverRow[] {
+  const byId = new Map(categories.map((category) => [category.id, category]));
+
+  return spending
+    .filter((row) => row.kind === 'expense')
+    .map((row) => {
+      const category = byId.get(row.category_id ?? '');
+      const budget = Number(row.budget);
+      const { carry, available } = computeRollover({
+        rows: history,
+        categoryId: row.category_id ?? '',
+        month,
+        since: category?.rollover_enabled ? category.rollover_since : null,
+        monthBudget: budget,
+      });
+
+      return {
+        categoryId: row.category_id ?? '',
+        name: row.name ?? '',
+        color: row.color ?? '#5B6EF5',
+        spent: Number(row.spent),
+        budget,
+        carry,
+        available,
+      };
+    });
+}

@@ -9,11 +9,15 @@ export function CategoryBar({
   color,
   spent,
   budget,
+  carry = 0,
 }: {
   name: string;
   color: string;
   spent: number;
+  /** Já é o disponível: limite do mês + acumulado, quando há rollover. */
   budget: number;
+  /** Sobra (ou estouro) herdada dos meses anteriores. 0 = sem rollover. */
+  carry?: number;
 }) {
   const money = useMoney();
   const pct = budget > 0 ? (spent / budget) * 100 : 0;
@@ -45,6 +49,14 @@ export function CategoryBar({
       {budget > 0 ? (
         <p className={`num mt-1 text-2xs ${alert ? 'text-warning' : 'text-textMuted'}`}>
           {formatPercent(pct)} do limite
+        </p>
+      ) : null}
+
+      {carry !== 0 ? (
+        <p className={`num mt-1 text-2xs ${carry > 0 ? 'text-income' : 'text-warning'}`}>
+          {carry > 0 ? '+' : '−'}
+          {money(Math.abs(carry))} acumulado de meses anteriores
+          <span className="text-textMuted"> · limite do mês {money(budget - carry)}</span>
         </p>
       ) : null}
     </div>

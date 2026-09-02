@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { computeRollover } from '@/lib/rollover';
+import { buildRolloverRows, computeRollover } from '@/lib/rollover';
+import type { RolloverCategory } from '@/lib/rollover';
 import type { CategorySpending } from '@/types/database.types';
 
 function row(month: string, budget: number, spent: number): CategorySpending {
@@ -85,6 +86,68 @@ describe('computeRollover', () => {
   it('não mistura categorias', () => {
     const other = { ...row('2026-08', 500, 100), category_id: 'cat-2' } as CategorySpending;
     const result = computeRollover({ ...base, rows: [other], since: '2026-06-01' });
+
+    expect(result.carry).toBe(0);
+  });
+});
+
+describe('buildRolloverRows', () => {
+  const history = [row('2026-07', 500, 400), row('2026-08', 500, 300)];
+  const current = [row('2026-09', 500, 120)];
+
+  const withRollover: RolloverCategory = {
+    id: 'cat-1',
+    kind: 'expense',
+    rollover_enabled: true,
+    rollover_since: '2026-07-01',
+  };
+
+  it('soma o acumulado ao disponível quando o rollover está ligado', () => {
+    const [result] = buildRolloverRows({
+      spending: current,
+      history,
+      categories: [withRollover],
+      month: '2026-09-01',
+    });
+
+    expect(result.budget).toBe(500);
+    expect(result.carry).toBe(300);
+    expect(result.available).toBe(800);
+    expect(result.spent).toBe(120);
+  });
+
+  it('devolve carry zero para categoria sem rollover', () => {
+    const [result] = buildRolloverRows({
+      spending: current,
+      history,
+      categories: [{ ...withRollover, rollover_enabled: false }],
+      month: '2026-09-01',
+    });
+
+    expect(result.carry).toBe(0);
+    expect(result.available).toBe(500);
+  });
+
+  it('ignora categorias de receita', () => {
+    const income = { ...row('2026-09', 0, 3000), kind: 'income' } as CategorySpending;
+
+    expect(
+      buildRolloverRows({
+        spending: [income],
+        history: [],
+        categories: [withRollover],
+        month: '2026-09-01',
+      }),
+    ).toHaveLength(0);
+  });
+
+  it('não quebra com categoria ausente da lista', () => {
+    const [result] = buildRolloverRows({
+      spending: current,
+      history,
+      categories: [],
+      month: '2026-09-01',
+    });
 
     expect(result.carry).toBe(0);
   });

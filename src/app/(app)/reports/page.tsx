@@ -7,10 +7,13 @@ import { KpiCard } from '@/components/ui/KpiCard';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Money } from '@/lib/currency';
 import { monthSequence } from '@/lib/forecast';
+import { buildRolloverRows } from '@/lib/rollover';
 import { currentMonth } from '@/lib/format';
 import {
   getAccountMonthTotals,
   getCardMonthTotals,
+  getCategories,
+  getCategoryHistory,
   getCategorySpending,
   getCategorySpendingRange,
   getMonthlyFlow,
@@ -27,15 +30,18 @@ export default async function ReportsPage({
 }) {
   const { month = currentMonth() } = await searchParams;
 
-  const [flow, spending, tagTotals, trend, accounts, cards, netWorth] = await Promise.all([
-    getMonthlyFlow(TREND_MONTHS),
-    getCategorySpending(month),
-    getTagTotals(month),
-    getCategorySpendingRange(month, TREND_MONTHS - 1),
-    getAccountMonthTotals(month),
-    getCardMonthTotals(month),
-    getNetWorthSeries(12),
-  ]);
+  const [flow, spending, tagTotals, trend, accounts, cards, netWorth, categories, history] =
+    await Promise.all([
+      getMonthlyFlow(TREND_MONTHS),
+      getCategorySpending(month),
+      getTagTotals(month),
+      getCategorySpendingRange(month, TREND_MONTHS - 1),
+      getAccountMonthTotals(month),
+      getCardMonthTotals(month),
+      getNetWorthSeries(12),
+      getCategories(),
+      getCategoryHistory(month),
+    ]);
 
   const income = flow.reduce((sum, row) => sum + Number(row.income), 0);
   const expense = flow.reduce((sum, row) => sum + Number(row.expense), 0);
@@ -47,6 +53,16 @@ export default async function ReportsPage({
     `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, '0')}-01`,
     TREND_MONTHS,
   );
+
+  // Só as categorias com rollover ligado entram: para as demais o acumulado
+  // seria sempre zero e a tabela viraria uma cópia do comparativo.
+  const rolloverIds = new Set(
+    categories.filter((category) => category.rollover_enabled).map((category) => category.id),
+  );
+  const rolloverRows = buildRolloverRows({ spending, history, categories, month }).filter((row) =>
+    rolloverIds.has(row.categoryId),
+  );
+  const rolloverCarry = rolloverRows.reduce((sum, row) => sum + row.carry, 0);
 
   const currentNetWorth = netWorth.length ? Number(netWorth[netWorth.length - 1].net_worth) : 0;
 
@@ -102,6 +118,75 @@ export default async function ReportsPage({
           <CategoryTrend rows={trend} months={trendMonths} />
         </div>
       </section>
+
+      {rolloverRows.length ? (
+        <section className="card mt-6">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="label-caps">Orçamento acumulado</span>
+            <span className={`num text-2xs ${rolloverCarry >= 0 ? 'text-income' : 'text-warning'}`}>
+              {rolloverCarry >= 0 ? '+' : '−'}
+              <Money value={Math.abs(rolloverCarry)} /> no total
+            </span>
+          </div>
+          <p className="mt-1 text-2xs text-textMuted">
+            Categorias com rollover ligado. O acumulado vem dos meses anteriores e já está somado ao
+            disponível.
+          </p>
+
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[520px] text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th className="label-caps py-2 font-normal">Categoria</th>
+                  <th className="label-caps py-2 text-right font-normal">Limite</th>
+                  <th className="label-caps py-2 text-right font-normal">Acumulado</th>
+                  <th className="label-caps py-2 text-right font-normal">Disponível</th>
+                  <th className="label-caps py-2 text-right font-normal">Gasto</th>
+                  <th className="label-caps py-2 text-right font-normal">Restante</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rolloverRows.map((row) => {
+                  const left = row.available - row.spent;
+                  return (
+                    <tr key={row.categoryId} className="border-b border-border last:border-b-0">
+                      <td className="py-2">
+                        <span className="flex items-center gap-2 text-textPrimary">
+                          <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: row.color }}
+                          />
+                          {row.name}
+                        </span>
+                      </td>
+                      <td className="num py-2 text-right text-xs text-textSecondary">
+                        <Money value={row.budget} />
+                      </td>
+                      <td
+                        className={`num py-2 text-right text-xs ${row.carry >= 0 ? 'text-income' : 'text-warning'}`}
+                      >
+                        {row.carry >= 0 ? '+' : '−'}
+                        <Money value={Math.abs(row.carry)} />
+                      </td>
+                      <td className="num py-2 text-right text-xs text-textPrimary">
+                        <Money value={row.available} />
+                      </td>
+                      <td className="num py-2 text-right text-xs text-expense">
+                        <Money value={row.spent} />
+                      </td>
+                      <td
+                        className={`num py-2 text-right text-xs ${left >= 0 ? 'text-textSecondary' : 'text-expense'}`}
+                      >
+                        <Money value={left} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">

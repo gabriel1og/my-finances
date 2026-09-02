@@ -8,6 +8,8 @@ import { GoalProgress } from '@/components/ui/GoalProgress';
 import { PendingBanner } from '@/components/recurring/PendingBanner';
 import { TransferRow } from '@/components/ui/TransferRow';
 import { TxRow } from '@/components/ui/TxRow';
+import { buildRolloverRows } from '@/lib/rollover';
+import { Money } from '@/lib/currency';
 import { groupTransfers } from '@/lib/transactions';
 import { currentMonth } from '@/lib/format';
 import {
@@ -15,6 +17,7 @@ import {
   getAccounts,
   getCards,
   getCategories,
+  getCategoryHistory,
   getCategorySpending,
   getMonthlyFlow,
   getPostedRecurringIds,
@@ -39,13 +42,14 @@ export default async function DashboardPage({
     getProfile(),
   ]);
 
-  const [accounts, cards, balances, tags, recurring, postedRecurring] = await Promise.all([
+  const [accounts, cards, balances, tags, recurring, postedRecurring, history] = await Promise.all([
     getAccounts(),
     getCards(),
     getAccountBalances(),
     getTags(),
     getRecurring(),
     getPostedRecurringIds(month),
+    getCategoryHistory(month),
   ]);
 
   const monthStart = `${month.slice(0, 7)}-01`;
@@ -62,7 +66,10 @@ export default async function DashboardPage({
     .filter((row) => !row.is_archived)
     .reduce((sum, row) => sum + Number(row.balance), 0);
 
-  const expenseSpending = spending.filter((row) => row.kind === 'expense');
+  // O disponível já inclui o acumulado das categorias com rollover ligado —
+  // sem isso o dashboard leria o orçamento como se cada mês fosse isolado.
+  const budgetRows = buildRolloverRows({ spending, history, categories, month });
+  const totalCarry = budgetRows.reduce((sum, row) => sum + row.carry, 0);
 
   // Fallback quando a view ainda não tem linha para o mês. Pagamento de fatura
   // fica de fora: a compra já contou como despesa quando foi feita.
@@ -131,16 +138,28 @@ export default async function DashboardPage({
         </div>
 
         <div className="card">
-          <span className="label-caps">Orçamento por categoria</span>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="label-caps">Orçamento por categoria</span>
+            {totalCarry !== 0 ? (
+              <span
+                className={`num text-2xs ${totalCarry > 0 ? 'text-income' : 'text-warning'}`}
+                title="Soma do acumulado das categorias com rollover ligado"
+              >
+                {totalCarry > 0 ? '+' : '−'}
+                <Money value={Math.abs(totalCarry)} /> acumulado
+              </span>
+            ) : null}
+          </div>
           <div className="mt-2">
-            {expenseSpending.length ? (
-              expenseSpending.map((row) => (
+            {budgetRows.length ? (
+              budgetRows.map((row) => (
                 <CategoryBar
-                  key={row.category_id}
+                  key={row.categoryId}
                   name={row.name}
                   color={row.color}
-                  spent={Number(row.spent)}
-                  budget={Number(row.budget)}
+                  spent={row.spent}
+                  budget={row.available}
+                  carry={row.carry}
                 />
               ))
             ) : (
