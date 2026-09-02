@@ -18,6 +18,7 @@ export const NAV_ITEMS = [
   { href: '/cards', label: 'Cartões', monthAware: true },
   { href: '/recurring', label: 'Fixos', monthAware: true },
   { href: '/categories', label: 'Categorias', monthAware: true },
+  { href: '/forecast', label: 'Previsão', monthAware: true },
   { href: '/reports', label: 'Relatórios', monthAware: true },
   { href: '/settings', label: 'Configurações', monthAware: false },
 ] as const;
