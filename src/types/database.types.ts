@@ -61,6 +61,8 @@ export interface Database {
           budget: number;
           is_archived: boolean;
           position: number;
+          rollover_enabled: boolean;
+          rollover_since: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -73,6 +75,8 @@ export interface Database {
           budget?: number;
           is_archived?: boolean;
           position?: number;
+          rollover_enabled?: boolean;
+          rollover_since?: string | null;
         };
         Update: Partial<Database['public']['Tables']['categories']['Insert']>;
         Relationships: [
