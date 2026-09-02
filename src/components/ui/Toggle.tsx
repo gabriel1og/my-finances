@@ -36,7 +36,7 @@ export function Toggle({
         aria-hidden
         className={[
           'relative h-4 w-7 shrink-0 rounded-full transition-colors',
-          checked ? 'bg-accent' : 'bg-surfaceAlt border border-border',
+          checked ? 'bg-accent' : 'border border-border bg-surfaceAlt',
         ].join(' ')}
       >
         <span
