@@ -28,6 +28,9 @@ export function MonthPicker({ compact = false }: { compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const [year, setYear] = useState(selectedYear);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  // O painel se ancora na cápsula inteira, não no rótulo: centrado no rótulo
+  // ele nascia deslocado para a esquerda, porque as setas ficam de fora.
+  const containerRef = useRef<HTMLDivElement>(null);
 
   function goTo(next: string) {
     const search = new URLSearchParams(params.toString());
@@ -58,14 +61,15 @@ export function MonthPicker({ compact = false }: { compact?: boolean }) {
     // Cápsula: setas e rótulo lidos como um controle só, não como três
     // elementos soltos ao lado do logo.
     <div
-      className={`bg-green relative flex items-center rounded-full border border-border bg-surfaceAlt ${
-        compact ? 'px-0.5 py-0.5' : 'gap-0.5 px-1 py-1'
+      ref={containerRef}
+      className={`bg-green relative flex items-center border border-border bg-surfaceAlt ${
+        compact ? 'rounded-full px-1 py-1' : 'rounded-md px-2 py-2'
       }`}
     >
       <button
         onClick={() => shift(-1)}
         className={`rounded-full leading-none text-textSecondary transition-colors hover:bg-surface hover:text-textPrimary ${
-          compact ? 'px-0.5' : 'px-1.5'
+          compact ? 'px-0.5 pb-0.5' : 'px-1 pb-1'
         }`}
         aria-label="Mês anterior"
       >
@@ -89,7 +93,7 @@ export function MonthPicker({ compact = false }: { compact?: boolean }) {
       <button
         onClick={() => shift(1)}
         className={`rounded-full leading-none text-textSecondary transition-colors hover:bg-surface hover:text-textPrimary ${
-          compact ? 'px-0.5' : 'px-1.5'
+          compact ? 'px-0.5 pb-0.5' : 'px-1 pb-1'
         }`}
         aria-label="Próximo mês"
       >
@@ -99,8 +103,9 @@ export function MonthPicker({ compact = false }: { compact?: boolean }) {
       <Popover
         open={open}
         onClose={() => setOpen(false)}
-        anchorRef={triggerRef}
+        anchorRef={containerRef}
         label="Escolher mês"
+        align="right"
       >
         <MonthGrid
           year={year}

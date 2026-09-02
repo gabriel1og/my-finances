@@ -100,6 +100,15 @@ export async function getProfile() {
   return data as Profile;
 }
 
+/** E-mail da sessão: não vive em `profiles`, só no usuário do Auth. */
+export async function getAuthEmail() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.email ?? null;
+}
+
 export async function getAccounts(includeArchived = false) {
   const supabase = await createClient();
   let query = supabase.from('accounts').select('*').order('position');

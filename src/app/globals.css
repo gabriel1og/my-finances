@@ -10,13 +10,19 @@
 
   html {
     color-scheme: dark;
+    /* Reserva o espaço da barra de rolagem sempre. Sem isto, a barra aparece
+       por cima do canto direito quando a página passa a rolar — comendo o
+       seletor de mês do cabeçalho — e o conteúdo ainda dança alguns pixels
+       entre uma página que rola e outra que não. */
+    scrollbar-gutter: stable;
   }
 
   body {
     @apply bg-bg font-sans text-textPrimary antialiased;
-    /* Nenhuma tela deve rolar na horizontal: quando algo é largo demais
-       (tabela do comparativo), quem rola é o container dela. */
-    overflow-x: hidden;
+    /* Sem `overflow-x: hidden` aqui: ele fazia o corpo virar container de
+       recorte e comia a borda direita dos popovers em portal quando a página
+       não rolava. A regra de não rolar na horizontal continua valendo — quem
+       rola é o container do conteúdo largo (tabelas), não a página. */
   }
 
   /* Foco visível padronizado: sem isto cada elemento herdava o outline do
@@ -26,6 +32,80 @@
      sobrescrever com uma classe própria. */
   :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
     @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-bg;
+  }
+
+  /* Barra de rolagem própria: a nativa do Windows é clara e larga, e cortava
+     o visual escuro em qualquer container com scroll (sidebar, modal, tabela
+     do comparativo). Firefox usa `scrollbar-*`; o resto usa o pseudo-elemento
+     do WebKit, por isso as duas declarações. */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.border') transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* A borda transparente + background-clip afinam o polegar sem encolher a
+     área clicável: o trilho continua com 10px de alvo. */
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    @apply bg-borderHover;
+  }
+
+  /* Sem o quadradinho cinza onde as duas barras se encontram. */
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Barra de rolagem discreta: a faixa segue reservada (scrollbar-gutter),
+     mas nada é desenhado nela enquanto ninguém interage — o polegar só
+     aparece no hover do container que rola. Zerar a largura esconderia a
+     barra de vez, junto com a única pista visual de que há mais conteúdo. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  *:hover {
+    scrollbar-color: theme('colors.border') transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: transparent;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+
+  :hover::-webkit-scrollbar-thumb {
+    background: theme('colors.border');
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.borderHover');
+    background-clip: content-box;
   }
 
   ::selection {
@@ -81,6 +161,16 @@
 
   .btn-secondary {
     @apply btn border border-border text-textSecondary hover:border-borderHover hover:text-textPrimary;
+  }
+
+  /* Para áreas onde a barra atrapalha o layout (carrossel de meses, chips
+     que rolam na horizontal) mas o gesto de arrastar continua valendo. */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 
   /* Linha de lista: usada por TxRow, TransferRow e pelas listas de relatórios. */

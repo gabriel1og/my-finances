@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { AddModal } from '@/components/ui/AddModal';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { PageActions } from '@/components/ui/PageActions';
 import { ExportButton } from '@/components/transactions/ExportButton';
 import { TransactionFilters } from '@/components/transactions/TransactionFilters';
 import { TransactionsList } from '@/components/transactions/TransactionsList';
@@ -46,18 +46,12 @@ export default async function TransactionsPage({
 
   return (
     <>
-      <PageHeader
-        title="Transações"
-        subtitle={allMonths ? 'Todos os meses' : 'Lançamentos do mês selecionado'}
-        action={
-          <div className="flex gap-2">
-            <Suspense fallback={null}>
-              <ExportButton month={month} />
-            </Suspense>
-            <AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />
-          </div>
-        }
-      />
+      <PageActions>
+        <Suspense fallback={null}>
+          <ExportButton month={month} />
+        </Suspense>
+        <AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />
+      </PageActions>
 
       {/* useSearchParams exige Suspense no App Router. */}
       <Suspense fallback={<div className="mb-4 h-9" />}>

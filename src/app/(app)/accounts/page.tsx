@@ -3,7 +3,7 @@ import { AccountFormModal } from '@/components/accounts/AccountFormModal';
 import { TransferModal } from '@/components/accounts/TransferModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { PageActions } from '@/components/ui/PageActions';
 import { currentMonth } from '@/lib/format';
 import { getAccountBalances, getAccounts, getCardStatements, getCards } from '@/lib/queries';
 
@@ -33,16 +33,10 @@ export default async function AccountsPage({
 
   return (
     <>
-      <PageHeader
-        title="Contas bancárias"
-        subtitle="Saldo atual e faturas vinculadas"
-        action={
-          <div className="flex gap-2">
-            <TransferModal accounts={active} />
-            <AccountFormModal />
-          </div>
-        }
-      />
+      <PageActions>
+        <TransferModal accounts={active} />
+        <AccountFormModal />
+      </PageActions>
 
       <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard label="Saldo total" value={total} subtitle="Soma das contas ativas" />

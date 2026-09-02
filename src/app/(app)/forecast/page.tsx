@@ -1,7 +1,6 @@
 import { ForecastMonthCard } from '@/components/forecast/ForecastMonthCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { buildForecast, monthSequence } from '@/lib/forecast';
 import { currentMonth } from '@/lib/format';
 import { getPostedRecurringIds, getRecurring, getUpcomingStatements } from '@/lib/queries';
@@ -40,11 +39,6 @@ export default async function ForecastPage({
 
   return (
     <>
-      <PageHeader
-        title="Previsão"
-        subtitle={`Próximos ${MONTHS_AHEAD} meses — o que já está comprometido`}
-      />
-
       <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
           label="Comprometido"

@@ -30,7 +30,7 @@ export function Popover({
   onClose: () => void;
   anchorRef: React.RefObject<HTMLElement | null>;
   label: string;
-  align?: 'left' | 'right';
+  align?: 'left' | 'center' | 'right';
   width?: number;
   children: React.ReactNode;
 }) {
@@ -49,15 +49,36 @@ export function Popover({
 
       const rect = anchor.getBoundingClientRect();
       const height = panelRef.current?.offsetHeight ?? 320;
-      const margin = 8;
+      // Largura medida, não a prop: borda e padding entram na conta, e é o
+      // valor real que precisa caber na janela.
+      const panelWidth = panelRef.current?.offsetWidth ?? width;
+      // 16px de folga em vez de 8: a sombra do painel se espalha uns 15px, e
+      // era ela que aparecia cortada rente à faixa da barra de rolagem.
+      const margin = 16;
 
       // Abre para baixo; se não couber, sobe. Assim o painel nunca fica meio
       // fora da janela em tela baixa.
-      const opensDown = rect.bottom + margin + height <= window.innerHeight;
+      // clientWidth/clientHeight, não innerWidth/innerHeight: os primeiros
+      // descontam a barra de rolagem, e é por isso que o painel encostava nela.
+      const viewportWidth = document.documentElement.clientWidth;
+      const viewportHeight = document.documentElement.clientHeight;
+
+      const opensDown = rect.bottom + margin + height <= viewportHeight;
       const top = opensDown ? rect.bottom + margin : Math.max(margin, rect.top - margin - height);
 
-      const rawLeft = align === 'right' ? rect.right - width : rect.left;
-      const left = Math.min(Math.max(margin, rawLeft), window.innerWidth - width - margin);
+      // O alinhamento é sempre relativo ao gatilho: à esquerda dele, à direita
+      // dele, ou centrado no seu meio.
+      const rawLeft =
+        align === 'right'
+          ? rect.right - panelWidth
+          : align === 'center'
+            ? rect.left + rect.width / 2 - panelWidth / 2
+            : rect.left;
+
+      // Preso à janela nas duas pontas: perto da borda o painel encosta na
+      // margem em vez de sair da tela — aí ele deixa de ficar centrado, e é o
+      // comportamento certo.
+      const left = Math.min(Math.max(margin, rawLeft), viewportWidth - panelWidth - margin);
 
       setPosition({ top, left });
     }

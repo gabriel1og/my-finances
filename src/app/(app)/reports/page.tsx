@@ -5,7 +5,6 @@ import { CategoryTrend } from '@/components/reports/CategoryTrend';
 import { RolloverTable } from '@/components/reports/RolloverTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { Money } from '@/lib/currency';
 import { monthSequence } from '@/lib/forecast';
 import { buildRolloverRows } from '@/lib/rollover';
@@ -69,8 +68,6 @@ export default async function ReportsPage({
 
   return (
     <>
-      <PageHeader title="Relatórios" subtitle={`Últimos ${TREND_MONTHS} meses`} />
-
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Receitas no período" value={income} tone="income" />
         <KpiCard label="Despesas no período" value={expense} tone="expense" />

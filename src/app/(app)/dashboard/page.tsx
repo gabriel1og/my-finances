@@ -3,7 +3,7 @@ import { AddModal } from '@/components/ui/AddModal';
 import { CategoryBar } from '@/components/ui/CategoryBar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { PageActions } from '@/components/ui/PageActions';
 import { GoalProgress } from '@/components/ui/GoalProgress';
 import { PendingBanner } from '@/components/recurring/PendingBanner';
 import { TransferRow } from '@/components/ui/TransferRow';
@@ -89,11 +89,9 @@ export default async function DashboardPage({
 
   return (
     <>
-      <PageHeader
-        title="Dashboard"
-        subtitle="Visão geral do mês"
-        action={<AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />}
-      />
+      <PageActions>
+        <AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />
+      </PageActions>
 
       <PendingBanner count={pendingRecurring} month={month} />
 
