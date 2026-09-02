@@ -23,6 +23,22 @@ const config: Config = {
         warning: '#F5A623',
         warningDim: '#3D2800',
       },
+      // Escala tipográfica fechada: antes conviviam text-[10px], text-[11px] e
+      // seis tamanhos nomeados sem regra. Cada passo já carrega o line-height,
+      // para densidade não depender de quem escreve a classe.
+      // Escala tipográfica fechada: cada passo carrega o line-height, para a
+      // densidade não depender de quem escreve a classe. Subiu 2px em todos os
+      // passos (02/09) — o texto estava pequeno demais na tela real.
+      fontSize: {
+        '3xs': ['0.75rem', { lineHeight: '1rem' }], // 12px — selo, contador
+        '2xs': ['0.8rem', { lineHeight: '1.1rem' }], // 13px — legenda, meta
+        xs: ['0.9rem', { lineHeight: '1.25rem' }], // 14px — apoio
+        sm: ['1rem', { lineHeight: '1.5rem' }], // 16px — corpo
+        base: ['1.1rem', { lineHeight: '1.6rem' }], // 18px
+        lg: ['1.2rem', { lineHeight: '1.75rem' }], // 20px — título de página
+        xl: ['1.3rem', { lineHeight: '1.8rem' }], // 22px — número-título de card
+        '2xl': ['1.4rem', { lineHeight: '2rem' }], // 26px — KPI
+      },
       fontFamily: {
         sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],

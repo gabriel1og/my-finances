@@ -50,7 +50,7 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
   };
 
   return (
-    <form onSubmit={submit} className="card max-w-lg">
+    <form onSubmit={submit} className="card">
       <div className="flex items-center justify-between border-b border-border pb-3">
         <span className="text-sm text-textSecondary">E-mail</span>
         <span className="num text-sm">{email}</span>
@@ -71,7 +71,7 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
         <div>
           <label className="label-caps">Moeda</label>
           <select
-            className="input-base mt-1"
+            className="select-base mt-1"
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
           >
@@ -92,7 +92,7 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
             onChange={(e) => setMonthlyGoal(e.target.value)}
             placeholder="0,00"
           />
-          <p className="num mt-1 text-[11px] text-textMuted">
+          <p className="num mt-1 text-2xs text-textMuted">
             {preview(monthlyGoal) ?? 'Quanto você quer que sobre no fim do mês.'}
           </p>
         </div>
@@ -106,7 +106,7 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
             onChange={(e) => setSpendingCap(e.target.value)}
             placeholder="0,00"
           />
-          <p className="num mt-1 text-[11px] text-textMuted">
+          <p className="num mt-1 text-2xs text-textMuted">
             {preview(spendingCap) ?? 'Limite total de despesas. Deixe em branco para não usar.'}
           </p>
         </div>
@@ -115,11 +115,7 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
       {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
       {saved ? <p className="mt-3 text-xs text-income">Preferências salvas.</p> : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-      >
+      <button type="submit" disabled={pending} className="btn-primary mt-5">
         {pending ? 'Salvando...' : 'Salvar'}
       </button>
     </form>

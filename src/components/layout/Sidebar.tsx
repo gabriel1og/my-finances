@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import { CollapseIcon, ExpandIcon } from '@/components/layout/NavIcons';
+import { Logo, LogoMark } from '@/components/layout/Logo';
 import { MonthPicker } from '@/components/layout/MonthPicker';
 import { SidebarNav } from '@/components/layout/SidebarNav';
 
@@ -30,7 +31,7 @@ export function Sidebar({
     <aside
       className={[
         'flex h-full flex-col border-r border-border bg-surface',
-        isDrawer ? 'w-[240px]' : collapsed ? 'w-16' : 'w-[220px]',
+        isDrawer ? 'w-[240px]' : collapsed ? 'w-20' : 'w-[220px]',
         isDrawer ? '' : 'transition-[width] duration-200',
       ].join(' ')}
     >
@@ -42,13 +43,13 @@ export function Sidebar({
       >
         {showLabels ? (
           <>
-            <span className="text-lg font-semibold tracking-tight">flowly</span>
+            <Logo />
             <Suspense fallback={<div className="h-[18px] w-[86px]" />}>
               <MonthPicker />
             </Suspense>
           </>
         ) : (
-          <span className="text-lg font-semibold tracking-tight">f</span>
+          <LogoMark size={26} />
         )}
       </div>
 
@@ -62,7 +63,9 @@ export function Sidebar({
         </div>
       ) : null}
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      {/* Recolhida, o container não pode cortar: o tooltip de cada ícone é
+          desenhado fora dos 64px da barra. Expandida, volta a rolar. */}
+      <div className={`min-h-0 flex-1 ${showLabels ? 'overflow-y-auto' : 'overflow-visible'}`}>
         <Suspense fallback={<div className="h-[300px]" />}>
           <SidebarNav collapsed={!showLabels} onNavigate={onNavigate} />
         </Suspense>

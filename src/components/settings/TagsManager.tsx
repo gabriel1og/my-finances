@@ -23,7 +23,7 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
   }
 
   return (
-    <div className="card max-w-lg">
+    <div className="card">
       <span className="label-caps">Tags</span>
       <p className="mt-1 text-xs text-textSecondary">
         Dimensão paralela à categoria: uma transação tem uma categoria, mas pode ter várias tags.
@@ -49,7 +49,7 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
               () => setName(''),
             )
           }
-          className="shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="btn-primary shrink-0"
         >
           Criar
         </button>
@@ -101,7 +101,6 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
               ) : (
                 <>
                   <span className="flex-1 text-sm text-textPrimary">{tag.name}</span>
-
                   <div className="flex shrink-0 gap-2">
                     {CATEGORY_PALETTE.map((color) => (
                       <button
@@ -119,7 +118,7 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
                       />
                     ))}
                   </div>
-
+                  |
                   <button
                     onClick={() => {
                       setEditingId(tag.id);
@@ -129,7 +128,6 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
                   >
                     Renomear
                   </button>
-
                   {confirmingId === tag.id ? (
                     <>
                       <span className="shrink-0 text-xs text-textSecondary">Excluir?</span>
@@ -167,7 +165,7 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
         )}
       </div>
 
-      <p className="mt-3 text-[11px] text-textMuted">
+      <p className="mt-3 text-2xs text-textMuted">
         Excluir uma tag remove o rótulo das transações; os lançamentos continuam intactos.
       </p>
     </div>

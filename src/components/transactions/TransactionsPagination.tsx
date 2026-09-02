@@ -36,7 +36,7 @@ export function TransactionsPagination({
           <button
             onClick={() => goTo(page - 1)}
             disabled={page <= 1}
-            className="rounded-md border border-border px-3 py-1.5 text-xs text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary disabled:opacity-40"
+            className="btn-secondary px-3 text-xs"
           >
             Anterior
           </button>
@@ -46,7 +46,7 @@ export function TransactionsPagination({
           <button
             onClick={() => goTo(page + 1)}
             disabled={page >= pageCount}
-            className="rounded-md border border-border px-3 py-1.5 text-xs text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary disabled:opacity-40"
+            className="btn-secondary px-3 text-xs"
           >
             Próxima
           </button>

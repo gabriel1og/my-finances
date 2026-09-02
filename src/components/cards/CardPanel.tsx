@@ -1,5 +1,6 @@
 'use client';
 
+import { DateField } from '@/components/ui/DateField';
 import { useState, useTransition } from 'react';
 import { CardFormModal } from '@/components/cards/CardFormModal';
 import { archiveCard, deleteCard, payStatement, restoreCard } from '@/app/(app)/cards/actions';
@@ -73,28 +74,28 @@ export function CardPanel({
         </div>
 
         <div className="text-right">
-          <p className="num text-[11px] text-textMuted">
+          <p className="num text-2xs text-textMuted">
             fecha dia {card.closing_day} · vence dia {card.due_day}
           </p>
-          <p className="num text-[11px] text-textSecondary">venc. {formatDate(dueDate)}</p>
+          <p className="num text-2xs text-textSecondary">venc. {formatDate(dueDate)}</p>
         </div>
       </div>
 
       <div className="mt-4 flex items-baseline justify-between">
         <span className="label-caps">Fatura do mês</span>
-        <span className={`num text-xl ${open > 0 ? 'text-expense' : 'text-income'}`}>
+        <span className={`num text-xl tracking-tight ${open > 0 ? 'text-expense' : 'text-income'}`}>
           {money(open > 0 ? open : total)}
         </span>
       </div>
 
       {card.is_archived && open > 0 ? (
-        <p className="mt-2 text-[11px] text-warning">
+        <p className="mt-2 text-2xs text-warning">
           Cartão arquivado com fatura em aberto. Você ainda pode registrar o pagamento.
         </p>
       ) : null}
 
       {paid > 0 ? (
-        <p className="num mt-1 text-[11px] text-income">
+        <p className="num mt-1 text-2xs text-income">
           {money(paid)} já pago de {money(total)}
         </p>
       ) : null}
@@ -110,7 +111,7 @@ export function CardPanel({
               }}
             />
           </div>
-          <p className="num mt-1 text-[11px] text-textMuted">
+          <p className="num mt-1 text-2xs text-textMuted">
             {money(total)} de {money(Number(card.credit_limit))} do limite
           </p>
         </>
@@ -127,9 +128,7 @@ export function CardPanel({
             </div>
           ))}
           {items.length > 4 ? (
-            <p className="num mt-1 text-[11px] text-textMuted">
-              + {items.length - 4} lançamento(s)
-            </p>
+            <p className="num mt-1 text-2xs text-textMuted">+ {items.length - 4} lançamento(s)</p>
           ) : null}
         </div>
       ) : (
@@ -152,15 +151,15 @@ export function CardPanel({
             </div>
             <div>
               <label className="label-caps">Data do pagamento</label>
-              <input
-                type="date"
-                className="input-base num mt-1"
+              <DateField
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={setDate}
+                label="Data do pagamento"
+                className="mt-1"
               />
             </div>
           </div>
-          <p className="text-[11px] text-textMuted">
+          <p className="text-2xs text-textMuted">
             Gera uma saída de {account?.name ?? 'conta vinculada'}. Não conta como despesa nova — as
             compras já entraram no mês em que foram feitas.
           </p>
@@ -177,14 +176,11 @@ export function CardPanel({
                   }),
                 )
               }
-              className="rounded-md bg-accent px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+              className="btn-primary px-3 text-xs"
             >
               {pending ? 'Registrando...' : 'Confirmar pagamento'}
             </button>
-            <button
-              onClick={() => setPaying(false)}
-              className="rounded-md border border-border px-3 py-2 text-xs text-textSecondary"
-            >
+            <button onClick={() => setPaying(false)} className="btn-secondary px-3 text-xs">
               Cancelar
             </button>
           </div>

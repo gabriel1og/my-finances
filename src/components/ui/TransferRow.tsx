@@ -39,7 +39,7 @@ export function TransferRow({
   }
 
   return (
-    <div className="group border-b border-border py-3 last:border-b-0">
+    <div className="row-divider group">
       <div className="flex items-center gap-3">
         <span
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-surfaceAlt text-sm text-textSecondary"
@@ -108,7 +108,7 @@ export function TransferRow({
 
         <div className="w-24 shrink-0 text-right sm:w-32">
           <p className="num text-sm text-textSecondary">{money(entry.amount)}</p>
-          <p className="num text-[11px] text-textMuted">{formatDate(entry.date)}</p>
+          <p className="num text-2xs text-textMuted">{formatDate(entry.date)}</p>
         </div>
       </div>
 

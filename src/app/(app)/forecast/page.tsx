@@ -79,7 +79,7 @@ export default async function ForecastPage({
         <EmptyState message="Nada comprometido nos próximos meses. Parcelas e lançamentos fixos aparecem aqui." />
       )}
 
-      <p className="mt-4 text-[11px] text-textMuted">
+      <p className="mt-4 text-2xs text-textMuted">
         Faturas vêm de compras já registradas — parcela futura é transação real com data futura, não
         estimativa. Fixos são previsão: o valor pode mudar na hora de lançar.
       </p>

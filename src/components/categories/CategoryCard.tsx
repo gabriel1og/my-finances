@@ -79,7 +79,7 @@ export function CategoryCard({
           />
 
           {rollover && carry !== 0 ? (
-            <p className={`num mt-1 text-[11px] ${carry > 0 ? 'text-income' : 'text-warning'}`}>
+            <p className={`num mt-1 text-2xs ${carry > 0 ? 'text-income' : 'text-warning'}`}>
               {carry > 0 ? '+' : '−'}
               {money(Math.abs(carry))} acumulado de meses anteriores
               <span className="text-textMuted"> · limite do mês {money(budget)}</span>
@@ -87,7 +87,7 @@ export function CategoryCard({
           ) : null}
 
           {monthOverride !== null ? (
-            <p className="num mt-1 text-[11px] text-accent">limite específico deste mês</p>
+            <p className="num mt-1 text-2xs text-accent">limite específico deste mês</p>
           ) : null}
         </>
       )}
@@ -107,14 +107,11 @@ export function CategoryCard({
                 setMonthlyBudget(category.id, month, Number(value.replace(',', '.') || '0')),
               )
             }
-            className="rounded-md bg-accent px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+            className="btn-primary px-3 text-xs"
           >
             Aplicar
           </button>
-          <button
-            onClick={() => setEditingBudget(false)}
-            className="rounded-md border border-border px-3 py-2 text-xs text-textSecondary"
-          >
+          <button onClick={() => setEditingBudget(false)} className="btn-secondary px-3 text-xs">
             Cancelar
           </button>
         </div>

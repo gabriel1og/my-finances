@@ -1,5 +1,6 @@
 'use client';
 
+import { MonthField } from '@/components/ui/MonthField';
 import { useState, useTransition } from 'react';
 import { Modal, ModalTrigger } from '@/components/ui/Modal';
 import { TagPicker } from '@/components/ui/TagPicker';
@@ -101,11 +102,7 @@ export function RecurringFormModal({
       <ModalTrigger
         trigger={trigger}
         onOpen={() => setOpen(true)}
-        fallback={
-          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
-            Novo fixo
-          </button>
-        }
+        fallback={<button className="btn-primary">Novo fixo</button>}
       />
 
       <Modal
@@ -159,7 +156,7 @@ export function RecurringFormModal({
             <div>
               <label className="label-caps">Dia do mês</label>
               <select
-                className="input-base num mt-1"
+                className="select-base num mt-1"
                 value={dayOfMonth}
                 onChange={(e) => setDayOfMonth(Number(e.target.value))}
               >
@@ -172,7 +169,7 @@ export function RecurringFormModal({
             </div>
           </div>
 
-          <p className="text-[11px] text-textMuted">
+          <p className="text-2xs text-textMuted">
             O valor é uma previsão — dá para ajustar na hora de lançar. Dia 29, 30 ou 31 vira o
             último dia do mês quando ele não existe.
           </p>
@@ -205,7 +202,7 @@ export function RecurringFormModal({
             <div>
               <label className="label-caps">Cartão</label>
               <select
-                className="input-base mt-1"
+                className="select-base mt-1"
                 value={cardId}
                 onChange={(e) => setCardId(e.target.value)}
               >
@@ -221,7 +218,7 @@ export function RecurringFormModal({
               <div>
                 <label className="label-caps">Conta</label>
                 <select
-                  className="input-base mt-1"
+                  className="select-base mt-1"
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
                 >
@@ -236,7 +233,7 @@ export function RecurringFormModal({
               <div>
                 <label className="label-caps">Forma</label>
                 <select
-                  className="input-base mt-1"
+                  className="select-base mt-1"
                   value={method}
                   onChange={(e) => setMethod(e.target.value as PaymentMethod)}
                 >
@@ -253,7 +250,7 @@ export function RecurringFormModal({
           <div>
             <label className="label-caps">Categoria</label>
             <select
-              className="input-base mt-1"
+              className="select-base mt-1"
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
             >
@@ -271,22 +268,24 @@ export function RecurringFormModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label-caps">Começa em</label>
-              <input
-                type="month"
-                className="input-base num mt-1"
+              <MonthField
                 value={startMonth}
-                onChange={(e) => setStartMonth(e.target.value)}
+                onChange={setStartMonth}
+                label="Começa em"
+                className="mt-1"
               />
             </div>
             <div>
               <label className="label-caps">Termina em</label>
-              <input
-                type="month"
-                className="input-base num mt-1"
+              <MonthField
                 value={endMonth}
-                onChange={(e) => setEndMonth(e.target.value)}
+                onChange={setEndMonth}
+                label="Termina em"
+                placeholder="Sem fim"
+                clearable
+                className="mt-1"
               />
-              <p className="mt-1 text-[11px] text-textMuted">Opcional. Útil para parcelas fixas.</p>
+              <p className="mt-1 text-2xs text-textMuted">Opcional. Útil para parcelas fixas.</p>
             </div>
           </div>
 
@@ -296,17 +295,10 @@ export function RecurringFormModal({
         {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            onClick={() => setOpen(false)}
-            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
-          >
+          <button onClick={() => setOpen(false)} className="btn-secondary">
             Cancelar
           </button>
-          <button
-            onClick={submit}
-            disabled={pending}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
+          <button onClick={submit} disabled={pending} className="btn-primary">
             {pending ? 'Salvando...' : 'Salvar'}
           </button>
         </div>

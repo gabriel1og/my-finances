@@ -52,11 +52,7 @@ export function AccountFormModal({
       <ModalTrigger
         trigger={trigger}
         onOpen={() => setOpen(true)}
-        fallback={
-          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
-            Nova conta
-          </button>
-        }
+        fallback={<button className="btn-primary">Nova conta</button>}
       />
 
       <Modal
@@ -80,7 +76,7 @@ export function AccountFormModal({
             <div>
               <label className="label-caps">Tipo</label>
               <select
-                className="input-base mt-1"
+                className="select-base mt-1"
                 value={kind}
                 onChange={(e) => setKind(e.target.value as AccountKind)}
               >
@@ -111,7 +107,7 @@ export function AccountFormModal({
               onChange={(e) => setOpeningBalance(e.target.value)}
               placeholder="0,00"
             />
-            <p className="mt-1 text-[11px] text-textMuted">
+            <p className="mt-1 text-2xs text-textMuted">
               Quanto havia na conta antes do primeiro lançamento. Aceita negativo.
             </p>
           </div>
@@ -141,17 +137,10 @@ export function AccountFormModal({
         {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            onClick={() => setOpen(false)}
-            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
-          >
+          <button onClick={() => setOpen(false)} className="btn-secondary">
             Cancelar
           </button>
-          <button
-            onClick={submit}
-            disabled={pending}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
+          <button onClick={submit} disabled={pending} className="btn-primary">
             {pending ? 'Salvando...' : 'Salvar'}
           </button>
         </div>

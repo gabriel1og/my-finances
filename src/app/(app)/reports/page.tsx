@@ -65,7 +65,7 @@ export default async function ReportsPage({
         />
       </section>
 
-      <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
           <span className="label-caps">Fluxo mensal</span>
           <div className="mt-4">
@@ -85,7 +85,7 @@ export default async function ReportsPage({
         </div>
       </section>
 
-      <section className="card mt-4">
+      <section className="card mt-6">
         <span className="label-caps">Composição das despesas do mês</span>
         <div className="mt-4">
           {spending.some((row) => row.kind === 'expense' && Number(row.spent) > 0) ? (
@@ -96,14 +96,14 @@ export default async function ReportsPage({
         </div>
       </section>
 
-      <section className="card mt-4">
+      <section className="card mt-6">
         <span className="label-caps">Comparativo por categoria</span>
         <div className="mt-3">
           <CategoryTrend rows={trend} months={trendMonths} />
         </div>
       </section>
 
-      <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
           <span className="label-caps">Gastos por conta</span>
           <div className="mt-2">
@@ -116,9 +116,7 @@ export default async function ReportsPage({
                   <span className="flex items-center gap-2 text-sm text-textPrimary">
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: row.color }} />
                     {row.name}
-                    <span className="num text-[11px] text-textMuted">
-                      {row.items} lançamento(s)
-                    </span>
+                    <span className="num text-2xs text-textMuted">{row.items} lançamento(s)</span>
                   </span>
                   <Money value={Number(row.expense)} className="num text-sm text-expense" />
                 </div>
@@ -131,7 +129,7 @@ export default async function ReportsPage({
 
         <div className="card">
           <span className="label-caps">Gastos por cartão</span>
-          <p className="mt-1 text-[11px] text-textMuted">Pelo mês da compra, não o da fatura.</p>
+          <p className="mt-1 text-2xs text-textMuted">Pelo mês da compra, não o da fatura.</p>
           <div className="mt-2">
             {cards.length ? (
               cards.map((row) => (
@@ -142,7 +140,7 @@ export default async function ReportsPage({
                   <span className="flex items-center gap-2 text-sm text-textPrimary">
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: row.color }} />
                     {row.name}
-                    <span className="num text-[11px] text-textMuted">{row.items} compra(s)</span>
+                    <span className="num text-2xs text-textMuted">{row.items} compra(s)</span>
                   </span>
                   <Money value={Number(row.expense)} className="num text-sm text-expense" />
                 </div>
@@ -154,7 +152,7 @@ export default async function ReportsPage({
         </div>
       </section>
 
-      <section className="card mt-4">
+      <section className="card mt-6">
         <span className="label-caps">Gastos por tag</span>
         <div className="mt-2">
           {tagTotals.length ? (
@@ -166,7 +164,7 @@ export default async function ReportsPage({
                 <span className="flex items-center gap-2 text-sm text-textPrimary">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: row.color }} />
                   {row.name}
-                  <span className="num text-[11px] text-textMuted">{row.items} lançamento(s)</span>
+                  <span className="num text-2xs text-textMuted">{row.items} lançamento(s)</span>
                 </span>
                 <Money value={Number(row.expense)} className="num text-sm text-expense" />
               </div>

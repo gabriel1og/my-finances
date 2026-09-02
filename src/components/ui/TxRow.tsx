@@ -61,7 +61,7 @@ export function TxRow({
   const hasGroup = Boolean(tx.installment_group || tx.transfer_group);
 
   return (
-    <div className="group border-b border-border py-3 last:border-b-0">
+    <div className="row-divider group">
       <div className="flex items-center gap-3">
         <span
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm ${
@@ -151,7 +151,7 @@ export function TxRow({
           <p className={`num text-sm ${isIncome ? 'text-income' : 'text-expense'}`}>
             {isIncome ? '+' : '−'} {money(tx.amount)}
           </p>
-          <p className="num text-[11px] text-textMuted">{formatDate(tx.date)}</p>
+          <p className="num text-2xs text-textMuted">{formatDate(tx.date)}</p>
         </div>
       </div>
 

@@ -51,7 +51,7 @@ export function ForecastMonthCard({
                   style={{ backgroundColor: statement.color }}
                 />
                 {statement.name}
-                <span className="num text-[11px] text-textMuted">
+                <span className="num text-2xs text-textMuted">
                   venc. {formatDate(statement.due_date)}
                 </span>
               </span>
@@ -78,7 +78,7 @@ export function ForecastMonthCard({
       </div>
 
       {data.recurringIncome > 0 ? (
-        <p className={`num mt-3 text-[11px] ${net < 0 ? 'text-warning' : 'text-textMuted'}`}>
+        <p className={`num mt-3 text-2xs ${net < 0 ? 'text-warning' : 'text-textMuted'}`}>
           {net < 0
             ? `${money(Math.abs(net))} além das receitas fixas`
             : `sobra prevista ${money(net)}`}

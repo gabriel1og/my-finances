@@ -28,20 +28,14 @@ export default function AppError({
         </p>
 
         {error.digest ? (
-          <p className="num mt-2 text-[11px] text-textMuted">digest {error.digest}</p>
+          <p className="num mt-2 text-2xs text-textMuted">digest {error.digest}</p>
         ) : null}
 
         <div className="mt-5 flex justify-center gap-2">
-          <button
-            onClick={reset}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          >
+          <button onClick={reset} className="btn-primary">
             Tentar de novo
           </button>
-          <a
-            href="/dashboard"
-            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary"
-          >
+          <a href="/dashboard" className="btn-secondary">
             Ir para o dashboard
           </a>
         </div>

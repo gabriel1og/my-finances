@@ -43,7 +43,7 @@ export function CategoryBar({
       </div>
 
       {budget > 0 ? (
-        <p className={`num mt-1 text-[11px] ${alert ? 'text-warning' : 'text-textMuted'}`}>
+        <p className={`num mt-1 text-2xs ${alert ? 'text-warning' : 'text-textMuted'}`}>
           {formatPercent(pct)} do limite
         </p>
       ) : null}
