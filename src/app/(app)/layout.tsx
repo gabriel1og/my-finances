@@ -1,4 +1,4 @@
-import { Sidebar } from '@/components/layout/Sidebar';
+import { AppShell } from '@/components/layout/AppShell';
 import { CurrencyProvider } from '@/lib/currency';
 import { getProfile } from '@/lib/queries';
 
@@ -10,10 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <CurrencyProvider currency={profile?.currency ?? 'BRL'}>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <main className="flex-1 animate-fadeUp px-8 py-7">{children}</main>
-      </div>
+      <AppShell>{children}</AppShell>
     </CurrencyProvider>
   );
 }

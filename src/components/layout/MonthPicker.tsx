@@ -4,7 +4,7 @@ import type { Route } from 'next';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { currentMonth } from '@/lib/format';
 
-export function MonthPicker() {
+export function MonthPicker({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -23,18 +23,28 @@ export function MonthPicker() {
   const label = `${month.slice(5, 7)}/${month.slice(2, 4)}`;
 
   return (
-    <div className="flex items-center gap-1">
+    <div className={compact ? 'flex items-center' : 'flex items-center gap-1'}>
       <button
         onClick={() => shift(-1)}
-        className="rounded-sm px-1 leading-none text-textSecondary transition-colors hover:text-textPrimary"
+        className={`rounded-sm leading-none text-textSecondary transition-colors hover:text-textPrimary ${
+          compact ? 'px-0.5' : 'px-1'
+        }`}
         aria-label="Mês anterior"
       >
         ‹
       </button>
-      <span className="num min-w-[42px] text-center text-xs text-textPrimary">{label}</span>
+      <span
+        className={`num text-center text-textPrimary ${
+          compact ? 'min-w-[30px] text-[10px]' : 'min-w-[42px] text-xs'
+        }`}
+      >
+        {label}
+      </span>
       <button
         onClick={() => shift(1)}
-        className="rounded-sm px-1 leading-none text-textSecondary transition-colors hover:text-textPrimary"
+        className={`rounded-sm leading-none text-textSecondary transition-colors hover:text-textPrimary ${
+          compact ? 'px-0.5' : 'px-1'
+        }`}
         aria-label="Próximo mês"
       >
         ›

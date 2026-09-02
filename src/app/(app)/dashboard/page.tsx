@@ -90,7 +90,7 @@ export default async function DashboardPage({
 
       <PendingBanner count={pendingRecurring} month={month} />
 
-      <section className="grid grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="Saldo em contas"
           value={consolidated}
@@ -106,7 +106,7 @@ export default async function DashboardPage({
       </section>
 
       {profile?.monthly_goal || profile?.monthly_spending_cap ? (
-        <section className="mt-4 grid grid-cols-2 gap-4">
+        <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
           <GoalProgress
             variant="saving"
             current={totalIncome - totalExpense}
@@ -122,8 +122,8 @@ export default async function DashboardPage({
         </section>
       ) : null}
 
-      <section className="mt-4 grid grid-cols-3 gap-4">
-        <div className="card col-span-2">
+      <section className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="card xl:col-span-2">
           <span className="label-caps">Fluxo mensal</span>
           <div className="mt-4">
             {flow.length ? <FlowChart data={flow} /> : <EmptyState message="Sem dados ainda." />}

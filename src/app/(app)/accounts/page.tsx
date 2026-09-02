@@ -44,7 +44,7 @@ export default async function AccountsPage({
         }
       />
 
-      <section className="mb-6 grid grid-cols-3 gap-4">
+      <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard label="Saldo total" value={total} subtitle="Soma das contas ativas" />
         <KpiCard
           label="Faturas em aberto"
@@ -60,7 +60,7 @@ export default async function AccountsPage({
       </section>
 
       {active.length ? (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {active.map((account) => {
             const accountCards = cards.filter((card) => card.account_id === account.id);
             const openTotal = accountCards.reduce(
@@ -85,7 +85,7 @@ export default async function AccountsPage({
       {archived.length ? (
         <section className="mt-8">
           <span className="label-caps">Arquivadas</span>
-          <div className="mt-3 grid grid-cols-3 gap-4">
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {archived.map((account) => (
               <AccountCard
                 key={account.id}

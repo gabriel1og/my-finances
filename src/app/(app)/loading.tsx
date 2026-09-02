@@ -11,13 +11,13 @@ export default function AppLoading() {
         <Skeleton className="h-9 w-36" />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <CardSkeleton />
         <CardSkeleton />
         <CardSkeleton />
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <div className="card col-span-2">
           <Skeleton className="h-3 w-28" />
           <Skeleton className="mt-4 h-[220px] w-full" />

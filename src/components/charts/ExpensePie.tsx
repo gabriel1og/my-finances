@@ -24,7 +24,7 @@ export function ExpensePie({ data }: { data: CategorySpending[] }) {
   const total = slices.reduce((sum, slice) => sum + slice.value, 0);
 
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
       <div className="h-[180px] w-[180px] shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -56,7 +56,7 @@ export function ExpensePie({ data }: { data: CategorySpending[] }) {
       </div>
 
       {/* Legenda com percentual: o donut mostra proporção, o número confirma. */}
-      <div className="min-w-0 flex-1">
+      <div className="w-full min-w-0 flex-1">
         {slices.slice(0, 6).map((slice) => (
           <div key={slice.name} className="flex items-center justify-between py-1">
             <span className="flex items-center gap-2 truncate text-xs text-textSecondary">

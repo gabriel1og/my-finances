@@ -49,7 +49,7 @@ export default async function CardsPage({
         <EmptyState message="Cadastre uma conta bancária primeiro — todo cartão precisa de uma conta que pague a fatura." />
       ) : (
         <>
-          <section className="mb-6 grid grid-cols-3 gap-4">
+          <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <KpiCard label="Faturas em aberto" value={totalOpen} tone="expense" />
             <KpiCard label="Total das faturas" value={totalUsed} subtitle="Compras do mês" />
             <KpiCard
@@ -64,7 +64,7 @@ export default async function CardsPage({
           </section>
 
           {active.length ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {active.map((card) => (
                 <CardPanel
                   key={card.id}
@@ -83,7 +83,7 @@ export default async function CardsPage({
           {archived.length ? (
             <section className="mt-8">
               <span className="label-caps">Arquivados</span>
-              <div className="mt-3 grid grid-cols-2 gap-4">
+              <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {archived.map((card) => (
                   <CardPanel
                     key={card.id}

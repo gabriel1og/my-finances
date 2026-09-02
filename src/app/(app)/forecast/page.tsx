@@ -45,7 +45,7 @@ export default async function ForecastPage({
         subtitle={`Próximos ${MONTHS_AHEAD} meses — o que já está comprometido`}
       />
 
-      <section className="mb-6 grid grid-cols-3 gap-4">
+      <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
           label="Comprometido"
           value={totalCommitted}
@@ -65,7 +65,7 @@ export default async function ForecastPage({
       </section>
 
       {hasAnything ? (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {forecast.map((item, index) => (
             <ForecastMonthCard
               key={item.month}

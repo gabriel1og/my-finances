@@ -54,7 +54,7 @@ export default async function ReportsPage({
     <>
       <PageHeader title="Relatórios" subtitle={`Últimos ${TREND_MONTHS} meses`} />
 
-      <section className="grid grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Receitas no período" value={income} tone="income" />
         <KpiCard label="Despesas no período" value={expense} tone="expense" />
         <KpiCard label="Resultado" value={income - expense} subtitle="Receitas − despesas" />
@@ -65,7 +65,7 @@ export default async function ReportsPage({
         />
       </section>
 
-      <section className="mt-4 grid grid-cols-2 gap-4">
+      <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
           <span className="label-caps">Fluxo mensal</span>
           <div className="mt-4">
@@ -103,7 +103,7 @@ export default async function ReportsPage({
         </div>
       </section>
 
-      <section className="mt-4 grid grid-cols-2 gap-4">
+      <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
           <span className="label-caps">Gastos por conta</span>
           <div className="mt-2">
