@@ -1,16 +1,16 @@
 import { AppShell } from '@/components/layout/AppShell';
 import { CurrencyProvider } from '@/lib/currency';
-import { getProfile } from '@/lib/queries';
+import { getAuthEmail, getProfile } from '@/lib/queries';
 
 // Rotas autenticadas: leem cookies de sessao, nao ha o que prerenderizar.
 export const dynamic = 'force-dynamic';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const profile = await getProfile();
+  const [profile, email] = await Promise.all([getProfile(), getAuthEmail()]);
 
   return (
     <CurrencyProvider currency={profile?.currency ?? 'BRL'}>
-      <AppShell>{children}</AppShell>
+      <AppShell user={{ name: profile?.display_name ?? null, email }}>{children}</AppShell>
     </CurrencyProvider>
   );
 }

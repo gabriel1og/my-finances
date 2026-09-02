@@ -1,7 +1,7 @@
 import { CategoryCard } from '@/components/categories/CategoryCard';
 import { CategoryFormModal } from '@/components/categories/CategoryFormModal';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { PageActions } from '@/components/ui/PageActions';
 import { currentMonth } from '@/lib/format';
 import { Money } from '@/lib/currency';
 import {
@@ -73,11 +73,9 @@ export default async function CategoriesPage({
 
   return (
     <>
-      <PageHeader
-        title="Categorias"
-        subtitle="Limites e consumo do mês"
-        action={<CategoryFormModal />}
-      />
+      <PageActions>
+        <CategoryFormModal />
+      </PageActions>
 
       <section>
         <div className="mb-3 flex items-baseline justify-between">

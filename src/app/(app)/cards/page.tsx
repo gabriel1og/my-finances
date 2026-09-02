@@ -3,7 +3,7 @@ import { CardPanel } from '@/components/cards/CardPanel';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Money } from '@/lib/currency';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { PageActions } from '@/components/ui/PageActions';
 import { currentMonth } from '@/lib/format';
 import { getAccounts, getCardStatements, getCards, getStatementItems } from '@/lib/queries';
 
@@ -39,11 +39,9 @@ export default async function CardsPage({
 
   return (
     <>
-      <PageHeader
-        title="Cartões de crédito"
-        subtitle="Faturas do mês selecionado"
-        action={<CardFormModal accounts={accounts} />}
-      />
+      <PageActions>
+        <CardFormModal accounts={accounts} />
+      </PageActions>
 
       {accounts.length === 0 ? (
         <EmptyState message="Cadastre uma conta bancária primeiro — todo cartão precisa de uma conta que pague a fatura." />

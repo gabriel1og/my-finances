@@ -2,21 +2,30 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Logo } from '@/components/layout/Logo';
-import { CloseIcon, MenuIcon } from '@/components/layout/NavIcons';
+import { AppHeader } from '@/components/layout/AppHeader';
+import { CloseIcon } from '@/components/layout/NavIcons';
 import { Sidebar } from '@/components/layout/Sidebar';
 
 const STORAGE_KEY = 'flowly:sidebar-collapsed';
 
 /**
  * Casca responsiva.
- * - < 1024px: sidebar sai do fluxo e vira drawer, aberto pelo topo fixo.
+ * - < 1024px: sidebar sai do fluxo e vira drawer, aberto pelo cabeçalho.
  * - >= 1024px: sidebar fixa, expandida ou recolhida (preferência salva).
  *
- * A preferência é lida depois da montagem para não divergir do HTML do
- * servidor, que não conhece o localStorage.
+ * O cabeçalho é global e fica acima do conteúdo em qualquer largura: é dele o
+ * título da página e o seletor de mês, que valem para o app inteiro.
+ *
+ * A preferência de recolhimento é lida depois da montagem para não divergir do
+ * HTML do servidor, que não conhece o localStorage.
  */
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  user,
+}: {
+  children: React.ReactNode;
+  user: { name: string | null; email: string | null };
+}) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -67,26 +76,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen">
       {/* Desktop e tablet largo */}
       <div className="sticky top-0 hidden h-screen shrink-0 lg:block">
-        <Sidebar collapsed={collapsed} onToggleCollapse={toggleCollapse} />
+        <Sidebar collapsed={collapsed} user={user} />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Topo só existe abaixo de lg, onde a sidebar não cabe. */}
-        <header
-          className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-bg/95 px-4 py-3 backdrop-blur lg:hidden"
-          // viewportFit: 'cover' faz o conteúdo ir até a borda; o notch do iOS
-          // comeria o hambúrguer sem este respiro.
-          style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top))' }}
-        >
-          <button
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Abrir menu"
-            className="rounded-md p-1 text-textSecondary transition-colors hover:text-textPrimary"
-          >
-            <MenuIcon />
-          </button>
-          <Logo size={20} />
-        </header>
+        <AppHeader
+          onOpenMenu={() => setDrawerOpen(true)}
+          collapsed={collapsed}
+          onToggleCollapse={toggleCollapse}
+        />
 
         <main
           className="min-w-0 flex-1 animate-fadeUp px-4 py-5 sm:px-6 lg:px-8 lg:py-7"
@@ -105,7 +103,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
 
           <div className="relative h-full animate-fadeUp">
-            <Sidebar variant="drawer" onNavigate={() => setDrawerOpen(false)} />
+            <Sidebar variant="drawer" onNavigate={() => setDrawerOpen(false)} user={user} />
             <button
               onClick={() => setDrawerOpen(false)}
               aria-label="Fechar menu"

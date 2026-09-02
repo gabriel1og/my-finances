@@ -1,4 +1,4 @@
-import { PageHeader } from '@/components/ui/PageHeader';
+import { PageActions } from '@/components/ui/PageActions';
 import { SettingsForm } from '@/components/settings/SettingsForm';
 import { TagsManager } from '@/components/settings/TagsManager';
 import { SignOutButton } from '@/components/settings/SignOutButton';
@@ -18,11 +18,9 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Configurações"
-        subtitle="Metas e preferências"
-        action={<SignOutButton />}
-      />
+      <PageActions>
+        <SignOutButton />
+      </PageActions>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-1 xl:grid-cols-2">
         <SettingsForm profile={profile as Profile} email={user?.email ?? ''} />
 

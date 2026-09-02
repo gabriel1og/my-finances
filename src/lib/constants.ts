@@ -15,16 +15,92 @@ export const CATEGORY_PALETTE = [
 
 export const BUDGET_ALERT_THRESHOLD = 85;
 
+/**
+ * Rotas do app com o que o cabeçalho precisa saber sobre cada uma.
+ *
+ * `title` e `subtitle` são a fonte única do cabeçalho global — antes cada
+ * página repetia os dois no corpo, e o mesmo texto vivia em dois lugares.
+ * `label` é o nome curto do menu; `section` divide o menu como na navegação
+ * de referência (Menu / Suporte).
+ */
 export const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', monthAware: true },
-  { href: '/transactions', label: 'Transações', monthAware: true },
-  { href: '/accounts', label: 'Contas', monthAware: true },
-  { href: '/cards', label: 'Cartões', monthAware: true },
-  { href: '/recurring', label: 'Fixos', monthAware: true },
-  { href: '/categories', label: 'Categorias', monthAware: true },
-  { href: '/forecast', label: 'Previsão', monthAware: true },
-  { href: '/reports', label: 'Relatórios', monthAware: true },
-  { href: '/settings', label: 'Configurações', monthAware: false },
+  {
+    href: '/dashboard',
+    label: 'Dashboard',
+    title: 'Dashboard',
+    subtitle: 'Visão geral do mês',
+    section: 'menu',
+    monthAware: true,
+  },
+  {
+    href: '/transactions',
+    label: 'Transações',
+    title: 'Transações',
+    subtitle: 'Lançamentos do mês selecionado',
+    section: 'menu',
+    monthAware: true,
+  },
+  {
+    href: '/accounts',
+    label: 'Contas',
+    title: 'Contas bancárias',
+    subtitle: 'Saldo atual e faturas vinculadas',
+    section: 'menu',
+    monthAware: true,
+  },
+  {
+    href: '/cards',
+    label: 'Cartões',
+    title: 'Cartões de crédito',
+    subtitle: 'Faturas do mês selecionado',
+    section: 'menu',
+    monthAware: true,
+  },
+  {
+    href: '/recurring',
+    label: 'Fixos',
+    title: 'Lançamentos fixos',
+    subtitle: 'Modelos que você confirma a cada mês — nada é lançado sozinho',
+    section: 'menu',
+    monthAware: true,
+  },
+  {
+    href: '/categories',
+    label: 'Categorias',
+    title: 'Categorias',
+    subtitle: 'Limites e consumo do mês',
+    section: 'menu',
+    monthAware: true,
+  },
+  {
+    href: '/forecast',
+    label: 'Previsão',
+    title: 'Previsão',
+    subtitle: 'O que já está comprometido nos próximos meses',
+    section: 'menu',
+    monthAware: true,
+  },
+  {
+    href: '/reports',
+    label: 'Relatórios',
+    title: 'Relatórios',
+    subtitle: 'Comparativos e evolução do período',
+    section: 'menu',
+    monthAware: true,
+  },
+  {
+    href: '/settings',
+    label: 'Configurações',
+    title: 'Configurações',
+    subtitle: 'Metas e preferências',
+    section: 'support',
+    monthAware: false,
+  },
+] as const;
+
+export const NAV_SECTIONS = [
+  { key: 'menu', label: 'Menu' },
+  { key: 'support', label: 'Suporte' },
 ] as const;
 
 export const ACCOUNT_KIND_LABEL = {

@@ -2,7 +2,7 @@ import { RecurringFormModal } from '@/components/recurring/RecurringFormModal';
 import { RecurringRow } from '@/components/recurring/RecurringRow';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { PageActions } from '@/components/ui/PageActions';
 import { currentMonth } from '@/lib/format';
 import {
   getAccounts,
@@ -56,18 +56,9 @@ export default async function RecurringPage({
 
   return (
     <>
-      <PageHeader
-        title="Lançamentos fixos"
-        subtitle="Modelos que você confirma a cada mês — nada é lançado sozinho"
-        action={
-          <RecurringFormModal
-            categories={categories}
-            accounts={accounts}
-            cards={cards}
-            tags={tags}
-          />
-        }
-      />
+      <PageActions>
+        <RecurringFormModal categories={categories} accounts={accounts} cards={cards} tags={tags} />
+      </PageActions>
 
       <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
