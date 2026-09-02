@@ -1,17 +1,42 @@
+import { Suspense } from 'react';
 import { AddModal } from '@/components/ui/AddModal';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { TransactionFilters } from '@/components/transactions/TransactionFilters';
 import { TransactionsList } from '@/components/transactions/TransactionsList';
+import { TransactionsPagination } from '@/components/transactions/TransactionsPagination';
 import { currentMonth } from '@/lib/format';
-import { getAccounts, getCards, getCategories, getTags, getTransactions } from '@/lib/queries';
+import { getAccounts, getCards, getCategories, getTags, getTransactionsPage } from '@/lib/queries';
 
 export default async function TransactionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{
+    month?: string;
+    q?: string;
+    type?: string;
+    category?: string;
+    tag?: string;
+    account?: string;
+    card?: string;
+    page?: string;
+    scope?: string;
+  }>;
 }) {
-  const { month = currentMonth() } = await searchParams;
-  const [transactions, categories, accounts, cards, tags] = await Promise.all([
-    getTransactions(month),
+  const params = await searchParams;
+  const month = params.month ?? currentMonth();
+  const allMonths = params.scope === 'all';
+
+  const [result, categories, accounts, cards, tags] = await Promise.all([
+    getTransactionsPage({
+      month: allMonths ? null : month,
+      search: params.q,
+      type: (params.type as 'income' | 'expense' | 'transfer' | undefined) ?? 'all',
+      categoryId: params.category,
+      tagId: params.tag,
+      accountId: params.account,
+      cardId: params.card,
+      page: Number(params.page ?? '1') || 1,
+    }),
     getCategories(),
     getAccounts(),
     getCards(),
@@ -22,16 +47,37 @@ export default async function TransactionsPage({
     <>
       <PageHeader
         title="Transações"
-        subtitle="Todos os lançamentos do mês"
+        subtitle={allMonths ? 'Todos os meses' : 'Lançamentos do mês selecionado'}
         action={<AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />}
       />
+
+      {/* useSearchParams exige Suspense no App Router. */}
+      <Suspense fallback={<div className="mb-4 h-9" />}>
+        <TransactionFilters
+          categories={categories}
+          accounts={accounts}
+          cards={cards}
+          tags={tags}
+          allMonths={allMonths}
+        />
+      </Suspense>
+
       <TransactionsList
-        transactions={transactions}
+        transactions={result.transactions}
         categories={categories}
         accounts={accounts}
         cards={cards}
         tags={tags}
       />
+
+      <Suspense fallback={null}>
+        <TransactionsPagination
+          page={result.page}
+          pageCount={result.pageCount}
+          total={result.total}
+          shown={result.transactions.length}
+        />
+      </Suspense>
     </>
   );
 }
