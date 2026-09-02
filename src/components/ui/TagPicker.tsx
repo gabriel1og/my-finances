@@ -98,7 +98,7 @@ export function TagPicker({
                 toggle(tag.id);
                 setQuery('');
               }}
-              className="rounded-sm border border-border px-1.5 py-0.5 text-[11px] text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary"
+              className="rounded-sm border border-border px-1.5 py-0.5 text-2xs text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary"
             >
               <span
                 className="mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle"
@@ -113,7 +113,7 @@ export function TagPicker({
               type="button"
               disabled={pending}
               onClick={create}
-              className="rounded-sm border border-dashed border-borderHover px-1.5 py-0.5 text-[11px] text-accent transition-opacity hover:opacity-80 disabled:opacity-50"
+              className="rounded-sm border border-dashed border-borderHover px-1.5 py-0.5 text-2xs text-accent transition-opacity hover:opacity-80 disabled:opacity-50"
             >
               {pending ? 'Criando...' : `Criar "${query.trim()}"`}
             </button>
@@ -121,7 +121,7 @@ export function TagPicker({
         </div>
       ) : null}
 
-      {error ? <p className="mt-1 text-[11px] text-expense">{error}</p> : null}
+      {error ? <p className="mt-1 text-2xs text-expense">{error}</p> : null}
     </div>
   );
 }

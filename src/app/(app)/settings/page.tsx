@@ -23,10 +23,12 @@ export default async function SettingsPage() {
         subtitle="Metas e preferências"
         action={<SignOutButton />}
       />
-      <SettingsForm profile={profile as Profile} email={user?.email ?? ''} />
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-1 xl:grid-cols-2">
+        <SettingsForm profile={profile as Profile} email={user?.email ?? ''} />
 
-      <div className="mt-6">
-        <TagsManager tags={tags} />
+        <div className="flex-shrink-0">
+          <TagsManager tags={tags} />
+        </div>
       </div>
     </>
   );

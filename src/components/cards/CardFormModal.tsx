@@ -63,7 +63,7 @@ export function CardFormModal({
         fallback={
           <button
             disabled={!accounts.length}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="btn-primary"
           >
             Novo cartão
           </button>
@@ -90,7 +90,7 @@ export function CardFormModal({
           <div>
             <label className="label-caps">Conta que paga a fatura</label>
             <select
-              className="input-base mt-1"
+              className="select-base mt-1"
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
             >
@@ -106,7 +106,7 @@ export function CardFormModal({
             <div>
               <label className="label-caps">Dia de fechamento</label>
               <select
-                className="input-base num mt-1"
+                className="select-base num mt-1"
                 value={closingDay}
                 onChange={(e) => setClosingDay(Number(e.target.value))}
               >
@@ -120,7 +120,7 @@ export function CardFormModal({
             <div>
               <label className="label-caps">Dia de vencimento</label>
               <select
-                className="input-base num mt-1"
+                className="select-base num mt-1"
                 value={dueDay}
                 onChange={(e) => setDueDay(Number(e.target.value))}
               >
@@ -133,7 +133,7 @@ export function CardFormModal({
             </div>
           </div>
 
-          <p className="text-[11px] text-textMuted">
+          <p className="text-2xs text-textMuted">
             Compras feitas antes do dia {closingDay} entram na fatura do próprio mês; do dia{' '}
             {closingDay} em diante, na fatura do mês seguinte.
             {closingDay > 28 || dueDay > 28
@@ -190,14 +190,14 @@ export function CardFormModal({
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={() => setOpen(false)}
-            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
+            className="btn-secondary"
           >
             Cancelar
           </button>
           <button
             onClick={submit}
             disabled={pending}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="btn-primary"
           >
             {pending ? 'Salvando...' : 'Salvar'}
           </button>

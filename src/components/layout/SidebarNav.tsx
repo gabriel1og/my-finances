@@ -36,12 +36,11 @@ export function SidebarNav({
             key={item.href}
             href={href}
             onClick={onNavigate}
-            // Com a sidebar recolhida o ícone é a única identificação: o title
-            // dá o tooltip nativo e o aria-label mantém o nome para leitores.
-            title={collapsed ? item.label : undefined}
+            // aria-label continua: com o menu recolhido o ícone é a única
+            // identificação, e o tooltip visual não é lido por leitor de tela.
             aria-label={collapsed ? item.label : undefined}
             className={[
-              'flex items-center gap-3 border-l-2 py-2.5 text-sm transition-colors',
+              'group/nav relative flex items-center gap-3 border-l-2 py-2.5 text-sm transition-colors',
               collapsed ? 'justify-center px-0' : 'px-5',
               active
                 ? 'border-accent bg-surfaceAlt text-textPrimary'
@@ -50,6 +49,18 @@ export function SidebarNav({
           >
             {Icon ? <Icon className="shrink-0" /> : null}
             {collapsed ? null : <span className="truncate">{item.label}</span>}
+
+            {/* Tooltip próprio em vez do `title` nativo: o do navegador demora
+                cerca de um segundo para aparecer, o que atrapalha justamente
+                quem está varrendo os ícones à procura da rota. */}
+            {collapsed ? (
+              <span
+                role="tooltip"
+                className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md border border-border bg-surfaceAlt px-2.5 py-1.5 text-xs text-textPrimary opacity-0 shadow-lg transition-opacity group-hover/nav:opacity-100 group-focus-visible/nav:opacity-100"
+              >
+                {item.label}
+              </span>
+            ) : null}
           </Link>
         );
       })}

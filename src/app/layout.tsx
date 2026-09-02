@@ -1,16 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { DM_Sans, JetBrains_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { RegisterServiceWorker } from '@/components/pwa/RegisterServiceWorker';
 
-const dmSans = DM_Sans({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-dm-sans',
-  display: 'swap',
-});
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
+  variable: '--font-inter',
   display: 'swap',
 });
 
@@ -34,7 +29,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
+    <html lang="pt-BR" className={`${inter.variable}`}>
       <body>
         {children}
         <RegisterServiceWorker />

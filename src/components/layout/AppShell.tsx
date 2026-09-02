@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/layout/Logo';
 import { CloseIcon, MenuIcon } from '@/components/layout/NavIcons';
 import { Sidebar } from '@/components/layout/Sidebar';
 
@@ -84,7 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <MenuIcon />
           </button>
-          <span className="text-base font-semibold tracking-tight">flowly</span>
+          <Logo size={20} />
         </header>
 
         <main

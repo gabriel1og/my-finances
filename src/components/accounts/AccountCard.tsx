@@ -46,12 +46,12 @@ export function AccountCard({
         {account.is_archived ? <span className="label-caps text-textMuted">arquivada</span> : null}
       </div>
 
-      <p className={`num mt-4 text-2xl ${balance < 0 ? 'text-expense' : 'text-textPrimary'}`}>
+      <p className={`num mt-4 text-xl tracking-tight ${balance < 0 ? 'text-expense' : 'text-textPrimary'}`}>
         {money(balance)}
       </p>
 
       {openCardTotal > 0 ? (
-        <p className="num mt-1 text-[11px] text-warning">
+        <p className="num mt-1 text-2xs text-warning">
           {money(openCardTotal)} em faturas em aberto ·{' '}
           <span className="text-textSecondary">
             saldo previsto {money(balance - openCardTotal)}
@@ -60,7 +60,7 @@ export function AccountCard({
       ) : null}
 
       {cards.length ? (
-        <p className="mt-2 text-[11px] text-textMuted">
+        <p className="mt-2 text-2xs text-textMuted">
           Cartões:{' '}
           {cards
             .map((card) => (card.is_archived ? `${card.name} (arquivado)` : card.name))

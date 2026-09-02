@@ -26,8 +26,8 @@ export function KpiCard({
   return (
     <div className="card">
       <span className="label-caps">{label}</span>
-      <p className={`num mt-2 text-2xl font-medium ${TONE[tone]}`}>{money(value)}</p>
-      {subtitle ? <p className="mt-1 text-xs text-textSecondary">{subtitle}</p> : null}
+      <p className={`num mt-2 text-2xl font-medium tracking-tight ${TONE[tone]}`}>{money(value)}</p>
+      {subtitle ? <p className="mt-1.5 text-xs text-textSecondary">{subtitle}</p> : null}
     </div>
   );
 }

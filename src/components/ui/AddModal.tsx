@@ -1,5 +1,6 @@
 'use client';
 
+import { DateField } from '@/components/ui/DateField';
 import { useState, useTransition } from 'react';
 import { Modal, ModalTrigger } from '@/components/ui/Modal';
 import { createTransaction, updateTransaction } from '@/app/(app)/transactions/actions';
@@ -136,7 +137,7 @@ export function TransactionModal({
         trigger={trigger}
         onOpen={() => setOpen(true)}
         fallback={
-          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
+          <button className="btn-primary">
             Novo lançamento
           </button>
         }
@@ -188,11 +189,11 @@ export function TransactionModal({
             </div>
             <div>
               <label className="label-caps">Data</label>
-              <input
-                type="date"
-                className="input-base num mt-1"
+              <DateField
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={setDate}
+                label="Data"
+                className="mt-1"
               />
             </div>
           </div>
@@ -225,7 +226,7 @@ export function TransactionModal({
             <div>
               <label className="label-caps">Cartão</label>
               <select
-                className="input-base mt-1"
+                className="select-base mt-1"
                 value={cardId}
                 onChange={(e) => setCardId(e.target.value)}
               >
@@ -235,7 +236,7 @@ export function TransactionModal({
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-[11px] text-textMuted">
+              <p className="mt-1 text-2xs text-textMuted">
                 O saldo da conta só muda quando você pagar a fatura.
                 {invoiceLabel ? ` Entra na fatura de ${invoiceLabel}.` : ''}
               </p>
@@ -244,7 +245,7 @@ export function TransactionModal({
                 <div className="mt-3">
                   <label className="label-caps">Parcelas</label>
                   <select
-                    className="input-base num mt-1"
+                    className="select-base num mt-1"
                     value={installments}
                     onChange={(e) => setInstallments(Number(e.target.value))}
                   >
@@ -255,7 +256,7 @@ export function TransactionModal({
                     ))}
                   </select>
                   {installments > 1 && Number(amount.replace(',', '.')) > 0 ? (
-                    <p className="num mt-1 text-[11px] text-textMuted">
+                    <p className="num mt-1 text-2xs text-textMuted">
                       {installments}x de aproximadamente{' '}
                       {money(Number(amount.replace(',', '.')) / installments)}, uma por mês a partir
                       da data escolhida.
@@ -269,7 +270,7 @@ export function TransactionModal({
               <div>
                 <label className="label-caps">Conta</label>
                 <select
-                  className="input-base mt-1"
+                  className="select-base mt-1"
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
                 >
@@ -284,7 +285,7 @@ export function TransactionModal({
               <div>
                 <label className="label-caps">Forma</label>
                 <select
-                  className="input-base mt-1"
+                  className="select-base mt-1"
                   value={method}
                   onChange={(e) => setMethod(e.target.value as PaymentMethod)}
                 >
@@ -301,7 +302,7 @@ export function TransactionModal({
           <div>
             <label className="label-caps">Categoria</label>
             <select
-              className="input-base mt-1"
+              className="select-base mt-1"
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
             >
@@ -324,14 +325,14 @@ export function TransactionModal({
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={close}
-            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
+            className="btn-secondary"
           >
             Cancelar
           </button>
           <button
             onClick={submit}
             disabled={pending}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="btn-primary"
           >
             {pending ? 'Salvando...' : 'Salvar'}
           </button>

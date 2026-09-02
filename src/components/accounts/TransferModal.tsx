@@ -1,5 +1,6 @@
 'use client';
 
+import { DateField } from '@/components/ui/DateField';
 import { useState, useTransition } from 'react';
 import { Modal, ModalTrigger } from '@/components/ui/Modal';
 import { createTransfer, updateTransfer } from '@/app/(app)/transactions/actions';
@@ -71,7 +72,7 @@ export function TransferModal({
           <button
             disabled={accounts.length < 2}
             title={accounts.length < 2 ? 'Cadastre ao menos duas contas' : undefined}
-            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:border-borderHover hover:text-textPrimary disabled:opacity-40"
+            className="btn-secondary"
           >
             Transferir
           </button>
@@ -92,7 +93,7 @@ export function TransferModal({
             <div>
               <label className="label-caps">De</label>
               <select
-                className="input-base mt-1"
+                className="select-base mt-1"
                 value={fromAccountId}
                 onChange={(e) => setFromAccountId(e.target.value)}
               >
@@ -106,7 +107,7 @@ export function TransferModal({
             <div>
               <label className="label-caps">Para</label>
               <select
-                className="input-base mt-1"
+                className="select-base mt-1"
                 value={toAccountId}
                 onChange={(e) => setToAccountId(e.target.value)}
               >
@@ -132,11 +133,11 @@ export function TransferModal({
             </div>
             <div>
               <label className="label-caps">Data</label>
-              <input
-                type="date"
-                className="input-base num mt-1"
+              <DateField
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={setDate}
+                label="Data"
+                className="mt-1"
               />
             </div>
           </div>
@@ -158,14 +159,14 @@ export function TransferModal({
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={() => setOpen(false)}
-            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
+            className="btn-secondary"
           >
             Cancelar
           </button>
           <button
             onClick={submit}
             disabled={pending}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="btn-primary"
           >
             {pending ? 'Salvando...' : editing ? 'Salvar' : 'Transferir'}
           </button>

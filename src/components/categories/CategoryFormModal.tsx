@@ -47,7 +47,7 @@ export function CategoryFormModal({
         trigger={trigger}
         onOpen={() => setOpen(true)}
         fallback={
-          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90">
+          <button className="btn-primary">
             Nova categoria
           </button>
         }
@@ -102,7 +102,7 @@ export function CategoryFormModal({
               onChange={(e) => setBudget(e.target.value)}
               placeholder="0,00"
             />
-            <p className="mt-1 text-[11px] text-textMuted">
+            <p className="mt-1 text-2xs text-textMuted">
               Use 0 para categoria sem limite definido.
             </p>
           </div>
@@ -134,14 +134,14 @@ export function CategoryFormModal({
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={() => setOpen(false)}
-            className="rounded-md border border-border px-4 py-2 text-sm text-textSecondary transition-colors hover:text-textPrimary"
+            className="btn-secondary"
           >
             Cancelar
           </button>
           <button
             onClick={submit}
             disabled={pending}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="btn-primary"
           >
             {pending ? 'Salvando...' : 'Salvar'}
           </button>

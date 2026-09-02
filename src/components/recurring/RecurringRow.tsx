@@ -77,7 +77,7 @@ export function RecurringRow({
           <p className={`num text-sm ${isIncome ? 'text-income' : 'text-expense'}`}>
             {money(Number(recurring.amount))}
           </p>
-          <p className="num text-[11px] text-textMuted">todo dia {recurring.day_of_month}</p>
+          <p className="num text-2xs text-textMuted">todo dia {recurring.day_of_month}</p>
         </div>
       </div>
 
@@ -178,13 +178,13 @@ export function RecurringRow({
                 () => setPosting(false),
               )
             }
-            className="rounded-md bg-accent px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+            className="btn-primary px-3 text-xs"
           >
             {pending ? 'Lançando...' : `Lançar em ${formatDate(dueDate)}`}
           </button>
           <button
             onClick={() => setPosting(false)}
-            className="rounded-md border border-border px-3 py-2 text-xs text-textSecondary"
+            className="btn-secondary px-3 text-xs"
           >
             Cancelar
           </button>

@@ -106,7 +106,7 @@ export default async function DashboardPage({
       </section>
 
       {profile?.monthly_goal || profile?.monthly_spending_cap ? (
-        <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
           <GoalProgress
             variant="saving"
             current={totalIncome - totalExpense}
@@ -122,7 +122,7 @@ export default async function DashboardPage({
         </section>
       ) : null}
 
-      <section className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <div className="card xl:col-span-2">
           <span className="label-caps">Fluxo mensal</span>
           <div className="mt-4">
@@ -150,7 +150,7 @@ export default async function DashboardPage({
         </div>
       </section>
 
-      <section className="card mt-4">
+      <section className="card mt-6">
         <span className="label-caps">Últimas transações</span>
         <div className="mt-2">
           {transactions.length ? (

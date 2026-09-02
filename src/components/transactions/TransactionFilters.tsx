@@ -60,14 +60,14 @@ export function TransactionFilters({
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
       <input
-        className="input-base w-full sm:max-w-xs"
+        className="input-base w-full sm:w-[260px]"
         placeholder="Buscar descrição..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
       <select
-        className="input-base w-full sm:max-w-[150px]"
+        className="select-base w-full sm:w-auto sm:min-w-[168px]"
         value={params.get('type') ?? 'all'}
         onChange={(e) => setParam('type', e.target.value === 'all' ? '' : e.target.value)}
       >
@@ -78,7 +78,7 @@ export function TransactionFilters({
       </select>
 
       <select
-        className="input-base w-full sm:max-w-[170px]"
+        className="select-base w-full sm:w-auto sm:min-w-[200px]"
         value={params.get('category') ?? ''}
         onChange={(e) => setParam('category', e.target.value)}
       >
@@ -91,7 +91,7 @@ export function TransactionFilters({
       </select>
 
       <select
-        className="input-base w-full sm:max-w-[150px]"
+        className="select-base w-full sm:w-auto sm:min-w-[168px]"
         value={params.get('tag') ?? ''}
         onChange={(e) => setParam('tag', e.target.value)}
       >
@@ -104,7 +104,7 @@ export function TransactionFilters({
       </select>
 
       <select
-        className="input-base w-full sm:max-w-[170px]"
+        className="select-base w-full sm:w-auto sm:min-w-[200px]"
         value={params.get('account') ?? params.get('card') ?? ''}
         onChange={(e) => {
           const value = e.target.value;

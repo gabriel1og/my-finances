@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { Logo } from '@/components/layout/Logo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
       <form onSubmit={submit} className="card w-full max-w-sm animate-fadeUp">
-        <h1 className="text-lg font-semibold tracking-tight">flowly</h1>
+        <Logo />
         <p className="mt-1 text-sm text-textSecondary">
           {mode === 'signin' ? 'Entre na sua conta' : 'Crie sua conta'}
         </p>

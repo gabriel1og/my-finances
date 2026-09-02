@@ -84,7 +84,7 @@ export function GoalProgress({
 
       <div className="mt-2 flex items-baseline justify-between">
         <span className={`text-xs ${captionTone}`}>{caption}</span>
-        <span className={`num text-[11px] ${captionTone}`}>
+        <span className={`num text-2xs ${captionTone}`}>
           {negative ? '—' : formatPercent(pct)}
         </span>
       </div>

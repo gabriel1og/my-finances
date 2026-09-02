@@ -1,6 +1,7 @@
 'use client';
 
 import { cloneElement, isValidElement, useCallback, useEffect, useId, useRef } from 'react';
+import { CloseIcon } from '@/components/layout/NavIcons';
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -112,7 +113,7 @@ export function Modal({
         className="max-h-[92vh] w-full max-w-md animate-fadeUp overflow-y-auto rounded-t-lg border border-border bg-surface p-5 sm:max-h-[90vh] sm:rounded-lg sm:p-6"
       >
         <div className="flex items-start justify-between gap-4">
-          <h2 id={titleId} className="text-base font-medium">
+          <h2 id={titleId} className="text-base font-medium tracking-tight">
             {title}
           </h2>
           <button
@@ -120,9 +121,11 @@ export function Modal({
             onClick={onClose}
             aria-label="Fechar"
             data-modal-close=""
-            className="-mr-1 -mt-1 rounded-sm px-2 text-textMuted transition-colors hover:text-textPrimary"
+            // Área de toque de 32px com o ícone de 20px: o "×" em texto ficava
+            // pequeno demais para acertar, principalmente no celular.
+            className="-mr-1.5 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-textMuted transition-colors hover:bg-surfaceAlt hover:text-textPrimary"
           >
-            ×
+            <CloseIcon />
           </button>
         </div>
 
