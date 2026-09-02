@@ -71,7 +71,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topo só existe abaixo de lg, onde a sidebar não cabe. */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-bg/95 px-4 py-3 backdrop-blur lg:hidden">
+        <header
+          className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-bg/95 px-4 py-3 backdrop-blur lg:hidden"
+          // viewportFit: 'cover' faz o conteúdo ir até a borda; o notch do iOS
+          // comeria o hambúrguer sem este respiro.
+          style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top))' }}
+        >
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label="Abrir menu"
@@ -82,7 +87,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="text-base font-semibold tracking-tight">flowly</span>
         </header>
 
-        <main className="min-w-0 flex-1 animate-fadeUp px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <main
+          className="min-w-0 flex-1 animate-fadeUp px-4 py-5 sm:px-6 lg:px-8 lg:py-7"
+          style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
+        >
           {children}
         </main>
       </div>
