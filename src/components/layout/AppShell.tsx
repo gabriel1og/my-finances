@@ -109,7 +109,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setDrawerOpen(false)}
               aria-label="Fechar menu"
-              className="absolute right-3 top-6 rounded-md p-1 text-textMuted transition-colors hover:text-textPrimary"
+              // Alinhado ao logo, e abaixo da barra de status do iOS — o
+              // drawer vai até o topo físico da tela.
+              style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}
+              className="absolute right-3 z-10 rounded-md p-1 text-textMuted transition-colors hover:text-textPrimary"
             >
               <CloseIcon />
             </button>

@@ -70,3 +70,88 @@ export function formatMonthYear(monthKey: string): string {
   const [year, month] = monthKey.slice(0, 7).split('-').map(Number);
   return `${MONTH_LABELS[month - 1]} ${year}`;
 }
+
+/** Soma dias a um ISO. Passa por UTC para não escorregar no horário de verão. */
+export function shiftDays(iso: string, delta: number): string {
+  const [year, month, day] = iso.slice(0, 10).split('-').map(Number);
+  const base = new Date(Date.UTC(year, month - 1, day));
+  base.setUTCDate(base.getUTCDate() + delta);
+  return toISO(base.getUTCFullYear(), base.getUTCMonth() + 1, base.getUTCDate());
+}
+
+/**
+ * Soma meses a um ISO, grudando no último dia quando o mês de destino é mais
+ * curto: 31/01 + 1 mês vira 28/02, não 03/03.
+ */
+export function shiftISOMonths(iso: string, delta: number): string {
+  const day = Number(iso.slice(8, 10));
+  const [year, month] = shiftMonthKey(iso.slice(0, 7), delta).split('-').map(Number);
+  return toISO(year, month, Math.min(day, lastDayOfMonth(year, month)));
+}
+
+/**
+ * Lê uma data digitada. Aceita o que uma pessoa realmente digita — `5/8`,
+ * `05/08/26`, `05082026`, `5` — porque para lançamento retroativo digitar é
+ * mais rápido que navegar mês a mês. Devolve null quando não dá para entender,
+ * e aí o campo volta ao valor anterior em vez de gravar lixo.
+ */
+export function parseDateInput(input: string, reference: string): string | null {
+  const digits = input.replace(/\D/g, '');
+  if (!digits) return null;
+
+  const refYear = Number(reference.slice(0, 4));
+  const refMonth = Number(reference.slice(5, 7));
+
+  let day: number;
+  let month = refMonth;
+  let year = refYear;
+
+  if (digits.length <= 2) {
+    day = Number(digits);
+  } else if (digits.length <= 4) {
+    day = Number(digits.slice(0, 2));
+    month = Number(digits.slice(2));
+  } else if (digits.length === 6) {
+    day = Number(digits.slice(0, 2));
+    month = Number(digits.slice(2, 4));
+    year = 2000 + Number(digits.slice(4));
+  } else if (digits.length === 8) {
+    day = Number(digits.slice(0, 2));
+    month = Number(digits.slice(2, 4));
+    year = Number(digits.slice(4));
+  } else {
+    return null;
+  }
+
+  if (month < 1 || month > 12) return null;
+  if (year < 1900 || year > 2200) return null;
+  if (day < 1 || day > lastDayOfMonth(year, month)) return null;
+
+  return toISO(year, month, day);
+}
+
+/** O mesmo para mês: `8`, `08/26`, `2026-08`. */
+export function parseMonthInput(input: string, reference: string): string | null {
+  const digits = input.replace(/\D/g, '');
+  if (!digits) return null;
+
+  let month: number;
+  let year = Number(reference.slice(0, 4));
+
+  if (digits.length <= 2) {
+    month = Number(digits);
+  } else if (digits.length === 4) {
+    month = Number(digits.slice(0, 2));
+    year = 2000 + Number(digits.slice(2));
+  } else if (digits.length === 6) {
+    month = Number(digits.slice(0, 2));
+    year = Number(digits.slice(2));
+  } else {
+    return null;
+  }
+
+  if (month < 1 || month > 12) return null;
+  if (year < 1900 || year > 2200) return null;
+
+  return `${year}-${String(month).padStart(2, '0')}`;
+}

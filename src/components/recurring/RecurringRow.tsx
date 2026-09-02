@@ -178,11 +178,11 @@ export function RecurringRow({
                 () => setPosting(false),
               )
             }
-            className="btn-primary px-3 text-xs"
+            className="btn-primary btn-sm"
           >
             {pending ? 'Lançando...' : `Lançar em ${formatDate(dueDate)}`}
           </button>
-          <button onClick={() => setPosting(false)} className="btn-secondary px-3 text-xs">
+          <button onClick={() => setPosting(false)} className="btn-secondary btn-sm">
             Cancelar
           </button>
         </div>

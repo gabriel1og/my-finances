@@ -2,6 +2,7 @@ import { ExpensePie } from '@/components/charts/ExpensePie';
 import { FlowChart } from '@/components/charts/FlowChart';
 import { NetWorthChart } from '@/components/charts/NetWorthChart';
 import { CategoryTrend } from '@/components/reports/CategoryTrend';
+import { RolloverTable } from '@/components/reports/RolloverTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -133,57 +134,8 @@ export default async function ReportsPage({
             disponível.
           </p>
 
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[520px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="label-caps py-2 font-normal">Categoria</th>
-                  <th className="label-caps py-2 text-right font-normal">Limite</th>
-                  <th className="label-caps py-2 text-right font-normal">Acumulado</th>
-                  <th className="label-caps py-2 text-right font-normal">Disponível</th>
-                  <th className="label-caps py-2 text-right font-normal">Gasto</th>
-                  <th className="label-caps py-2 text-right font-normal">Restante</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rolloverRows.map((row) => {
-                  const left = row.available - row.spent;
-                  return (
-                    <tr key={row.categoryId} className="border-b border-border last:border-b-0">
-                      <td className="py-2">
-                        <span className="flex items-center gap-2 text-textPrimary">
-                          <span
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: row.color }}
-                          />
-                          {row.name}
-                        </span>
-                      </td>
-                      <td className="num py-2 text-right text-xs text-textSecondary">
-                        <Money value={row.budget} />
-                      </td>
-                      <td
-                        className={`num py-2 text-right text-xs ${row.carry >= 0 ? 'text-income' : 'text-warning'}`}
-                      >
-                        {row.carry >= 0 ? '+' : '−'}
-                        <Money value={Math.abs(row.carry)} />
-                      </td>
-                      <td className="num py-2 text-right text-xs text-textPrimary">
-                        <Money value={row.available} />
-                      </td>
-                      <td className="num py-2 text-right text-xs text-expense">
-                        <Money value={row.spent} />
-                      </td>
-                      <td
-                        className={`num py-2 text-right text-xs ${left >= 0 ? 'text-textSecondary' : 'text-expense'}`}
-                      >
-                        <Money value={left} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="mt-3">
+            <RolloverTable rows={rolloverRows} />
           </div>
         </section>
       ) : null}

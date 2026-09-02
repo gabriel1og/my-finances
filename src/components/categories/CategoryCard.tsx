@@ -100,11 +100,11 @@ export function CategoryCard({
                 setMonthlyBudget(category.id, month, Number(value.replace(',', '.') || '0')),
               )
             }
-            className="btn-primary px-3 text-xs"
+            className="btn-primary btn-sm"
           >
             Aplicar
           </button>
-          <button onClick={() => setEditingBudget(false)} className="btn-secondary px-3 text-xs">
+          <button onClick={() => setEditingBudget(false)} className="btn-secondary btn-sm">
             Cancelar
           </button>
         </div>

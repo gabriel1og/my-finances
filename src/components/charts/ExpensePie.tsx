@@ -47,8 +47,8 @@ export function ExpensePie({ data }: { data: CategorySpending[] }) {
                 border: '1px solid #2A2F45',
                 borderRadius: 8,
                 fontSize: 12,
-                fontFamily: 'var(--font-jetbrains-mono)',
               }}
+              itemStyle={{ color: '#E8EAF0' }}
               formatter={(value: number, name) => [money(value), name]}
             />
           </PieChart>

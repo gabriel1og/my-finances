@@ -26,6 +26,9 @@ export function Sidebar({
 }) {
   const isDrawer = variant === 'drawer';
   const showLabels = isDrawer || !collapsed;
+  // No drawer o canto direito do topo pertence ao botão de fechar, então o
+  // seletor de mês desce uma linha em vez de disputar espaço com ele.
+  const monthBelow = isDrawer || !showLabels;
 
   return (
     <aside
@@ -34,38 +37,51 @@ export function Sidebar({
         isDrawer ? 'w-[240px]' : collapsed ? 'w-20' : 'w-[220px]',
         isDrawer ? '' : 'transition-[width] duration-200',
       ].join(' ')}
+      // O drawer cobre a tela inteira, inclusive a faixa do relógio e do notch
+      // no iOS — sem este respiro o logo nasce embaixo da barra de status.
+      style={
+        isDrawer
+          ? {
+              paddingTop: 'env(safe-area-inset-top)',
+              paddingBottom: 'env(safe-area-inset-bottom)',
+            }
+          : undefined
+      }
     >
       <div
         className={[
-          'flex items-center gap-2 py-6',
-          showLabels ? 'justify-between px-5' : 'justify-center px-0',
+          'flex items-center gap-2',
+          // No drawer o padding-direito abre espaço para o botão de fechar.
+          isDrawer
+            ? 'justify-start pb-3 pl-5 pr-14 pt-6'
+            : showLabels
+              ? 'justify-between px-5 py-6'
+              : 'justify-center px-0 py-6',
         ].join(' ')}
       >
-        {showLabels ? (
-          <>
-            <Logo />
-            <Suspense fallback={<div className="h-[18px] w-[86px]" />}>
-              <MonthPicker />
-            </Suspense>
-          </>
-        ) : (
-          <LogoMark size={26} />
-        )}
+        {showLabels ? <Logo /> : <LogoMark size={26} />}
+
+        {!monthBelow ? (
+          <Suspense fallback={<div className="h-[18px] w-[86px]" />}>
+            <MonthPicker />
+          </Suspense>
+        ) : null}
       </div>
 
-      {/* Recolhida, o seletor de mês desce para baixo do logo: MM/AA cabe em
-          64px, e sem ele o usuário perderia o mês de vista. */}
-      {!showLabels ? (
-        <div className="mb-2 flex justify-center">
+      {/* Recolhida ou no drawer, o seletor de mês fica numa linha própria: em
+          64px de largura ou ao lado do botão de fechar não sobra espaço, e sem
+          ele o usuário perderia o mês de vista. */}
+      {monthBelow ? (
+        <div className={`mb-3 flex ${isDrawer ? 'px-5' : 'justify-center'}`}>
           <Suspense fallback={<div className="h-[18px] w-10" />}>
-            <MonthPicker compact />
+            <MonthPicker compact={!isDrawer} />
           </Suspense>
         </div>
       ) : null}
 
-      {/* Recolhida, o container não pode cortar: o tooltip de cada ícone é
-          desenhado fora dos 64px da barra. Expandida, volta a rolar. */}
-      <div className={`min-h-0 flex-1 ${showLabels ? 'overflow-y-auto' : 'overflow-visible'}`}>
+      {/* Rola sempre, recolhida ou não: o tooltip do menu recolhido vive em
+          portal, então o container não precisa mais deixar de cortar. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <Suspense fallback={<div className="h-[300px]" />}>
           <SidebarNav collapsed={!showLabels} onNavigate={onNavigate} />
         </Suspense>

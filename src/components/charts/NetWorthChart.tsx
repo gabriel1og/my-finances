@@ -38,7 +38,7 @@ export function NetWorthChart({ data }: { data: NetWorthPoint[] }) {
             stroke="#4A5070"
             tickLine={false}
             axisLine={false}
-            tick={{ fill: '#7B82A0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' }}
+            tick={{ fill: '#7B82A0', fontSize: 11 }}
           />
           <YAxis
             stroke="#4A5070"
@@ -46,7 +46,7 @@ export function NetWorthChart({ data }: { data: NetWorthPoint[] }) {
             axisLine={false}
             width={52}
             tickFormatter={formatCompact}
-            tick={{ fill: '#7B82A0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' }}
+            tick={{ fill: '#7B82A0', fontSize: 11 }}
           />
           <Tooltip
             cursor={{ stroke: '#3A4060' }}
@@ -55,7 +55,6 @@ export function NetWorthChart({ data }: { data: NetWorthPoint[] }) {
               border: '1px solid #2A2F45',
               borderRadius: 8,
               fontSize: 12,
-              fontFamily: 'var(--font-jetbrains-mono)',
             }}
             labelStyle={{ color: '#7B82A0' }}
             formatter={(value: number) => [money(value), 'Saldo acumulado']}

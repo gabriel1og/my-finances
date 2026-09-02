@@ -36,7 +36,7 @@ export function TransactionsPagination({
           <button
             onClick={() => goTo(page - 1)}
             disabled={page <= 1}
-            className="btn-secondary px-3 text-xs"
+            className="btn-secondary btn-sm"
           >
             Anterior
           </button>
@@ -46,7 +46,7 @@ export function TransactionsPagination({
           <button
             onClick={() => goTo(page + 1)}
             disabled={page >= pageCount}
-            className="btn-secondary px-3 text-xs"
+            className="btn-secondary btn-sm"
           >
             Próxima
           </button>

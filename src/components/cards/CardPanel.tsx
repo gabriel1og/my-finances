@@ -176,11 +176,11 @@ export function CardPanel({
                   }),
                 )
               }
-              className="btn-primary px-3 text-xs"
+              className="btn-primary btn-sm"
             >
               {pending ? 'Registrando...' : 'Confirmar pagamento'}
             </button>
-            <button onClick={() => setPaying(false)} className="btn-secondary px-3 text-xs">
+            <button onClick={() => setPaying(false)} className="btn-secondary btn-sm">
               Cancelar
             </button>
           </div>

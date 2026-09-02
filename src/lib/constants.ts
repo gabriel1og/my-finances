@@ -1,12 +1,16 @@
 export const CATEGORY_PALETTE = [
-  '#5B6EF5',
+  '#635bf5',
   '#2ECC9A',
   '#F05C5C',
-  '#F5A623',
+  '#f5c123',
   '#A78BFA',
   '#38BDF8',
   '#FB7185',
   '#34D399',
+  '#ee2222',
+  '#FB923C',
+  '#fc84d8',
+  '#949494',
 ] as const;
 
 export const BUDGET_ALERT_THRESHOLD = 85;

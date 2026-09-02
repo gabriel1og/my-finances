@@ -55,11 +55,17 @@ export function MonthPicker({ compact = false }: { compact?: boolean }) {
   );
 
   return (
-    <div className={`relative flex items-center ${compact ? '' : 'gap-1'}`}>
+    // Cápsula: setas e rótulo lidos como um controle só, não como três
+    // elementos soltos ao lado do logo.
+    <div
+      className={`bg-green relative flex items-center rounded-full border border-border bg-surfaceAlt ${
+        compact ? 'px-0.5 py-0.5' : 'gap-0.5 px-1 py-1'
+      }`}
+    >
       <button
         onClick={() => shift(-1)}
-        className={`rounded-sm leading-none text-textSecondary transition-colors hover:text-textPrimary ${
-          compact ? 'px-0.5' : 'px-1'
+        className={`rounded-full leading-none text-textSecondary transition-colors hover:bg-surface hover:text-textPrimary ${
+          compact ? 'px-0.5' : 'px-1.5'
         }`}
         aria-label="Mês anterior"
       >
@@ -73,17 +79,17 @@ export function MonthPicker({ compact = false }: { compact?: boolean }) {
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={`Mês selecionado: ${fullLabel}. Escolher outro mês`}
-        className={`num rounded-sm px-1 text-center transition-colors hover:bg-surfaceAlt ${
-          open ? 'bg-surfaceAlt' : ''
-        } text-textPrimary ${compact ? 'min-w-[34px] text-3xs' : 'min-w-[46px] text-xs'}`}
+        className={`num rounded-full px-1 text-center text-textPrimary transition-colors hover:bg-surface ${
+          open ? 'bg-surface' : ''
+        } ${compact ? 'min-w-[34px] text-3xs' : 'min-w-[46px] text-xs'}`}
       >
         {label}
       </button>
 
       <button
         onClick={() => shift(1)}
-        className={`rounded-sm leading-none text-textSecondary transition-colors hover:text-textPrimary ${
-          compact ? 'px-0.5' : 'px-1'
+        className={`rounded-full leading-none text-textSecondary transition-colors hover:bg-surface hover:text-textPrimary ${
+          compact ? 'px-0.5' : 'px-1.5'
         }`}
         aria-label="Próximo mês"
       >

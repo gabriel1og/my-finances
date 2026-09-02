@@ -23,7 +23,7 @@ export function FlowChart({ data }: { data: MonthlyFlow[] }) {
             stroke="#4A5070"
             tickLine={false}
             axisLine={false}
-            tick={{ fill: '#7B82A0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' }}
+            tick={{ fill: '#7B82A0', fontSize: 11 }}
           />
           <YAxis
             stroke="#4A5070"
@@ -31,7 +31,7 @@ export function FlowChart({ data }: { data: MonthlyFlow[] }) {
             axisLine={false}
             width={52}
             tickFormatter={formatCompact}
-            tick={{ fill: '#7B82A0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' }}
+            tick={{ fill: '#7B82A0', fontSize: 11 }}
           />
           <Tooltip
             cursor={{ fill: '#1E2333' }}
@@ -40,7 +40,6 @@ export function FlowChart({ data }: { data: MonthlyFlow[] }) {
               border: '1px solid #2A2F45',
               borderRadius: 8,
               fontSize: 12,
-              fontFamily: 'var(--font-jetbrains-mono)',
             }}
             labelStyle={{ color: '#7B82A0' }}
             formatter={(value: number, name) => [

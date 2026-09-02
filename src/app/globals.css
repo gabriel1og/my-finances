@@ -19,6 +19,15 @@
     overflow-x: hidden;
   }
 
+  /* Foco visível padronizado: sem isto cada elemento herdava o outline do
+     navegador, que muda de cor e de forma entre Chrome, Firefox e Safari e
+     some por completo nos elementos com `outline-none`. `:where` mantém a
+     especificidade em zero, então qualquer componente ainda consegue
+     sobrescrever com uma classe própria. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-bg;
+  }
+
   ::selection {
     @apply bg-accentDim text-textPrimary;
   }
@@ -62,6 +71,12 @@
 
   .btn-primary {
     @apply btn bg-accent font-medium text-white transition-opacity hover:opacity-90;
+  }
+
+  /* Botão pequeno: antes cada uso escrevia `btn-primary px-3 text-xs`, o que
+     sobrepunha o padding do `.btn` e dava quatro alturas diferentes. */
+  .btn-sm {
+    @apply min-h-9 gap-1.5 px-3 py-1.5 text-xs sm:min-h-0;
   }
 
   .btn-secondary {
