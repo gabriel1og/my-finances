@@ -344,3 +344,16 @@ export async function getTransactionsPage(params: TransactionQuery) {
     pageCount: Math.max(Math.ceil(total / TRANSACTIONS_PAGE_SIZE), 1),
   };
 }
+
+/** Histórico completo por categoria até o mês informado — base do rollover. */
+export async function getCategoryHistory(uptoMonth: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('category_month_spending')
+    .select('*')
+    .lte('month', `${uptoMonth.slice(0, 7)}-01`)
+    .order('month');
+
+  if (error) throw error;
+  return (data ?? []) as CategorySpending[];
+}

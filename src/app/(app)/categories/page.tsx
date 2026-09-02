@@ -4,7 +4,13 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { currentMonth } from '@/lib/format';
 import { Money } from '@/lib/currency';
-import { getCategories, getCategorySpending, getMonthBudgets } from '@/lib/queries';
+import {
+  getCategories,
+  getCategoryHistory,
+  getCategorySpending,
+  getMonthBudgets,
+} from '@/lib/queries';
+import { computeRollover } from '@/lib/rollover';
 import type { Category } from '@/types/database.types';
 
 export default async function CategoriesPage({
@@ -14,10 +20,11 @@ export default async function CategoriesPage({
 }) {
   const { month = currentMonth() } = await searchParams;
 
-  const [categories, spending, budgets] = await Promise.all([
+  const [categories, spending, budgets, history] = await Promise.all([
     getCategories(true),
     getCategorySpending(month),
     getMonthBudgets(month),
+    getCategoryHistory(month),
   ]);
 
   const totalByCategory = new Map(spending.map((row) => [row.category_id, Number(row.spent)]));
@@ -30,14 +37,27 @@ export default async function CategoriesPage({
 
   function renderCard(category: Category) {
     const override = overrideByCategory.get(category.id) ?? null;
+    const monthBudget = override ?? Number(category.budget);
+
+    // O acumulado é derivado do histórico a cada render — nunca guardado,
+    // senão sairia de sincronia ao editar uma transação antiga.
+    const { carry } = computeRollover({
+      rows: history,
+      categoryId: category.id,
+      month,
+      since: category.rollover_enabled ? category.rollover_since : null,
+      monthBudget,
+    });
+
     return (
       <CategoryCard
         key={category.id}
         category={category}
         month={month}
         spent={totalByCategory.get(category.id) ?? 0}
-        budget={override ?? Number(category.budget)}
+        budget={monthBudget}
         monthOverride={override}
+        carry={carry}
       />
     );
   }

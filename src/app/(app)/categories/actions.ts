@@ -128,6 +128,33 @@ export async function deleteCategory(id: string): Promise<Result> {
   return { error: null };
 }
 
+/**
+ * Liga/desliga o rollover. Ao ligar, o acúmulo começa no mês informado — sem
+ * isso, ligar hoje traria de volta todo o histórico que o usuário nunca orçou
+ * com essa regra.
+ */
+export async function setCategoryRollover(
+  id: string,
+  enabled: boolean,
+  sinceMonth: string,
+): Promise<Result> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('categories')
+    .update({
+      rollover_enabled: enabled,
+      // A constraint exige `since` preenchido quando ligado; ao desligar,
+      // manter a data preservaria a referência para quando religar.
+      rollover_since: enabled ? `${sinceMonth.slice(0, 7)}-01` : null,
+    })
+    .eq('id', id);
+
+  if (error) return { error: error.message };
+
+  revalidateAll();
+  return { error: null };
+}
+
 /** Limite específico de um mês (sobrescreve categories.budget na view). */
 export async function setMonthlyBudget(
   categoryId: string,

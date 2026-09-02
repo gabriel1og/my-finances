@@ -3,12 +3,14 @@
 import { useState, useTransition } from 'react';
 import { CategoryBar } from '@/components/ui/CategoryBar';
 import { CategoryFormModal } from '@/components/categories/CategoryFormModal';
+import { Toggle } from '@/components/ui/Toggle';
 import { useMoney } from '@/lib/currency';
 import {
   archiveCategory,
   clearMonthlyBudget,
   deleteCategory,
   restoreCategory,
+  setCategoryRollover,
   setMonthlyBudget,
 } from '@/app/(app)/categories/actions';
 import type { Category } from '@/types/database.types';
@@ -19,15 +21,20 @@ export function CategoryCard({
   spent,
   budget,
   monthOverride,
+  carry = 0,
 }: {
   category: Category;
   month: string;
   spent: number;
   budget: number;
   monthOverride: number | null;
+  /** Saldo acumulado dos meses anteriores, quando o rollover está ligado. */
+  carry?: number;
 }) {
   const money = useMoney();
   const isIncome = category.kind === 'income';
+  const rollover = category.rollover_enabled && !isIncome;
+  const available = rollover ? budget + carry : budget;
   const [editingBudget, setEditingBudget] = useState(false);
   const [value, setValue] = useState(String(budget).replace('.', ','));
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +61,9 @@ export function CategoryCard({
         </span>
 
         <span className="num text-xs text-textMuted">
-          {isIncome ? `recebido ${money(spent)}` : `restam ${money(Math.max(budget - spent, 0))}`}
+          {isIncome
+            ? `recebido ${money(spent)}`
+            : `restam ${money(Math.max(available - spent, 0))}`}
         </span>
       </div>
 
@@ -62,7 +71,21 @@ export function CategoryCard({
         <p className="num mt-3 text-lg text-income">{money(spent)}</p>
       ) : (
         <>
-          <CategoryBar name={category.name} color={category.color} spent={spent} budget={budget} />
+          <CategoryBar
+            name={category.name}
+            color={category.color}
+            spent={spent}
+            budget={available}
+          />
+
+          {rollover && carry !== 0 ? (
+            <p className={`num mt-1 text-[11px] ${carry > 0 ? 'text-income' : 'text-warning'}`}>
+              {carry > 0 ? '+' : '−'}
+              {money(Math.abs(carry))} acumulado de meses anteriores
+              <span className="text-textMuted"> · limite do mês {money(budget)}</span>
+            </p>
+          ) : null}
+
           {monthOverride !== null ? (
             <p className="num mt-1 text-[11px] text-accent">limite específico deste mês</p>
           ) : null}
@@ -108,6 +131,16 @@ export function CategoryCard({
             </button>
           }
         />
+
+        {!isIncome ? (
+          <Toggle
+            checked={category.rollover_enabled}
+            disabled={pending}
+            onChange={(next) => run(() => setCategoryRollover(category.id, next, month))}
+            label="Rollover"
+            hint="Acumula a sobra (ou o estouro) do limite para os próximos meses"
+          />
+        ) : null}
 
         {!isIncome ? (
           <button
