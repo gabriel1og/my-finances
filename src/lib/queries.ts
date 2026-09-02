@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 import { monthRange } from '@/lib/format';
 import type {
   AccountBalance,
+  AccountMonthTotals,
+  CardMonthTotals,
+  NetWorthPoint,
   Tag,
   TagTotals,
   Account,
@@ -215,4 +218,129 @@ export async function getUpcomingStatements(fromMonth: string, monthsAhead = 6) 
 
   if (error) throw error;
   return (data ?? []) as CardStatement[];
+}
+
+/** Faixa de meses para o comparativo por categoria. */
+export async function getCategorySpendingRange(fromMonth: string, months: number) {
+  const supabase = await createClient();
+  const [year, month] = fromMonth.slice(0, 7).split('-').map(Number);
+  const start = new Date(year, month - months, 1);
+  const startISO = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`;
+
+  const { data, error } = await supabase
+    .from('category_month_spending')
+    .select('*')
+    .gte('month', startISO)
+    .lte('month', `${fromMonth.slice(0, 7)}-01`)
+    .order('month');
+
+  if (error) throw error;
+  return (data ?? []) as CategorySpending[];
+}
+
+export async function getAccountMonthTotals(month: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('account_month_totals')
+    .select('*')
+    .eq('month', `${month.slice(0, 7)}-01`)
+    .order('expense', { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as AccountMonthTotals[];
+}
+
+export async function getCardMonthTotals(month: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('card_month_totals')
+    .select('*')
+    .eq('month', `${month.slice(0, 7)}-01`)
+    .order('expense', { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as CardMonthTotals[];
+}
+
+export async function getNetWorthSeries(months = 12) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('net_worth_by_month')
+    .select('*')
+    .order('month', { ascending: false })
+    .limit(months);
+
+  if (error) throw error;
+  return ((data ?? []) as NetWorthPoint[]).reverse();
+}
+
+export const TRANSACTIONS_PAGE_SIZE = 50;
+
+export type TransactionQuery = {
+  /** null = todos os meses (usado pela busca global). */
+  month: string | null;
+  search?: string;
+  type?: 'income' | 'expense' | 'transfer' | 'all';
+  categoryId?: string;
+  tagId?: string;
+  accountId?: string;
+  cardId?: string;
+  page?: number;
+};
+
+/**
+ * Busca paginada no servidor. Antes a página trazia o mês inteiro e filtrava
+ * no cliente — o que impedia procurar fora do mês e ficaria pesado com anos de
+ * histórico.
+ */
+export async function getTransactionsPage(params: TransactionQuery) {
+  const supabase = await createClient();
+  const page = Math.max(params.page ?? 1, 1);
+  const from = (page - 1) * TRANSACTIONS_PAGE_SIZE;
+
+  // `!inner` no embed de tags transforma o filtro por tag em INNER JOIN —
+  // sem isso o .eq() não restringiria as linhas, só o conteúdo do embed.
+  const tagEmbed = params.tagId ? 'tags!inner(id,name,color)' : 'tags(id,name,color)';
+
+  let query = supabase
+    .from('transactions')
+    .select(
+      '*, category:categories!transactions_category_id_fkey(id,name,color)' +
+        ', account:accounts!transactions_account_id_fkey(id,name,color)' +
+        ', card:credit_cards!transactions_card_id_fkey(id,name,color)' +
+        `, ${tagEmbed}`,
+      { count: 'exact' },
+    )
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .range(from, from + TRANSACTIONS_PAGE_SIZE - 1);
+
+  if (params.month) {
+    const { start, end } = monthRange(params.month);
+    query = query.gte('date', start).lte('date', end);
+  }
+
+  const search = params.search?.trim();
+  if (search) query = query.ilike('description', `%${search}%`);
+
+  if (params.type === 'transfer') query = query.eq('is_transfer', true);
+  else if (params.type === 'income' || params.type === 'expense') {
+    query = query.eq('type', params.type).eq('is_transfer', false);
+  }
+
+  if (params.categoryId) query = query.eq('category_id', params.categoryId);
+  if (params.accountId) query = query.eq('account_id', params.accountId);
+  if (params.cardId) query = query.eq('card_id', params.cardId);
+  if (params.tagId) query = query.eq('tags.id', params.tagId);
+
+  const { data, error, count } = await query;
+  if (error) throw error;
+
+  const total = count ?? 0;
+  return {
+    transactions: (data ?? []) as unknown as TransactionWithCategory[],
+    total,
+    page,
+    pageCount: Math.max(Math.ceil(total / TRANSACTIONS_PAGE_SIZE), 1),
+  };
 }

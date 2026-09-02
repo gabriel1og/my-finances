@@ -462,6 +462,40 @@ export interface Database {
         };
         Relationships: [];
       };
+      account_month_totals: {
+        Row: {
+          user_id: string;
+          account_id: string;
+          name: string;
+          color: string;
+          month: string;
+          expense: number;
+          income: number;
+          items: number;
+        };
+        Relationships: [];
+      };
+      card_month_totals: {
+        Row: {
+          user_id: string;
+          card_id: string;
+          name: string;
+          color: string;
+          month: string;
+          expense: number;
+          items: number;
+        };
+        Relationships: [];
+      };
+      net_worth_by_month: {
+        Row: {
+          user_id: string;
+          month: string;
+          delta: number;
+          net_worth: number;
+        };
+        Relationships: [];
+      };
       tag_month_totals: {
         Row: {
           user_id: string;
@@ -543,6 +577,9 @@ export type RecurringWithRelations = Recurring & {
   tags: Pick<Tag, 'id' | 'name' | 'color'>[];
 };
 export type TagTotals = Database['public']['Views']['tag_month_totals']['Row'];
+export type AccountMonthTotals = Database['public']['Views']['account_month_totals']['Row'];
+export type CardMonthTotals = Database['public']['Views']['card_month_totals']['Row'];
+export type NetWorthPoint = Database['public']['Views']['net_worth_by_month']['Row'];
 
 export type TransactionWithCategory = Transaction & {
   category: Pick<Category, 'id' | 'name' | 'color'> | null;
