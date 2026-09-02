@@ -133,12 +133,7 @@ export function TransferModal({
             </div>
             <div>
               <label className="label-caps">Data</label>
-              <DateField
-                value={date}
-                onChange={setDate}
-                label="Data"
-                className="mt-1"
-              />
+              <DateField value={date} onChange={setDate} label="Data" className="mt-1" />
             </div>
           </div>
 
@@ -157,17 +152,10 @@ export function TransferModal({
         {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            onClick={() => setOpen(false)}
-            className="btn-secondary"
-          >
+          <button onClick={() => setOpen(false)} className="btn-secondary">
             Cancelar
           </button>
-          <button
-            onClick={submit}
-            disabled={pending}
-            className="btn-primary"
-          >
+          <button onClick={submit} disabled={pending} className="btn-primary">
             {pending ? 'Salvando...' : editing ? 'Salvar' : 'Transferir'}
           </button>
         </div>

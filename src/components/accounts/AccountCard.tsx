@@ -46,7 +46,9 @@ export function AccountCard({
         {account.is_archived ? <span className="label-caps text-textMuted">arquivada</span> : null}
       </div>
 
-      <p className={`num mt-4 text-xl tracking-tight ${balance < 0 ? 'text-expense' : 'text-textPrimary'}`}>
+      <p
+        className={`num mt-4 text-xl tracking-tight ${balance < 0 ? 'text-expense' : 'text-textPrimary'}`}
+      >
         {money(balance)}
       </p>
 

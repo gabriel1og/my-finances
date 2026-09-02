@@ -5,7 +5,7 @@
 
 @layer base {
   * {
-    font-family: "Inter", sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   html {
@@ -25,7 +25,6 @@
 }
 
 @layer components {
-
   /* Espaçamentos centralizados: antes cada componente escolhia o seu, e a
      densidade variava de tela para tela. */
   .card {

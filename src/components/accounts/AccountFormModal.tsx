@@ -52,11 +52,7 @@ export function AccountFormModal({
       <ModalTrigger
         trigger={trigger}
         onOpen={() => setOpen(true)}
-        fallback={
-          <button className="btn-primary">
-            Nova conta
-          </button>
-        }
+        fallback={<button className="btn-primary">Nova conta</button>}
       />
 
       <Modal
@@ -141,17 +137,10 @@ export function AccountFormModal({
         {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            onClick={() => setOpen(false)}
-            className="btn-secondary"
-          >
+          <button onClick={() => setOpen(false)} className="btn-secondary">
             Cancelar
           </button>
-          <button
-            onClick={submit}
-            disabled={pending}
-            className="btn-primary"
-          >
+          <button onClick={submit} disabled={pending} className="btn-primary">
             {pending ? 'Salvando...' : 'Salvar'}
           </button>
         </div>

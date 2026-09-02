@@ -61,7 +61,7 @@ export function TxRow({
   const hasGroup = Boolean(tx.installment_group || tx.transfer_group);
 
   return (
-    <div className="group row-divider">
+    <div className="row-divider group">
       <div className="flex items-center gap-3">
         <span
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm ${

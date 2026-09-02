@@ -62,7 +62,7 @@ export function monthGrid(year: number, month: number): DayCell[] {
 /** Soma meses a um `YYYY-MM`, sem passar por Date com fuso. */
 export function shiftMonthKey(monthKey: string, delta: number): string {
   const [year, month] = monthKey.slice(0, 7).split('-').map(Number);
-  const total = (year * 12 + (month - 1)) + delta;
+  const total = year * 12 + (month - 1) + delta;
   return `${Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, '0')}`;
 }
 

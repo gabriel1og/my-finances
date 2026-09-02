@@ -111,10 +111,7 @@ export function CategoryCard({
           >
             Aplicar
           </button>
-          <button
-            onClick={() => setEditingBudget(false)}
-            className="btn-secondary px-3 text-xs"
-          >
+          <button onClick={() => setEditingBudget(false)} className="btn-secondary px-3 text-xs">
             Cancelar
           </button>
         </div>

@@ -32,16 +32,10 @@ export default function AppError({
         ) : null}
 
         <div className="mt-5 flex justify-center gap-2">
-          <button
-            onClick={reset}
-            className="btn-primary"
-          >
+          <button onClick={reset} className="btn-primary">
             Tentar de novo
           </button>
-          <a
-            href="/dashboard"
-            className="btn-secondary"
-          >
+          <a href="/dashboard" className="btn-secondary">
             Ir para o dashboard
           </a>
         </div>

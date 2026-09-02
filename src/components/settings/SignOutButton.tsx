@@ -13,10 +13,7 @@ export function SignOutButton() {
   }
 
   return (
-    <button
-      onClick={signOut}
-      className="btn-secondary"
-    >
+    <button onClick={signOut} className="btn-secondary">
       Sair da conta
     </button>
   );

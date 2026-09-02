@@ -128,9 +128,7 @@ export function CardPanel({
             </div>
           ))}
           {items.length > 4 ? (
-            <p className="num mt-1 text-2xs text-textMuted">
-              + {items.length - 4} lançamento(s)
-            </p>
+            <p className="num mt-1 text-2xs text-textMuted">+ {items.length - 4} lançamento(s)</p>
           ) : null}
         </div>
       ) : (
@@ -182,10 +180,7 @@ export function CardPanel({
             >
               {pending ? 'Registrando...' : 'Confirmar pagamento'}
             </button>
-            <button
-              onClick={() => setPaying(false)}
-              className="btn-secondary px-3 text-xs"
-            >
+            <button onClick={() => setPaying(false)} className="btn-secondary px-3 text-xs">
               Cancelar
             </button>
           </div>
