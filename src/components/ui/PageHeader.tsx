@@ -8,12 +8,12 @@ export function PageHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <header className="mb-6 flex items-end justify-between">
+    <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-lg font-semibold tracking-tight sm:text-xl">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-textSecondary">{subtitle}</p> : null}
       </div>
-      {action}
+      <div className="shrink-0">{action}</div>
     </header>
   );
 }

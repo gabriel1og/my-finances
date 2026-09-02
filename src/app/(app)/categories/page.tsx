@@ -66,7 +66,7 @@ export default async function CategoriesPage({
         </div>
 
         {expense.length ? (
-          <div className="grid grid-cols-3 gap-4">{expense.map(renderCard)}</div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">{expense.map(renderCard)}</div>
         ) : (
           <EmptyState message="Nenhuma categoria de despesa." />
         )}
@@ -79,7 +79,7 @@ export default async function CategoriesPage({
         </div>
 
         {income.length ? (
-          <div className="grid grid-cols-3 gap-4">{income.map(renderCard)}</div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">{income.map(renderCard)}</div>
         ) : (
           <EmptyState message="Nenhuma categoria de receita. Crie uma para classificar salário, freelas, rendimentos." />
         )}
@@ -88,7 +88,7 @@ export default async function CategoriesPage({
       {archived.length ? (
         <section className="mt-8">
           <span className="label-caps">Arquivadas</span>
-          <div className="mt-3 grid grid-cols-3 gap-4">{archived.map(renderCard)}</div>
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">{archived.map(renderCard)}</div>
         </section>
       ) : null}
     </>

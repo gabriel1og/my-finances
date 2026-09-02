@@ -69,7 +69,7 @@ export default async function RecurringPage({
         }
       />
 
-      <section className="mb-6 grid grid-cols-3 gap-4">
+      <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
           label="Pendentes no mês"
           value={expected}
@@ -86,7 +86,7 @@ export default async function RecurringPage({
 
       <section>
         <span className="label-caps">Pendentes</span>
-        <div className="mt-3 grid grid-cols-2 gap-4">
+        <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {pending.length ? (
             pending.map((item) => (
               <RecurringRow key={item.id} recurring={item} posted={false} {...common} />
@@ -100,7 +100,7 @@ export default async function RecurringPage({
       {done.length ? (
         <section className="mt-8">
           <span className="label-caps">Já lançados neste mês</span>
-          <div className="mt-3 grid grid-cols-2 gap-4">
+          <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
             {done.map((item) => (
               <RecurringRow key={item.id} recurring={item} posted {...common} />
             ))}
@@ -111,7 +111,7 @@ export default async function RecurringPage({
       {others.length ? (
         <section className="mt-8">
           <span className="label-caps">Fora do período ou pausados</span>
-          <div className="mt-3 grid grid-cols-2 gap-4">
+          <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
             {others.map((item) => (
               <RecurringRow
                 key={item.id}

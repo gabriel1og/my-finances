@@ -81,7 +81,7 @@ export function RecurringRow({
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
         {posted ? (
           <span className="num text-xs text-income">Lançado neste mês</span>
         ) : recurring.is_active ? (
@@ -155,7 +155,7 @@ export function RecurringRow({
       </div>
 
       {posting ? (
-        <div className="mt-3 flex items-end gap-2 rounded-md border border-border p-3">
+        <div className="mt-3 flex flex-col gap-2 rounded-md border border-border p-3 sm:flex-row sm:items-end">
           <div className="flex-1">
             <label className="label-caps">Valor deste mês</label>
             <input

@@ -64,7 +64,7 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
           tags.map((tag) => (
             <div
               key={tag.id}
-              className="flex items-center gap-2 border-b border-border py-2 last:border-b-0"
+              className="flex flex-wrap items-center gap-2 border-b border-border py-2 last:border-b-0"
             >
               <span
                 className="h-2 w-2 shrink-0 rounded-full"

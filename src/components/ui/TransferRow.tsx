@@ -57,7 +57,7 @@ export function TransferRow({
         </div>
 
         {editable ? (
-          <div className="flex items-center gap-3 text-xs opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+          <div className="flex items-center gap-3 text-xs opacity-100 transition-opacity focus-within:opacity-100 lg:opacity-0 lg:group-hover:opacity-100">
             {confirming ? (
               <>
                 <span className="text-textSecondary">Excluir os dois lados?</span>
@@ -106,7 +106,7 @@ export function TransferRow({
           </div>
         ) : null}
 
-        <div className="w-32 shrink-0 text-right">
+        <div className="w-24 shrink-0 text-right sm:w-32">
           <p className="num text-sm text-textSecondary">{money(entry.amount)}</p>
           <p className="num text-[11px] text-textMuted">{formatDate(entry.date)}</p>
         </div>

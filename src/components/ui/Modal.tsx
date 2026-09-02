@@ -98,7 +98,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4"
       onMouseDown={(event) => {
         // Só o clique no fundo fecha; um arraste iniciado dentro do painel não.
         if (event.target === event.currentTarget) onClose();
@@ -109,7 +109,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="max-h-[90vh] w-full max-w-md animate-fadeUp overflow-y-auto rounded-lg border border-border bg-surface p-6"
+        className="max-h-[92vh] w-full max-w-md animate-fadeUp overflow-y-auto rounded-t-lg border border-border bg-surface p-5 sm:max-h-[90vh] sm:rounded-lg sm:p-6"
       >
         <div className="flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-base font-medium">
