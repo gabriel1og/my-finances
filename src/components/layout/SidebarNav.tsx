@@ -26,7 +26,9 @@ export function SidebarNav({
     <nav className="flex flex-col">
       {NAV_ITEMS.map((item) => {
         const active = pathname.startsWith(item.href);
-        const href = (month && item.monthAware ? `${item.href}?month=${month}` : item.href) as Route;
+        const href = (
+          month && item.monthAware ? `${item.href}?month=${month}` : item.href
+        ) as Route;
         const Icon = NAV_ICONS[item.href];
 
         return (
