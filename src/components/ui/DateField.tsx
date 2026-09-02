@@ -8,7 +8,6 @@ import {
   parseDateInput,
   shiftDays,
   shiftISOMonths,
-  shiftMonthKey,
   todayISO,
   WEEKDAY_LABELS,
 } from '@/lib/calendar';
