@@ -203,7 +203,14 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ en
     const { columns, rows } = await BUILDERS[entity](supabase);
     csv = toCsv(rows, columns);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Falha ao exportar.';
+    // O erro do PostgREST é um objeto simples, não um Error: sem esta
+    // segunda leitura, a mensagem do banco nunca chegava a quem exportou.
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'object' && error !== null && 'message' in error
+          ? String((error as { message: unknown }).message)
+          : 'Falha ao exportar.';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 

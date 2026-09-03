@@ -48,10 +48,12 @@ export function Popover({
       if (!anchor) return;
 
       const rect = anchor.getBoundingClientRect();
-      const height = panelRef.current?.offsetHeight ?? 320;
+      // `||`, não `??`: um painel ainda não pintado mede 0, e zero levaria o
+      // cálculo a achar que ele cabe em qualquer canto.
+      const height = panelRef.current?.offsetHeight || 320;
       // Largura medida, não a prop: borda e padding entram na conta, e é o
       // valor real que precisa caber na janela.
-      const panelWidth = panelRef.current?.offsetWidth ?? width;
+      const panelWidth = panelRef.current?.offsetWidth || width;
       // 16px de folga em vez de 8: a sombra do painel se espalha uns 15px, e
       // era ela que aparecia cortada rente à faixa da barra de rolagem.
       const margin = 16;
