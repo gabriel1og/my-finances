@@ -32,7 +32,7 @@ export default async function ReportsPage({
 
   const [flow, spending, tagTotals, trend, accounts, cards, netWorth, categories, history] =
     await Promise.all([
-      getMonthlyFlow(TREND_MONTHS),
+      getMonthlyFlow(TREND_MONTHS, month),
       getCategorySpending(month),
       getTagTotals(month),
       getCategorySpendingRange(month, TREND_MONTHS - 1),

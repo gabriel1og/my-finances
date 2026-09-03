@@ -152,6 +152,7 @@ export async function payStatement(input: {
     return { error: 'Informe um valor maior que zero.' };
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) return { error: 'Data inválida.' };
+  if (!/^\d{4}-\d{2}/.test(input.statementMonth)) return { error: 'Mês da fatura inválido.' };
 
   const supabase = await createClient();
   const {
@@ -182,6 +183,9 @@ export async function payStatement(input: {
     payment_method: 'transfer',
     is_card_payment: true,
     card_payment_for: card.id,
+    // Qual fatura está sendo paga — a data do pagamento não diz isso, já que
+    // a fatura vence no mês seguinte.
+    card_payment_month: `${input.statementMonth.slice(0, 7)}-01`,
     category_id: null,
   });
 

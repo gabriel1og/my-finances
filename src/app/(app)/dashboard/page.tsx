@@ -19,6 +19,7 @@ import {
   getCategories,
   getCategoryHistory,
   getCategorySpending,
+  getMonthFlow,
   getMonthlyFlow,
   getPostedRecurringIds,
   getProfile,
@@ -34,8 +35,9 @@ export default async function DashboardPage({
 }) {
   const { month = currentMonth() } = await searchParams;
 
-  const [flow, spending, transactions, categories, profile] = await Promise.all([
-    getMonthlyFlow(6),
+  const [flow, current, spending, transactions, categories, profile] = await Promise.all([
+    getMonthlyFlow(6, month),
+    getMonthFlow(month),
     getCategorySpending(month),
     getTransactions(month, 6),
     getCategories(),
@@ -71,21 +73,13 @@ export default async function DashboardPage({
   const budgetRows = buildRolloverRows({ spending, history, categories, month });
   const totalCarry = budgetRows.reduce((sum, row) => sum + row.carry, 0);
 
-  // Fallback quando a view ainda não tem linha para o mês. Pagamento de fatura
-  // fica de fora: a compra já contou como despesa quando foi feita.
-  const countable = transactions.filter((tx) => !tx.is_card_payment && !tx.is_transfer);
-  const income = countable.reduce(
-    (sum, tx) => (tx.type === 'income' ? sum + Number(tx.amount) : sum),
-    0,
-  );
-  const expense = countable.reduce(
-    (sum, tx) => (tx.type === 'expense' ? sum + Number(tx.amount) : sum),
-    0,
-  );
-
-  const current = flow.find((row) => row.month.slice(0, 7) === month.slice(0, 7));
-  const totalIncome = current ? Number(current.income) : income;
-  const totalExpense = current ? Number(current.expense) : expense;
+  // Os KPIs vêm da view, consultada pelo próprio mês. Mês sem linha é mês sem
+  // lançamento — zero, não uma soma parcial. (Antes havia um fallback somando
+  // a lista de "últimas transações", limitada a 6 linhas: quando o mês saía da
+  // janela do gráfico, o KPI mostrava a soma de seis lançamentos como se fosse
+  // o mês inteiro.)
+  const totalIncome = current ? Number(current.income) : 0;
+  const totalExpense = current ? Number(current.expense) : 0;
 
   return (
     <>

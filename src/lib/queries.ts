@@ -46,15 +46,36 @@ export async function getTransactions(month?: string, limit?: number) {
   return (data ?? []) as unknown as TransactionWithCategory[];
 }
 
-export async function getMonthlyFlow(months = 6) {
+/**
+ * Os últimos `months` meses com movimento **até o mês selecionado**, em ordem
+ * cronológica. Sem o `uptoMonth`, a janela era "os N meses mais recentes do
+ * banco" — e bastava haver parcelas lançadas em meses futuros para o mês em
+ * tela cair fora dela.
+ */
+export async function getMonthlyFlow(months = 6, uptoMonth?: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from('monthly_flow')
     .select('*')
     .order('month', { ascending: false })
     .limit(months);
+  if (uptoMonth) query = query.lte('month', `${uptoMonth.slice(0, 7)}-01`);
+
+  const { data, error } = await query;
   if (error) throw error;
   return ((data ?? []) as MonthlyFlow[]).reverse();
+}
+
+/** Totais de um único mês; null quando não há nenhum lançamento nele. */
+export async function getMonthFlow(month: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('monthly_flow')
+    .select('*')
+    .eq('month', `${month.slice(0, 7)}-01`)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as MonthlyFlow | null) ?? null;
 }
 
 export async function getCategorySpending(month: string) {

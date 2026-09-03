@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { CollapseIcon, ExpandIcon, MenuIcon } from '@/components/layout/NavIcons';
 import { MonthPicker } from '@/components/layout/MonthPicker';
-import { NAV_ITEMS } from '@/lib/constants';
+import { NAV_ITEMS, SUB_ROUTES } from '@/lib/constants';
 
 /**
  * Cabeçalho global fixo: identidade da página à esquerda, seletor de mês à
@@ -28,7 +28,10 @@ export function AppHeader({
   onToggleCollapse: () => void;
 }) {
   const pathname = usePathname();
-  const item = NAV_ITEMS.find((entry) => pathname.startsWith(entry.href));
+  // Sub-rota primeiro: "/settings/import" também começa com "/settings".
+  const item =
+    SUB_ROUTES.find((entry) => pathname.startsWith(entry.href)) ??
+    NAV_ITEMS.find((entry) => pathname.startsWith(entry.href));
 
   return (
     <header

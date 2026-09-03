@@ -31,12 +31,11 @@ export function CardPanel({
   const open = statement ? Number(statement.open_amount) : 0;
   const usedPct = card.credit_limit > 0 ? (total / Number(card.credit_limit)) * 100 : 0;
 
-  // Fallback quando ainda não há linha na view: mesma regra do banco — a fatura
-  // fecha no closing_day deste mês, então só vence no próprio mês quando o
-  // vencimento é depois do fechamento; senão, cai no mês seguinte. O dia é
-  // grampeado ao último dia do mês, como day_in_month().
+  // Fallback quando ainda não há linha na view: mesma regra do banco (0017) —
+  // a fatura de M fecha no closing_day de M e vence sempre no due_day de M+1.
+  // O dia é grampeado ao último dia do mês, como day_in_month().
   const [year, monthIndex] = month.slice(0, 7).split('-').map(Number);
-  const dueMonthIndex = card.due_day > card.closing_day ? monthIndex : monthIndex + 1;
+  const dueMonthIndex = monthIndex + 1;
   const dueMonth = new Date(year, dueMonthIndex - 1, 1);
   const lastDay = new Date(year, dueMonthIndex, 0).getDate();
   const dueDate =
