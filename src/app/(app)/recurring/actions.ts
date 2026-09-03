@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { revalidateFinance } from '@/lib/cache';
 import { dayInMonth } from '@/lib/statements';
 import type { PaymentMethod, SettlementKind, TransactionType } from '@/types/database.types';
 
@@ -21,16 +21,6 @@ export type RecurringInput = {
 };
 
 type Result = { error: string | null };
-
-function revalidateAll() {
-  revalidatePath('/dashboard');
-  revalidatePath('/recurring');
-  revalidatePath('/transactions');
-  revalidatePath('/categories');
-  revalidatePath('/reports');
-  revalidatePath('/accounts');
-  revalidatePath('/cards');
-}
 
 function validate(input: RecurringInput): string | null {
   if (!input.description.trim()) return 'Informe uma descrição.';
@@ -105,7 +95,7 @@ export async function createRecurring(input: RecurringInput): Promise<Result> {
   const tagError = await replaceTags(data.id, input.tagIds, user.id);
   if (tagError) return { error: tagError };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -126,7 +116,7 @@ export async function updateRecurring(id: string, input: RecurringInput): Promis
   const tagError = await replaceTags(id, input.tagIds, user.id);
   if (tagError) return { error: tagError };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -140,7 +130,7 @@ export async function setRecurringActive(id: string, isActive: boolean): Promise
 
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -153,7 +143,7 @@ export async function deleteRecurring(id: string): Promise<Result> {
   const { error } = await supabase.from('recurring_transactions').delete().eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -233,6 +223,6 @@ export async function postRecurring(input: {
     if (linkError) return { error: linkError.message };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }

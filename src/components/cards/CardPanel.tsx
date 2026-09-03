@@ -5,6 +5,7 @@ import { useState, useTransition } from 'react';
 import { CardFormModal } from '@/components/cards/CardFormModal';
 import { archiveCard, deleteCard, payStatement, restoreCard } from '@/app/(app)/cards/actions';
 import { formatDate } from '@/lib/format';
+import { dueDateFor } from '@/lib/statements';
 import { useMoney } from '@/lib/currency';
 import type { Account, CardStatement, CardStatementItem, CreditCard } from '@/types/database.types';
 
@@ -31,18 +32,9 @@ export function CardPanel({
   const open = statement ? Number(statement.open_amount) : 0;
   const usedPct = card.credit_limit > 0 ? (total / Number(card.credit_limit)) * 100 : 0;
 
-  // Fallback quando ainda não há linha na view: mesma regra do banco (0017) —
-  // a fatura de M fecha no closing_day de M e vence sempre no due_day de M+1.
-  // O dia é grampeado ao último dia do mês, como day_in_month().
-  const [year, monthIndex] = month.slice(0, 7).split('-').map(Number);
-  const dueMonthIndex = monthIndex + 1;
-  const dueMonth = new Date(year, dueMonthIndex - 1, 1);
-  const lastDay = new Date(year, dueMonthIndex, 0).getDate();
-  const dueDate =
-    statement?.due_date ??
-    `${dueMonth.getFullYear()}-${String(dueMonth.getMonth() + 1).padStart(2, '0')}-${String(
-      Math.min(card.due_day, lastDay),
-    ).padStart(2, '0')}`;
+  // Sem linha na view ainda: a regra mora em lib/statements, espelhando a
+  // migration 0017. Não recalcular aqui.
+  const dueDate = statement?.due_date ?? dueDateFor(month, card.due_day);
 
   const [amount, setAmount] = useState(String(open || total).replace('.', ','));
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));

@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 
-// Tokens do design system flowly — nao alterar sem atualizar finance-design-system.jsx
+// Tokens do design system flowly — nao alterar sem atualizar finance-design-system.jsx.
+// Exceção: a tipografia divergiu de propósito em 03/09 (ver claude/decisao-tipografia.md).
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
@@ -39,9 +40,12 @@ const config: Config = {
         xl: ['1.3rem', { lineHeight: '1.8rem' }], // 22px — número-título de card
         '2xl': ['1.4rem', { lineHeight: '2rem' }], // 26px — KPI
       },
+      // A Inter vem do next/font em app/layout.tsx, que define --font-inter e
+      // auto-hospeda os arquivos. `mono` fica só para <code>/<pre> — nenhum
+      // dado numérico usa font-mono; ver a regra .num em globals.css.
       fontFamily: {
-        sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       borderRadius: { sm: '4px', md: '8px', lg: '12px' },
       keyframes: {

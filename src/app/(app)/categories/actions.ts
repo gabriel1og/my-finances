@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { revalidateFinance } from '@/lib/cache';
 import type { TransactionType } from '@/types/database.types';
 
 export type CategoryInput = {
@@ -12,13 +12,6 @@ export type CategoryInput = {
 };
 
 type Result = { error: string | null };
-
-function revalidateAll() {
-  revalidatePath('/dashboard');
-  revalidatePath('/categories');
-  revalidatePath('/transactions');
-  revalidatePath('/reports');
-}
 
 function validate(input: CategoryInput): string | null {
   if (!input.name.trim()) return 'Informe um nome.';
@@ -60,7 +53,7 @@ export async function createCategory(input: CategoryInput): Promise<Result> {
     };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -85,7 +78,7 @@ export async function updateCategory(id: string, input: CategoryInput): Promise<
     };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -95,7 +88,7 @@ export async function archiveCategory(id: string): Promise<Result> {
   const { error } = await supabase.from('categories').update({ is_archived: true }).eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -104,7 +97,7 @@ export async function restoreCategory(id: string): Promise<Result> {
   const { error } = await supabase.from('categories').update({ is_archived: false }).eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -124,7 +117,7 @@ export async function deleteCategory(id: string): Promise<Result> {
   const { error } = await supabase.from('categories').delete().eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -151,7 +144,7 @@ export async function setCategoryRollover(
 
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -181,7 +174,7 @@ export async function setMonthlyBudget(
 
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -195,6 +188,6 @@ export async function clearMonthlyBudget(categoryId: string, month: string): Pro
 
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }

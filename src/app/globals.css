@@ -1,13 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 @layer base {
-  * {
-    font-family: 'Inter', sans-serif;
-  }
-
   html {
     color-scheme: dark;
     /* Reserva o espaço da barra de rolagem sempre. Sem isto, a barra aparece
@@ -124,8 +119,13 @@
     @apply text-2xs font-medium uppercase tracking-[0.08em] text-textSecondary;
   }
 
+  /* Dado numérico: valor, data, percentual, contador.
+     Não é mais monoespaçada — a Inter tem algarismos tabulares (`tnum`), que é
+     o que faz coluna de número alinhar. O que se abre mão é do contraste
+     visual entre dado e texto corrido, que a mono dava de graça.
+     Para diferenciar 0 de O em telas densas, acrescente `slashed-zero`. */
   .num {
-    @apply font-mono tabular-nums;
+    @apply tabular-nums;
   }
 
   /* min-h-11 = 44px, o alvo de toque confortável no celular. */

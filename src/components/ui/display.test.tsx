@@ -7,8 +7,8 @@ import { Toggle } from '@/components/ui/Toggle';
 import { TagChip } from '@/components/ui/TagChip';
 import { EmptyState } from '@/components/ui/EmptyState';
 
-/** Regra permanente do design system: todo dado numérico em JetBrains Mono. */
-function isMono(element: HTMLElement | null) {
+/** Regra permanente do design system: todo dado numérico carrega `.num`. */
+function isNumeric(element: HTMLElement | null) {
   return element?.className.includes('num') ?? false;
 }
 
@@ -18,11 +18,11 @@ describe('KpiCard', () => {
     expect(screen.getByText(/1,234\.50|1.234,50/)).toBeInTheDocument();
   });
 
-  it('escreve o número em fonte mono', () => {
+  it('marca o número com .num', () => {
     renderWithProviders(<KpiCard label="Saldo" value={10} />);
     // A regra vale para todo valor: sem `.num`, colunas de números deixam de
     // alinhar e o dashboard "dança" a cada atualização.
-    expect(isMono(screen.getByText(/10,00/))).toBe(true);
+    expect(isNumeric(screen.getByText(/10,00/))).toBe(true);
   });
 
   it('colore receita e despesa com tons distintos', () => {
