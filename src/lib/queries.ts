@@ -318,6 +318,39 @@ export type TransactionQuery = {
   page?: number;
 };
 
+export function buildTransactionSearchFilter(search: string) {
+  const text = cleanPostgrestSearch(search);
+  const amount = parseSearchAmount(search);
+  const filters = text ? [`description.ilike.%${text}%`, `notes.ilike.%${text}%`] : [];
+
+  if (amount !== null) filters.push(`amount.eq.${amount}`);
+  return filters.length > 0 ? filters.join(',') : null;
+}
+
+function cleanPostgrestSearch(search: string) {
+  return search.trim().replace(/[(),]/g, ' ').replace(/\s+/g, ' ');
+}
+
+function parseSearchAmount(search: string) {
+  const match = search.match(/\d[\d.,]*/);
+  if (!match) return null;
+
+  const amount = Number(normalizeSearchAmount(match[0]));
+  if (!Number.isFinite(amount)) return null;
+  return amount;
+}
+
+function normalizeSearchAmount(value: string) {
+  const separator = value.lastIndexOf(',') > value.lastIndexOf('.') ? ',' : '.';
+  const parts = value.split(separator);
+  if (parts.length === 1) return value;
+
+  const decimals = parts.at(-1) ?? '';
+  if (decimals.length > 2) return value.replace(/[.,]/g, '');
+
+  return `${parts.slice(0, -1).join('').replace(/[.,]/g, '')}.${decimals}`;
+}
+
 /**
  * Busca paginada no servidor. Antes a página trazia o mês inteiro e filtrava
  * no cliente — o que impedia procurar fora do mês e ficaria pesado com anos de
@@ -351,7 +384,8 @@ export async function getTransactionsPage(params: TransactionQuery) {
   }
 
   const search = params.search?.trim();
-  if (search) query = query.ilike('description', `%${search}%`);
+  const searchFilter = search ? buildTransactionSearchFilter(search) : null;
+  if (searchFilter) query = query.or(searchFilter);
 
   if (params.type === 'transfer') query = query.eq('is_transfer', true);
   else if (params.type === 'income' || params.type === 'expense') {

@@ -5,6 +5,15 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import type { Account, Category, CreditCard, Tag } from '@/types/database.types';
 
+function selectedAccountOrCard(params: URLSearchParams) {
+  const accountId = params.get('account');
+  if (accountId) return `acc:${accountId}`;
+
+  const cardId = params.get('card');
+  if (cardId) return `card:${cardId}`;
+
+  return '';
+}
 /**
  * Os filtros vivem na URL, não no estado local: assim a busca é feita no
  * servidor, o link pode ser compartilhado e o botão voltar funciona.
@@ -27,6 +36,7 @@ export function TransactionFilters({
   const params = useSearchParams();
   const [, startTransition] = useTransition();
   const [search, setSearch] = useState(params.get('q') ?? '');
+  const accountOrCardValue = selectedAccountOrCard(params);
 
   function push(next: URLSearchParams) {
     // Qualquer mudança de filtro volta para a primeira página.
@@ -61,7 +71,7 @@ export function TransactionFilters({
     <div className="mb-4 flex flex-wrap items-center gap-3">
       <input
         className="input-base w-full sm:w-[260px]"
-        placeholder="Buscar descrição..."
+        placeholder="Buscar descrição, valor ou notas..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
@@ -105,7 +115,7 @@ export function TransactionFilters({
 
       <select
         className="select-base w-full sm:w-auto sm:min-w-[200px]"
-        value={params.get('account') ?? params.get('card') ?? ''}
+        value={accountOrCardValue}
         onChange={(e) => {
           const value = e.target.value;
           const next = new URLSearchParams(params.toString());
