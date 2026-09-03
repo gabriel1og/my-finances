@@ -17,9 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # A versão vem do .nvmrc: jsdom 30 (e o undici 8 que ele carrega) exige
+      # Node >= 22.22.2. Em Node 20 a suíte passa mas o processo derruba
+      # "webidl.util.markAsUncloneable is not a function" e o job falha.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
 
       # npm ci respeita o package-lock.json e falha se ele estiver dessincronizado.
