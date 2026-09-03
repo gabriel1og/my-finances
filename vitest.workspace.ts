@@ -1,4 +1,3 @@
-import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'url';
 
 const alias = { '@': fileURLToPath(new URL('./src', import.meta.url)) };
@@ -21,8 +20,12 @@ export default [
     },
   },
   {
-    plugins: [react()],
     resolve: { alias },
+    // JSX transformado pelo esbuild no modo automático. Sem isto o esbuild
+    // segue o `jsx: "preserve"` do tsconfig do Next, cai no transform clássico
+    // e todo teste de componente quebra com "React is not defined" — o Next
+    // injeta o runtime na build dele, o Vitest não.
+    esbuild: { jsx: 'automatic' as const, jsxImportSource: 'react' },
     test: {
       name: 'ui',
       environment: 'jsdom',
