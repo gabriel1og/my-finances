@@ -14,12 +14,12 @@ const { TransactionFilters } = await import('@/components/transactions/Transacti
 
 const categories = [] as Parameters<typeof TransactionFilters>[0]['categories'];
 const tags = [] as Parameters<typeof TransactionFilters>[0]['tags'];
-const accounts = [
-  { id: 'acc-1', name: 'Nubank', color: '#8A05BE' },
-] as Parameters<typeof TransactionFilters>[0]['accounts'];
-const cards = [
-  { id: 'card-1', name: 'Visa', color: '#2563EB' },
-] as Parameters<typeof TransactionFilters>[0]['cards'];
+const accounts = [{ id: 'acc-1', name: 'Nubank', color: '#8A05BE' }] as Parameters<
+  typeof TransactionFilters
+>[0]['accounts'];
+const cards = [{ id: 'card-1', name: 'Visa', color: '#2563EB' }] as Parameters<
+  typeof TransactionFilters
+>[0]['cards'];
 
 function renderFilters() {
   return renderWithProviders(
