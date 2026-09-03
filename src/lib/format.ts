@@ -1,4 +1,5 @@
-// Formatadores — todo valor numerico renderiza em JetBrains Mono (classe font-mono).
+// Formatadores — todo valor numerico renderiza com a classe `.num` (algarismos
+// tabulares), para que colunas de números alinhem. Ver globals.css.
 
 export function formatCurrency(value: number, currency = 'BRL'): string {
   return new Intl.NumberFormat('pt-BR', {
