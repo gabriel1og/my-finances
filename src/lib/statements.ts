@@ -1,8 +1,9 @@
 /**
  * Espelho em TypeScript das funções `day_in_month` e `statement_month` da
- * migration 0009. O banco continua sendo a fonte da verdade — isto existe para
- * a UI poder antecipar em qual fatura uma compra vai cair, e para a regra ser
- * testável sem subir Postgres.
+ * migration 0009, e da regra de vencimento da view `card_statements` (0017).
+ * O banco continua sendo a fonte da verdade — isto existe para a UI poder
+ * antecipar em qual fatura uma compra vai cair e quando ela vence, e para a
+ * regra ser testável sem subir Postgres.
  *
  * Se a regra mudar no SQL, mude aqui também: os testes cobrem os dois lados do
  * limite (véspera do fechamento e dia do fechamento).
@@ -34,4 +35,23 @@ export function statementMonth(purchaseDate: string, closingDay: number): string
 
   const next = new Date(year, month, 1);
   return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-01`;
+}
+
+/**
+ * Data de vencimento da fatura do mês informado. Espelha a coluna
+ * `due_date` da view `card_statements` (migration 0017): a fatura de M fecha
+ * no closing_day de M e vence no due_day de **M+1** — sempre, mesmo quando o
+ * due_day é menor que o closing_day. O dia é grampeado ao último dia do mês
+ * de vencimento, como faz `day_in_month()`.
+ *
+ * Serve de fallback para a UI quando o cartão ainda não tem linha na view.
+ * Antes esse cálculo estava escrito à mão dentro do CardPanel — uma terceira
+ * cópia da regra, sem teste e sem ninguém saber que existia.
+ */
+export function dueDateFor(month: string, dueDay: number): string {
+  const [year, monthNumber] = month.slice(0, 7).split('-').map(Number);
+  // `monthNumber` é 1-based e o Date é 0-based, então este índice já é M+1.
+  const due = new Date(year, monthNumber, 1);
+  const reference = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-01`;
+  return dayInMonth(reference, dueDay);
 }
