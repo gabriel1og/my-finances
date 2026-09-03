@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, renderWithProviders, screen } from '@/test/render';
 import { Popover } from '@/components/ui/Popover';

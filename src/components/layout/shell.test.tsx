@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { renderWithProviders, screen, within } from '@/test/render';
+import { renderWithProviders, screen } from '@/test/render';
 
 const state = { pathname: '/dashboard', search: '' };
 vi.mock('next/navigation', () => ({
