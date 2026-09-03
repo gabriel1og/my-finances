@@ -1,7 +1,9 @@
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 
 export async function middleware(request: NextRequest) {
+  // O protótipo da página inicial é uma prévia visual isolada e não depende de autenticação.
+  if (request.nextUrl.pathname === '/') return NextResponse.next();
   return updateSession(request);
 }
 

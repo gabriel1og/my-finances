@@ -1,180 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
-@layer base {
-  * {
-    font-family: 'Inter', sans-serif;
-  }
-
-  html {
-    color-scheme: dark;
-    /* Reserva o espaço da barra de rolagem sempre. Sem isto, a barra aparece
-       por cima do canto direito quando a página passa a rolar — comendo o
-       seletor de mês do cabeçalho — e o conteúdo ainda dança alguns pixels
-       entre uma página que rola e outra que não. */
-    scrollbar-gutter: stable;
-  }
-
-  body {
-    @apply bg-bg font-sans text-textPrimary antialiased;
-    /* Sem `overflow-x: hidden` aqui: ele fazia o corpo virar container de
-       recorte e comia a borda direita dos popovers em portal quando a página
-       não rolava. A regra de não rolar na horizontal continua valendo — quem
-       rola é o container do conteúdo largo (tabelas), não a página. */
-  }
-
-  /* Foco visível padronizado: sem isto cada elemento herdava o outline do
-     navegador, que muda de cor e de forma entre Chrome, Firefox e Safari e
-     some por completo nos elementos com `outline-none`. `:where` mantém a
-     especificidade em zero, então qualquer componente ainda consegue
-     sobrescrever com uma classe própria. */
-  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-bg;
-  }
-
-  /* Barra de rolagem própria: a nativa do Windows é clara e larga, e cortava
-     o visual escuro em qualquer container com scroll (sidebar, modal, tabela
-     do comparativo). Firefox usa `scrollbar-*`; o resto usa o pseudo-elemento
-     do WebKit, por isso as duas declarações. */
-  html {
-    scrollbar-width: thin;
-    scrollbar-color: theme('colors.border') transparent;
-  }
-
-  *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  /* A borda transparente + background-clip afinam o polegar sem encolher a
-     área clicável: o trilho continua com 10px de alvo. */
-  *::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-border;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-
-  *::-webkit-scrollbar-thumb:hover {
-    @apply bg-borderHover;
-  }
-
-  /* Sem o quadradinho cinza onde as duas barras se encontram. */
-  *::-webkit-scrollbar-corner {
-    background: transparent;
-  }
-
-  /* Barra de rolagem discreta: a faixa segue reservada (scrollbar-gutter),
-     mas nada é desenhado nela enquanto ninguém interage — o polegar só
-     aparece no hover do container que rola. Zerar a largura esconderia a
-     barra de vez, junto com a única pista visual de que há mais conteúdo. */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-  }
-
-  *:hover {
-    scrollbar-color: theme('colors.border') transparent;
-  }
-
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: transparent;
-    border: 3px solid transparent;
-    background-clip: content-box;
-    border-radius: 999px;
-  }
-
-  :hover::-webkit-scrollbar-thumb {
-    background: theme('colors.border');
-    background-clip: content-box;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: theme('colors.borderHover');
-    background-clip: content-box;
-  }
-
-  ::selection {
-    @apply bg-accentDim text-textPrimary;
-  }
-}
-
-@layer components {
-  /* Espaçamentos centralizados: antes cada componente escolhia o seu, e a
-     densidade variava de tela para tela. */
-  .card {
-    @apply rounded-lg border border-border bg-surface p-4 sm:p-5;
-  }
-
-  .label-caps {
-    @apply text-2xs font-medium uppercase tracking-[0.08em] text-textSecondary;
-  }
-
-  .num {
-    @apply font-mono tabular-nums;
-  }
-
-  /* min-h-11 = 44px, o alvo de toque confortável no celular. */
-  .input-base {
-    @apply min-h-11 w-full rounded-md border border-border bg-surfaceAlt px-3 py-2 text-sm text-textPrimary outline-none transition-colors placeholder:text-textMuted focus:border-accent sm:min-h-0;
-  }
-
-  /* Select com seta própria: a nativa cola na borda e o texto fica sem espaço,
-     cortando rótulos como "Todas as categorias". appearance-none tira a seta do
-     sistema, o background desenha a nossa e o padding-right reserva o lugar
-     dela. */
-  .select-base {
-    @apply input-base cursor-pointer appearance-none pr-9;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237B82A0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 1rem;
-  }
-
-  .btn {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0;
-  }
-
-  .btn-primary {
-    @apply btn bg-accent font-medium text-white transition-opacity hover:opacity-90;
-  }
-
-  /* Botão pequeno: antes cada uso escrevia `btn-primary px-3 text-xs`, o que
-     sobrepunha o padding do `.btn` e dava quatro alturas diferentes. */
-  .btn-sm {
-    @apply min-h-9 gap-1.5 px-3 py-1.5 text-xs sm:min-h-0;
-  }
-
-  .btn-secondary {
-    @apply btn border border-border text-textSecondary hover:border-borderHover hover:text-textPrimary;
-  }
-
-  /* Para áreas onde a barra atrapalha o layout (carrossel de meses, chips
-     que rolam na horizontal) mas o gesto de arrastar continua valendo. */
-  .scrollbar-none {
-    scrollbar-width: none;
-  }
-
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Linha de lista: usada por TxRow, TransferRow e pelas listas de relatórios. */
-  .row-divider {
-    @apply border-b border-border py-3 last:border-b-0;
-  }
-}
+:root { --bg: #f7f8fc; --surface: #ffffff; --surface-alt: #f1f3f8; --border: #e4e7ef; --text: #182033; --muted: #778099; --accent: #635bff; --mint: #10b981; --coral: #f05b64; --amber: #f5a623; --sky: #25a9e8; --slate: #9aa2b4; }
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: Arial, sans-serif; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+.num { font-variant-numeric: tabular-nums; }
+.preview { display: flex; min-height: 100vh; background: var(--bg); }
+.sidebar { width: 238px; flex: 0 0 238px; padding: 24px 14px 18px; border-right: 1px solid var(--border); background: #fff; display: flex; flex-direction: column; transition: width .2s, flex-basis .2s; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 12px 30px; font-size: 20px; letter-spacing: -.04em; }.brand span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: var(--accent); color: #fff; font-weight: 700; }.brand b { font-weight: 750; }
+.profile { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; margin-bottom: 30px; }.avatar,.mini-avatar { display:grid; place-items:center; border-radius: 50%; background:#e5e7ff; color: var(--accent); font-size: 11px; font-weight: 700; }.avatar { width: 34px; height:34px; }.profile b,.profile small { display:block; }.profile b { font-size: 13px; }.profile small { color: var(--muted); font-size: 11px; margin-top: 3px; }.nav-label,.eyebrow { margin: 0; color: #929ab0; font-size: 10px; font-weight: 700; letter-spacing: .11em; }.nav-label { padding: 0 12px 10px; }
+nav { display:flex; flex-direction:column; gap:4px; }nav button,.sidebar-bottom button { border:0; background:transparent; color:var(--muted); display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:10px; text-align:left; font-size:13px; }nav button svg { width:18px; height:18px; }nav button:hover,nav button.active { color:var(--accent); background:#f0efff; font-weight:700; }.sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:12px; }.sidebar-bottom button { width:100%; }.collapse { font-size:18px; }.gear { font-size:21px; }
+.collapsed .sidebar { width:72px; flex-basis:72px; padding-left:10px; padding-right:10px; }.collapsed .brand b,.collapsed .profile div:not(.avatar),.collapsed .nav-label,.collapsed nav button span,.collapsed .sidebar-bottom button span:not(.collapse):not(.gear) { display:none; }.collapsed .brand,.collapsed .profile,.collapsed nav button,.collapsed .sidebar-bottom button { justify-content:center; }.collapsed .profile { padding:10px 0; }
+.main { min-width:0; flex:1; }.main header { height:76px; display:flex; align-items:center; justify-content:space-between; padding:0 34px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.8); }.crumb,.month { display:block; }.crumb { color:var(--muted); font-size:11px; }.month { font-size:18px; font-weight:750; margin-top:5px; }.header-actions { display:flex; align-items:center; gap:10px; }.icon-button,.month-picker,.ghost,.select,.secondary { border:1px solid var(--border); background:#fff; color:var(--muted); border-radius:9px; }.icon-button { width:36px; height:36px; }.month-picker { padding:9px 13px; font-size:12px; color:var(--text); }.mini-avatar { width:32px; height:32px; }.mobile-menu { display:none; }.page { max-width:1440px; margin:0 auto; padding:36px 38px 56px; }.welcome { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }.welcome h2 { margin:6px 0 4px; font-size:28px; letter-spacing:-.04em; }.muted { color:var(--muted); font-size:12px; line-height:1.5; }.primary,.secondary { border:0; border-radius:9px; padding:11px 16px; font-size:12px; }.primary { background:var(--accent); color:#fff; font-weight:700; box-shadow:0 5px 12px #635bff2b; }.secondary { border:1px solid var(--border); background:#fff; color:var(--text); }.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:14px; }.stat,.wide-card,.panel,.credit-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; }.stat { padding:20px; min-height:120px; }.value { display:block; margin-top:13px; font-size:21px; letter-spacing:-.03em; }.mint { color:var(--mint)!important; }.coral { color:var(--coral)!important; }.amber { color:var(--amber)!important; }.sky { color:var(--sky)!important; }.slate { color:var(--slate)!important; }.goal-row,.content-grid { display:grid; grid-template-columns:1.25fr 1fr; gap:14px; margin-bottom:14px; }.wide-card,.panel,.credit-card { padding:20px; }.card-head,.card-foot { display:flex; align-items:flex-start; justify-content:space-between; gap:15px; }.card-head h3 { margin:7px 0 0; font-size:15px; letter-spacing:-.02em; }.card-foot { margin-top:10px; font-size:11px; align-items:center; }.progress { height:6px; background:#eef0f6; border-radius:99px; margin-top:18px; overflow:hidden; }.progress span { display:block; height:100%; border-radius:inherit; background:var(--accent); }.progress .mint { background:var(--mint)!important; }.progress .coral { background:var(--coral)!important; }.progress .amber { background:var(--amber)!important; }.progress .sky { background:var(--sky)!important; }.content-grid { grid-template-columns:1.2fr .8fr; }.chart-panel { min-height:350px; }.ghost { padding:8px 10px; font-size:11px; }.bars { height:260px; display:flex; align-items:flex-end; gap:10px; padding:24px 14px 8px 62px; position:relative; }.axis { position:absolute; left:0; top:34px; bottom:36px; display:flex; flex-direction:column; justify-content:space-between; color:#a4aabd; font-size:10px; }.bar-group { flex:1; height:100%; display:flex; align-items:flex-end; justify-content:center; gap:4px; position:relative; border-bottom:1px solid #e9ebf2; }.bar { width:18px; border-radius:5px 5px 0 0; min-height:4px; }.bar.income { background:var(--accent); }.bar.expense { background:#f4b8bd; }.bar-group small { position:absolute; bottom:-22px; font-size:10px; color:var(--muted); }.category-list,.transactions { display:flex; flex-direction:column; gap:0; }.category { padding:13px 0; border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr auto; gap:8px; font-size:12px; }.category .progress { grid-column:1/-1; margin-top:3px; height:4px; }.dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--accent); margin-right:4px; }.dot.mint { background:var(--mint)!important; }.dot.coral { background:var(--coral)!important; }.dot.amber { background:var(--amber)!important; }.dot.sky { background:var(--sky)!important; }.dot.slate { background:var(--slate)!important; }.tx { display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); }.tx-icon { width:30px; height:30px; display:grid; place-items:center; border-radius:9px; background:#eef0ff; font-weight:700; }.tx-icon.mint { background:#e7f9f2; }.tx-icon.coral { background:#fff0f1; }.tx-icon.sky { background:#e8f7fd; }.tx-copy { flex:1; }.tx-copy b,.tx-copy span { display:block; }.tx-copy b { font-size:12px; }.tx-copy span { font-size:11px; margin-top:3px; }.tx strong { font-size:12px; }.bottom { grid-template-columns:1.2fr .8fr; }.insight { background:#f3f2ff; border-color:#dedcff; }.insight h3 { margin:10px 0; }.insight p { max-width:310px; }.filters { display:flex; gap:10px; margin-bottom:16px; }.filters input,.select { padding:11px 13px; border:1px solid var(--border); border-radius:9px; background:#fff; color:var(--text); font-size:12px; }.filters input { flex:1; }.cards-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }.credit-card { min-height:350px; }.credit-card .value { margin:11px 0; }.placeholder-chart { height:230px; margin:20px 0; display:flex; flex-direction:column; justify-content:space-between; padding:10px 0; background:repeating-linear-gradient(to bottom, transparent 0, transparent 55px, #eef0f6 56px); }.line { width:82%; height:3px; background:var(--accent); transform:skewY(-8deg); margin-top:90px; }.line-2 { width:92%; background:var(--mint); transform:skewY(5deg); margin-top:0; }.line-3 { width:70%; background:var(--coral); transform:skewY(-3deg); margin-top:0; }
+@media (max-width:900px){.sidebar{width:72px;flex-basis:72px;padding-left:10px;padding-right:10px}.brand b,.profile div:not(.avatar),.nav-label,nav button span,.sidebar-bottom button span:not(.collapse):not(.gear){display:none}.brand,.profile,nav button,.sidebar-bottom button{justify-content:center}.profile{padding:10px 0}.page{padding:28px 20px}.main header{padding:0 20px}.stats{grid-template-columns:repeat(2,1fr)}.content-grid,.goal-row,.bottom{grid-template-columns:1fr}.cards-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.page{padding:24px 14px}.main header{height:68px;padding:0 14px}.header-actions .icon-button{display:none}.month-picker{padding:8px}.welcome{align-items:flex-start;flex-direction:column;gap:16px}.welcome h2{font-size:24px}.stats{grid-template-columns:1fr 1fr;gap:8px}.stat{padding:14px;min-height:104px}.value{font-size:16px}.filters{overflow:auto}.filters input{min-width:180px}.cards-grid{grid-template-columns:1fr}.crumb{display:none}.month{font-size:16px}.mobile-menu{display:block;border:0;background:transparent;color:var(--muted);font-size:20px}.main header>div:first-of-type{margin-right:auto;margin-left:10px}}

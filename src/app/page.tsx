@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import FinancePreview from '@/components/preview/FinancePreview';
 
 export default function Home() {
-  redirect('/dashboard');
+  return <FinancePreview />;
 }
