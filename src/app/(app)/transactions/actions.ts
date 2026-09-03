@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { revalidateFinance } from '@/lib/cache';
 import { shiftMonths, splitInstallments } from '@/lib/installments';
 import type { PaymentMethod, SettlementKind, TransactionType } from '@/types/database.types';
 
@@ -21,15 +21,6 @@ export type TransactionInput = {
 };
 
 type Result = { error: string | null };
-
-function revalidateAll() {
-  revalidatePath('/dashboard');
-  revalidatePath('/transactions');
-  revalidatePath('/categories');
-  revalidatePath('/reports');
-  revalidatePath('/accounts');
-  revalidatePath('/cards');
-}
 
 function validate(input: TransactionInput): string | null {
   if (!input.description.trim()) return 'Informe uma descrição.';
@@ -113,7 +104,7 @@ export async function createTransaction(input: TransactionInput): Promise<Result
     if (tagError) return { error: tagError.message };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -163,7 +154,7 @@ export async function updateTransaction(id: string, input: TransactionInput): Pr
     }
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -173,7 +164,7 @@ export async function deleteInstallmentGroup(groupId: string): Promise<Result> {
   const { error } = await supabase.from('transactions').delete().eq('installment_group', groupId);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -237,7 +228,7 @@ export async function createTransfer(input: TransferInput): Promise<Result> {
 
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -297,7 +288,7 @@ export async function updateTransfer(groupId: string, input: TransferInput): Pro
     .eq('id', incoming.id);
   if (inError) return { error: inError.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -307,7 +298,7 @@ export async function deleteTransfer(groupId: string): Promise<Result> {
   const { error } = await supabase.from('transactions').delete().eq('transfer_group', groupId);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -316,6 +307,6 @@ export async function deleteTransaction(id: string): Promise<Result> {
   const { error } = await supabase.from('transactions').delete().eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }

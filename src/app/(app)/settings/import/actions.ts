@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { revalidateFinance } from '@/lib/cache';
 import { CATEGORY_PALETTE } from '@/lib/constants';
 import { duplicateKey, normalizeName } from '@/lib/import/plan';
 import type { PlanItem } from '@/lib/import/types';
@@ -465,18 +465,7 @@ export async function runImport(
     }
   }
 
-  for (const path of [
-    '/dashboard',
-    '/transactions',
-    '/categories',
-    '/reports',
-    '/accounts',
-    '/cards',
-    '/forecast',
-    '/settings',
-  ]) {
-    revalidatePath(path);
-  }
+  revalidateFinance();
 
   return {
     error: null,

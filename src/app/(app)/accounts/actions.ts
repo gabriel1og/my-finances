@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { revalidateFinance } from '@/lib/cache';
 import type { AccountKind } from '@/types/database.types';
 
 export type AccountInput = {
@@ -13,13 +13,6 @@ export type AccountInput = {
 };
 
 type Result = { error: string | null };
-
-function revalidateAll() {
-  revalidatePath('/dashboard');
-  revalidatePath('/accounts');
-  revalidatePath('/cards');
-  revalidatePath('/transactions');
-}
 
 function validate(input: AccountInput): string | null {
   if (!input.name.trim()) return 'Informe um nome.';
@@ -60,7 +53,7 @@ export async function createAccount(input: AccountInput): Promise<Result> {
     return { error: error.code === '23505' ? 'Já existe uma conta com esse nome.' : error.message };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -84,7 +77,7 @@ export async function updateAccount(id: string, input: AccountInput): Promise<Re
     return { error: error.code === '23505' ? 'Já existe uma conta com esse nome.' : error.message };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -93,7 +86,7 @@ export async function archiveAccount(id: string): Promise<Result> {
   const { error } = await supabase.from('accounts').update({ is_archived: true }).eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -102,7 +95,7 @@ export async function restoreAccount(id: string): Promise<Result> {
   const { error } = await supabase.from('accounts').update({ is_archived: false }).eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -131,6 +124,6 @@ export async function deleteAccount(id: string): Promise<Result> {
   const { error } = await supabase.from('accounts').delete().eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }

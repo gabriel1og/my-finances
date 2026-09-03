@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { revalidateFinance } from '@/lib/cache';
 
 export type CardInput = {
   name: string;
@@ -14,13 +14,6 @@ export type CardInput = {
 };
 
 type Result = { error: string | null };
-
-function revalidateAll() {
-  revalidatePath('/dashboard');
-  revalidatePath('/accounts');
-  revalidatePath('/cards');
-  revalidatePath('/transactions');
-}
 
 function validate(input: CardInput): string | null {
   if (!input.name.trim()) return 'Informe um nome.';
@@ -70,7 +63,7 @@ export async function createCard(input: CardInput): Promise<Result> {
     return { error: error.code === '23505' ? 'Já existe um cartão com esse nome.' : error.message };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -96,7 +89,7 @@ export async function updateCard(id: string, input: CardInput): Promise<Result> 
     return { error: error.code === '23505' ? 'Já existe um cartão com esse nome.' : error.message };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -105,7 +98,7 @@ export async function archiveCard(id: string): Promise<Result> {
   const { error } = await supabase.from('credit_cards').update({ is_archived: true }).eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -114,7 +107,7 @@ export async function restoreCard(id: string): Promise<Result> {
   const { error } = await supabase.from('credit_cards').update({ is_archived: false }).eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -133,7 +126,7 @@ export async function deleteCard(id: string): Promise<Result> {
   const { error } = await supabase.from('credit_cards').delete().eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -191,6 +184,6 @@ export async function payStatement(input: {
 
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }

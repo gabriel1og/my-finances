@@ -1,18 +1,11 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { revalidateFinance } from '@/lib/cache';
 
 export type TagInput = { name: string; color: string };
 
 type Result = { error: string | null };
-
-function revalidateAll() {
-  revalidatePath('/dashboard');
-  revalidatePath('/transactions');
-  revalidatePath('/reports');
-  revalidatePath('/settings');
-}
 
 function validate(input: TagInput): string | null {
   if (!input.name.trim()) return 'Informe um nome.';
@@ -41,7 +34,7 @@ export async function createTag(input: TagInput): Promise<{ error: string | null
     return { error: error.code === '23505' ? 'Já existe uma tag com esse nome.' : error.message };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null, id: data.id };
 }
 
@@ -59,7 +52,7 @@ export async function updateTag(id: string, input: TagInput): Promise<Result> {
     return { error: error.code === '23505' ? 'Já existe uma tag com esse nome.' : error.message };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -73,7 +66,7 @@ export async function deleteTag(id: string): Promise<Result> {
   const { error } = await supabase.from('tags').delete().eq('id', id);
   if (error) return { error: error.message };
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }
 
@@ -102,6 +95,6 @@ export async function setTransactionTags(transactionId: string, tagIds: string[]
     if (error) return { error: error.message };
   }
 
-  revalidateAll();
+  revalidateFinance();
   return { error: null };
 }

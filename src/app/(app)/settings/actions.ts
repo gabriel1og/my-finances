@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { revalidateFinance } from '@/lib/cache';
 
 export type ProfileInput = {
   displayName: string;
@@ -45,7 +45,7 @@ export async function updateProfile(input: ProfileInput): Promise<{ error: strin
 
   if (error) return { error: error.message };
 
-  revalidatePath('/settings');
-  revalidatePath('/dashboard');
+  // Trocar a moeda muda todo valor exibido, não só esta tela.
+  revalidateFinance();
   return { error: null };
 }
