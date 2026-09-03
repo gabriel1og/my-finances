@@ -98,6 +98,19 @@ export const NAV_ITEMS = [
   },
 ] as const;
 
+/**
+ * Rotas que vivem abaixo de um item do menu e têm identidade própria no
+ * cabeçalho. Não entram no nav — o item pai continua ativo — mas o título
+ * precisa dizer onde o usuário está.
+ */
+export const SUB_ROUTES = [
+  {
+    href: '/settings/import',
+    title: 'Importar CSV',
+    subtitle: 'Revise antes de gravar — nada entra sem a sua confirmação',
+  },
+] as const;
+
 export const NAV_SECTIONS = [
   { key: 'menu', label: 'Menu' },
   { key: 'support', label: 'Suporte' },

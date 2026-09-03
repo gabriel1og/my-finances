@@ -18,6 +18,8 @@ const COLUMNS = [
   { key: 'installment', label: 'Parcela' },
   { key: 'tags', label: 'Tags' },
   { key: 'kind', label: 'Natureza' },
+  { key: 'paidCard', label: 'Fatura de' },
+  { key: 'paidMonth', label: 'Mês da fatura' },
   { key: 'notes', label: 'Observações' },
 ];
 
@@ -48,6 +50,9 @@ export async function GET(request: NextRequest) {
       '*, category:categories!transactions_category_id_fkey(id,name,color)' +
         ', account:accounts!transactions_account_id_fkey(id,name,color)' +
         ', card:credit_cards!transactions_card_id_fkey(id,name,color)' +
+        // Pagamento de fatura: qual cartão foi pago. Sem isto, quem reimporta
+        // não sabe que a linha não é uma despesa comum.
+        ', paid_card:credit_cards!transactions_card_payment_for_fkey(id,name)' +
         ', tags(id,name,color)',
     )
     .order('date', { ascending: false });
@@ -60,7 +65,9 @@ export async function GET(request: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const transactions = (data ?? []) as unknown as TransactionWithCategory[];
+  const transactions = (data ?? []) as unknown as Array<
+    TransactionWithCategory & { paid_card: { id: string; name: string } | null }
+  >;
 
   const rows = transactions.map((tx) => ({
     date: tx.date.slice(0, 10),
@@ -76,6 +83,8 @@ export async function GET(request: NextRequest) {
         : '',
     tags: (tx.tags ?? []).map((tag) => tag.name).join(', '),
     kind: natureOf(tx),
+    paidCard: tx.is_card_payment ? (tx.paid_card?.name ?? '') : '',
+    paidMonth: tx.is_card_payment ? (tx.card_payment_month?.slice(0, 7) ?? '') : '',
     notes: tx.notes ?? '',
   }));
 

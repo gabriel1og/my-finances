@@ -105,6 +105,7 @@ export interface Database {
           payment_method: PaymentMethod | null;
           is_card_payment: boolean;
           card_payment_for: string | null;
+          card_payment_month: string | null;
           recurring_id: string | null;
           recurring_month: string | null;
           installment_group: string | null;
@@ -130,6 +131,7 @@ export interface Database {
           payment_method?: PaymentMethod | null;
           is_card_payment?: boolean;
           card_payment_for?: string | null;
+          card_payment_month?: string | null;
           recurring_id?: string | null;
           recurring_month?: string | null;
           installment_group?: string | null;

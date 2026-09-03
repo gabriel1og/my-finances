@@ -1,4 +1,6 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
+import type { Route } from 'next';
 import { AddModal } from '@/components/ui/AddModal';
 import { PageActions } from '@/components/ui/PageActions';
 import { ExportButton } from '@/components/transactions/ExportButton';
@@ -50,6 +52,9 @@ export default async function TransactionsPage({
         <Suspense fallback={null}>
           <ExportButton month={month} />
         </Suspense>
+        <Link href={'/settings/import' as Route} className="btn-secondary">
+          Importar CSV
+        </Link>
         <AddModal categories={categories} accounts={accounts} cards={cards} tags={tags} />
       </PageActions>
 

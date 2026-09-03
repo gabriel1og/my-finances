@@ -1,6 +1,7 @@
 import { PageActions } from '@/components/ui/PageActions';
 import { SettingsForm } from '@/components/settings/SettingsForm';
 import { TagsManager } from '@/components/settings/TagsManager';
+import { DataPanel } from '@/components/settings/DataPanel';
 import { SignOutButton } from '@/components/settings/SignOutButton';
 import { createClient } from '@/lib/supabase/server';
 import { getTags } from '@/lib/queries';
@@ -27,6 +28,8 @@ export default async function SettingsPage() {
         <div className="flex-shrink-0">
           <TagsManager tags={tags} />
         </div>
+
+        <DataPanel />
       </div>
     </>
   );
