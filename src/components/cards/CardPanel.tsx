@@ -5,6 +5,7 @@ import type { Route } from 'next';
 import { useState, useTransition } from 'react';
 import { CardFormModal } from '@/components/cards/CardFormModal';
 import { PayStatementForm } from '@/components/cards/PayStatementForm';
+import { UpcomingStatements } from '@/components/cards/UpcomingStatements';
 import { archiveCard, deleteCard, restoreCard } from '@/app/(app)/cards/actions';
 import { formatDate } from '@/lib/format';
 import { dueDateFor } from '@/lib/statements';
@@ -16,12 +17,15 @@ export function CardPanel({
   accounts,
   statement,
   items,
+  upcoming = [],
   month,
 }: {
   card: CreditCard;
   accounts: Account[];
   statement: CardStatement | null;
   items: CardStatementItem[];
+  /** Faturas dos próximos meses que já têm valor. Vazio: a faixa não aparece. */
+  upcoming?: CardStatement[];
   month: string;
 }) {
   const money = useMoney();
@@ -50,7 +54,7 @@ export function CardPanel({
   }
 
   return (
-    <div className={`card ${card.is_archived ? 'opacity-60' : ''}`}>
+    <div className={`card flex h-full flex-col ${card.is_archived ? 'opacity-60' : ''}`}>
       <div className="flex items-start justify-between">
         <div>
           <span className="flex items-center gap-2 text-sm text-textPrimary">
@@ -134,72 +138,80 @@ export function CardPanel({
         </p>
       )}
 
-      {paying ? (
-        <PayStatementForm
-          card={card}
-          account={account}
-          month={month}
-          suggested={open > 0 ? open : total}
-          onDone={() => setPaying(false)}
-          onCancel={() => setPaying(false)}
-        />
-      ) : null}
+      {/* Rodapé preso à base do card: as prévias de lançamentos e a faixa
+          de próximas faturas têm alturas diferentes de um cartão para
+          outro, e sem isto a linha de ações de cada card parava numa
+          altura, desalinhando a grade. */}
+      <div className="mt-auto">
+        <UpcomingStatements cardId={card.id} statements={upcoming} />
 
-      {error ? <p className="mt-2 text-xs text-expense">{error}</p> : null}
-
-      <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3 text-xs">
-        {open > 0 ? (
-          <button
-            onClick={() => setPaying((value) => !value)}
-            className="text-accent transition-opacity hover:opacity-80"
-          >
-            Pagar fatura
-          </button>
+        {paying ? (
+          <PayStatementForm
+            card={card}
+            account={account}
+            month={month}
+            suggested={open > 0 ? open : total}
+            onDone={() => setPaying(false)}
+            onCancel={() => setPaying(false)}
+          />
         ) : null}
 
-        <Link
-          href={statementHref}
-          className="text-textSecondary transition-colors hover:text-textPrimary"
-        >
-          Ver fatura
-        </Link>
+        {error ? <p className="mt-2 text-xs text-expense">{error}</p> : null}
 
-        <CardFormModal
-          accounts={accounts}
-          card={card}
-          trigger={
-            <button className="text-textSecondary transition-colors hover:text-textPrimary">
-              Editar
+        <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3 text-xs">
+          {open > 0 ? (
+            <button
+              onClick={() => setPaying((value) => !value)}
+              className="text-accent transition-opacity hover:opacity-80"
+            >
+              Pagar fatura
             </button>
-          }
-        />
+          ) : null}
 
-        {card.is_archived ? (
-          <>
-            <button
-              disabled={pending}
-              onClick={() => run(() => restoreCard(card.id))}
-              className="text-textSecondary transition-colors hover:text-income"
-            >
-              Restaurar
-            </button>
-            <button
-              disabled={pending}
-              onClick={() => run(() => deleteCard(card.id))}
-              className="ml-auto text-textMuted transition-colors hover:text-expense"
-            >
-              Excluir
-            </button>
-          </>
-        ) : (
-          <button
-            disabled={pending}
-            onClick={() => run(() => archiveCard(card.id))}
-            className="ml-auto text-textMuted transition-colors hover:text-warning"
+          <Link
+            href={statementHref}
+            className="text-textSecondary transition-colors hover:text-textPrimary"
           >
-            Arquivar
-          </button>
-        )}
+            Ver fatura
+          </Link>
+
+          <CardFormModal
+            accounts={accounts}
+            card={card}
+            trigger={
+              <button className="text-textSecondary transition-colors hover:text-textPrimary">
+                Editar
+              </button>
+            }
+          />
+
+          {card.is_archived ? (
+            <>
+              <button
+                disabled={pending}
+                onClick={() => run(() => restoreCard(card.id))}
+                className="text-textSecondary transition-colors hover:text-income"
+              >
+                Restaurar
+              </button>
+              <button
+                disabled={pending}
+                onClick={() => run(() => deleteCard(card.id))}
+                className="ml-auto text-textMuted transition-colors hover:text-expense"
+              >
+                Excluir
+              </button>
+            </>
+          ) : (
+            <button
+              disabled={pending}
+              onClick={() => run(() => archiveCard(card.id))}
+              className="ml-auto text-textMuted transition-colors hover:text-warning"
+            >
+              Arquivar
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

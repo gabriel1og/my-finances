@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildForecast, monthSequence, recurringAppliesTo } from '@/lib/forecast';
+import {
+  buildForecast,
+  monthSequence,
+  recurringAppliesTo,
+  upcomingStatementsByCard,
+} from '@/lib/forecast';
 import type { CardStatement, RecurringWithRelations } from '@/types/database.types';
 
 function statement(
@@ -149,5 +154,59 @@ describe('buildForecast', () => {
     });
 
     expect(forecast.map((item) => item.recurringExpense)).toEqual([700, 700, 0]);
+  });
+});
+
+describe('upcomingStatementsByCard', () => {
+  const rows = [
+    statement({ card_id: 'card-1', statement_month: '2026-09-01', total: 900 }),
+    statement({ card_id: 'card-1', statement_month: '2026-11-01', total: 300 }),
+    statement({ card_id: 'card-1', statement_month: '2026-10-01', total: 500 }),
+    statement({ card_id: 'card-2', statement_month: '2026-10-01', total: 120 }),
+  ];
+
+  it('deixa de fora o mês em tela — ele já é a fatura do card', () => {
+    const grouped = upcomingStatementsByCard(rows, '2026-09-01', 3);
+
+    expect(grouped.get('card-1')?.map((row) => row.statement_month)).toEqual([
+      '2026-10-01',
+      '2026-11-01',
+    ]);
+  });
+
+  it('agrupa por cartão', () => {
+    const grouped = upcomingStatementsByCard(rows, '2026-09-01', 3);
+    expect(grouped.get('card-2')).toHaveLength(1);
+  });
+
+  it('para na janela pedida', () => {
+    // Com um mês à frente, dezembro fica de fora mesmo tendo valor.
+    const comDezembro = [
+      ...rows,
+      statement({ card_id: 'card-1', statement_month: '2026-12-01', total: 300 }),
+    ];
+    const grouped = upcomingStatementsByCard(comDezembro, '2026-09-01', 1);
+
+    expect(grouped.get('card-1')?.map((row) => row.statement_month)).toEqual(['2026-10-01']);
+  });
+
+  it('ignora fatura futura zerada — mês sem compra não é compromisso', () => {
+    const grouped = upcomingStatementsByCard(
+      [statement({ card_id: 'card-3', statement_month: '2026-10-01', total: 0 })],
+      '2026-09-01',
+      3,
+    );
+
+    expect(grouped.has('card-3')).toBe(false);
+  });
+
+  it('vira o ano na janela', () => {
+    const grouped = upcomingStatementsByCard(
+      [statement({ card_id: 'card-1', statement_month: '2027-01-01', total: 200 })],
+      '2026-11-01',
+      3,
+    );
+
+    expect(grouped.get('card-1')).toHaveLength(1);
   });
 });

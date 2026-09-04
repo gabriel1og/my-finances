@@ -14,6 +14,7 @@ vi.mock('@/app/(app)/transactions/actions', () => ({
 
 const { StatementItems } = await import('@/components/cards/StatementItems');
 const { StatementCategories } = await import('@/components/cards/StatementCategories');
+const { UpcomingStatements } = await import('@/components/cards/UpcomingStatements');
 
 const MERCADO = { id: 'cat-1', name: 'Alimentação', color: '#2ECC9A' };
 const LAZER = { id: 'cat-2', name: 'Lazer', color: '#F05C5C' };
@@ -142,6 +143,48 @@ describe('StatementCategories', () => {
 
   it('não renderiza nada numa fatura vazia', () => {
     const { container } = renderWithProviders(<StatementCategories transactions={[]} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe('UpcomingStatements', () => {
+  const ahead = [
+    {
+      card_id: 'card-1',
+      statement_month: '2026-10-01',
+      total: 500,
+      due_date: '2026-11-10',
+    },
+    {
+      card_id: 'card-1',
+      statement_month: '2026-11-01',
+      total: 300,
+      due_date: '2026-12-10',
+    },
+  ] as unknown as Parameters<typeof UpcomingStatements>[0]['statements'];
+
+  it('mostra mês e valor de cada fatura à frente', () => {
+    renderWithProviders(<UpcomingStatements cardId="card-1" statements={ahead} />);
+
+    expect(screen.getByText('out/26')).toBeInTheDocument();
+    expect(screen.getByText(/500,00/)).toBeInTheDocument();
+    expect(screen.getByText('nov/26')).toBeInTheDocument();
+  });
+
+  it('leva para a fatura daquele mês', () => {
+    renderWithProviders(<UpcomingStatements cardId="card-1" statements={ahead} />);
+
+    expect(screen.getByTitle(/Fatura de outubro de 2026 · vence 10\/11\/2026/)).toHaveAttribute(
+      'href',
+      '/cards/card-1?month=2026-10-01',
+    );
+  });
+
+  it('não ocupa espaço quando não há nada comprometido à frente', () => {
+    const { container } = renderWithProviders(
+      <UpcomingStatements cardId="card-1" statements={[]} />,
+    );
+
     expect(container).toBeEmptyDOMElement();
   });
 });
