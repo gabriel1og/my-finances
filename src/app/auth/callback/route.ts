@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { SESSION_COOKIE, sessionCookieOptions, sessionCookieValue } from '@/lib/session';
 
 /**
  * Retorno do OAuth (Google) e dos links de e-mail do Supabase.
@@ -28,7 +29,11 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get('next');
   const destination = next && next.startsWith('/') && !next.startsWith('//') ? next : '/dashboard';
 
-  return NextResponse.redirect(resolve(request, origin, destination));
+  const response = NextResponse.redirect(resolve(request, origin, destination));
+  // Marca o inicio da sessao (prazo de inatividade) — o outro ponto que faz
+  // isso sao as server actions de `/login`. Ver `src/lib/session.ts`.
+  response.cookies.set(SESSION_COOKIE, sessionCookieValue(), sessionCookieOptions());
+  return response;
 }
 
 function failure(request: NextRequest, origin: string, message: string) {
