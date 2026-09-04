@@ -106,6 +106,20 @@
   ::selection {
     @apply bg-accentDim text-textPrimary;
   }
+
+  /* Cadeado biométrico: cobertura opaca posta antes da primeira pintura pelo
+     script de `BiometricLockPaint`. As rotas de (app) são force-dynamic — o
+     HTML chega com saldo e lançamentos e o navegador pinta antes de o React
+     hidratar, então sem esta camada a tela de bloqueio chegaria tarde demais
+     para servir de bloqueio. O `BiometricGuard` remove a classe assim que
+     assume a tela; o z-index fica abaixo do dele (z-70) e acima de tudo mais. */
+  html.flowly-locked::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: theme('colors.bg');
+  }
 }
 
 @layer components {
