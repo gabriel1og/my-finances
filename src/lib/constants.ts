@@ -106,8 +106,18 @@ export const NAV_ITEMS = [
 export const SUB_ROUTES = [
   {
     href: '/settings/import',
+    match: '/settings/import',
     title: 'Importar CSV',
     subtitle: 'Revise antes de gravar — nada entra sem a sua confirmação',
+  },
+  {
+    href: '/cards/[id]',
+    // `href` é a rota como o Next a conhece (é o que `revalidatePath` precisa);
+    // `match` é o prefixo que o cabeçalho compara com o pathname real, onde o
+    // segmento dinâmico já virou um id.
+    match: '/cards/',
+    title: 'Fatura do cartão',
+    subtitle: 'Todos os lançamentos da fatura selecionada',
   },
 ] as const;
 

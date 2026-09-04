@@ -25,6 +25,13 @@ export function formatMonthLabel(iso: string): string {
   return new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(date).replace('.', '');
 }
 
+/** "setembro de 2026" — usado onde o mês é o assunto da tela, não um eixo. */
+export function formatMonthLong(iso: string): string {
+  return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(
+    new Date(`${iso.slice(0, 7)}-01T12:00:00`),
+  );
+}
+
 export function formatPercent(value: number): string {
   return `${value.toFixed(1).replace('.', ',')}%`;
 }

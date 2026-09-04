@@ -55,3 +55,17 @@ export function dueDateFor(month: string, dueDay: number): string {
   const reference = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-01`;
   return dayInMonth(reference, dueDay);
 }
+
+/**
+ * Mês da fatura que um pagamento quita quando a transação não traz
+ * `card_payment_month` (importações anteriores à migration 0018). Espelha o
+ * `coalesce` da view `card_statements`: sem o mês explícito, o pagamento vale
+ * para a última fatura já fechada na data em que foi feito — ou seja, o mês
+ * anterior ao que `statementMonth()` devolve.
+ */
+export function paymentStatementMonth(paymentDate: string, closingDay: number): string {
+  const open = statementMonth(paymentDate, closingDay);
+  const [year, month] = open.slice(0, 7).split('-').map(Number);
+  const previous = new Date(year, month - 2, 1);
+  return `${previous.getFullYear()}-${String(previous.getMonth() + 1).padStart(2, '0')}-01`;
+}

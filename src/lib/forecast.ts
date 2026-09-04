@@ -74,3 +74,38 @@ export function buildForecast({
     };
   });
 }
+
+/**
+ * Faturas dos próximos meses, agrupadas por cartão.
+ *
+ * `/cards` mostra a fatura do mês selecionado, e só. Uma compra em 12x ficava
+ * invisível ali: as parcelas seguintes existem como transação real desde o dia
+ * da compra, mas só apareciam para quem navegasse até o mês delas. Isto é o
+ * que a faixa "Próximas faturas" do card lê.
+ *
+ * `afterMonth` fica de fora — é o mês já em tela. Fatura zerada também: um mês
+ * sem compra nenhuma não é compromisso, é ruído.
+ */
+export function upcomingStatementsByCard(
+  statements: CardStatement[],
+  afterMonth: string,
+  monthsAhead: number,
+): Map<string, CardStatement[]> {
+  const wanted = new Set(monthSequence(afterMonth, monthsAhead + 1).slice(1));
+  const grouped = new Map<string, CardStatement[]>();
+
+  for (const row of statements) {
+    const month = `${row.statement_month.slice(0, 7)}-01`;
+    if (!wanted.has(month) || Number(row.total) <= 0) continue;
+
+    const list = grouped.get(row.card_id) ?? [];
+    list.push(row);
+    grouped.set(row.card_id, list);
+  }
+
+  for (const list of grouped.values()) {
+    list.sort((a, b) => a.statement_month.localeCompare(b.statement_month));
+  }
+
+  return grouped;
+}

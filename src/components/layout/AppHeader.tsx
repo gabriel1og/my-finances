@@ -29,8 +29,10 @@ export function AppHeader({
 }) {
   const pathname = usePathname();
   // Sub-rota primeiro: "/settings/import" também começa com "/settings".
+  // A comparação usa `match`, e não `href`: a fatura é uma rota dinâmica, e o
+  // pathname traz o id no lugar de "[id]".
   const item =
-    SUB_ROUTES.find((entry) => pathname.startsWith(entry.href)) ??
+    SUB_ROUTES.find((entry) => pathname.startsWith(entry.match)) ??
     NAV_ITEMS.find((entry) => pathname.startsWith(entry.href));
 
   return (

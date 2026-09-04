@@ -5,7 +5,17 @@ import { KpiCard } from '@/components/ui/KpiCard';
 import { Money } from '@/lib/currency';
 import { PageActions } from '@/components/ui/PageActions';
 import { currentMonth } from '@/lib/format';
-import { getAccounts, getCardStatements, getCards, getStatementItems } from '@/lib/queries';
+import { upcomingStatementsByCard } from '@/lib/forecast';
+import {
+  getAccounts,
+  getCardStatements,
+  getCards,
+  getStatementItems,
+  getUpcomingStatements,
+} from '@/lib/queries';
+
+/** Janela da faixa "Próximas faturas" no card. A visão longa é /forecast. */
+const UPCOMING_MONTHS = 3;
 
 export default async function CardsPage({
   searchParams,
@@ -14,14 +24,17 @@ export default async function CardsPage({
 }) {
   const { month = currentMonth() } = await searchParams;
 
-  const [cards, accounts, statements, items] = await Promise.all([
+  const [cards, accounts, statements, items, ahead] = await Promise.all([
     getCards(true),
     getAccounts(),
     getCardStatements(month),
     getStatementItems(month),
+    // +1 porque a janela inclui o mês em tela, que a faixa descarta.
+    getUpcomingStatements(month, UPCOMING_MONTHS + 1),
   ]);
 
   const statementByCard = new Map(statements.map((row) => [row.card_id, row]));
+  const upcomingByCard = upcomingStatementsByCard(ahead, month, UPCOMING_MONTHS);
 
   const active = cards.filter((card) => !card.is_archived);
   const archived = cards.filter((card) => card.is_archived);
@@ -70,6 +83,7 @@ export default async function CardsPage({
                   accounts={accounts}
                   statement={statementByCard.get(card.id) ?? null}
                   items={items.filter((item) => item.card_id === card.id)}
+                  upcoming={upcomingByCard.get(card.id) ?? []}
                   month={month}
                 />
               ))}
@@ -89,6 +103,7 @@ export default async function CardsPage({
                     accounts={accounts}
                     statement={statementByCard.get(card.id) ?? null}
                     items={items.filter((item) => item.card_id === card.id)}
+                    upcoming={upcomingByCard.get(card.id) ?? []}
                     month={month}
                   />
                 ))}

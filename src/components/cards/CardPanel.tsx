@@ -1,9 +1,12 @@
 'use client';
 
-import { DateField } from '@/components/ui/DateField';
+import Link from 'next/link';
+import type { Route } from 'next';
 import { useState, useTransition } from 'react';
 import { CardFormModal } from '@/components/cards/CardFormModal';
-import { archiveCard, deleteCard, payStatement, restoreCard } from '@/app/(app)/cards/actions';
+import { PayStatementForm } from '@/components/cards/PayStatementForm';
+import { UpcomingStatements } from '@/components/cards/UpcomingStatements';
+import { archiveCard, deleteCard, restoreCard } from '@/app/(app)/cards/actions';
 import { formatDate } from '@/lib/format';
 import { dueDateFor } from '@/lib/statements';
 import { useMoney } from '@/lib/currency';
@@ -14,12 +17,15 @@ export function CardPanel({
   accounts,
   statement,
   items,
+  upcoming = [],
   month,
 }: {
   card: CreditCard;
   accounts: Account[];
   statement: CardStatement | null;
   items: CardStatementItem[];
+  /** Faturas dos próximos meses que já têm valor. Vazio: a faixa não aparece. */
+  upcoming?: CardStatement[];
   month: string;
 }) {
   const money = useMoney();
@@ -36,22 +42,19 @@ export function CardPanel({
   // migration 0017. Não recalcular aqui.
   const dueDate = statement?.due_date ?? dueDateFor(month, card.due_day);
 
-  const [amount, setAmount] = useState(String(open || total).replace('.', ','));
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-
   const account = accounts.find((item) => item.id === card.account_id);
+  const statementHref = `/cards/${card.id}?month=${month.slice(0, 7)}-01` as Route;
 
   function run(action: () => Promise<{ error: string | null }>) {
     setError(null);
     startTransition(async () => {
       const result = await action();
       if (result.error) setError(result.error);
-      else setPaying(false);
     });
   }
 
   return (
-    <div className={`card ${card.is_archived ? 'opacity-60' : ''}`}>
+    <div className={`card flex h-full flex-col ${card.is_archived ? 'opacity-60' : ''}`}>
       <div className="flex items-start justify-between">
         <div>
           <span className="flex items-center gap-2 text-sm text-textPrimary">
@@ -118,9 +121,16 @@ export function CardPanel({
               </span>
             </div>
           ))}
-          {items.length > 4 ? (
-            <p className="num mt-1 text-2xs text-textMuted">+ {items.length - 4} lançamento(s)</p>
-          ) : null}
+          {/* O card mostra os quatro primeiros; o resto da fatura tem página
+              própria, em vez de ficar só como um contador sem saída. */}
+          <Link
+            href={statementHref}
+            className="mt-1 inline-block text-2xs text-accent transition-opacity hover:opacity-80"
+          >
+            {items.length > 4
+              ? `Ver os ${items.length} lançamentos da fatura`
+              : 'Ver fatura completa'}
+          </Link>
         </div>
       ) : (
         <p className="mt-3 border-t border-border pt-3 text-xs text-textMuted">
@@ -128,104 +138,80 @@ export function CardPanel({
         </p>
       )}
 
-      {paying ? (
-        <div className="mt-3 space-y-2 rounded-md border border-border p-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="label-caps">Valor</label>
-              <input
-                className="input-base num mt-1"
-                inputMode="decimal"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="label-caps">Data do pagamento</label>
-              <DateField
-                value={date}
-                onChange={setDate}
-                label="Data do pagamento"
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <p className="text-2xs text-textMuted">
-            Gera uma saída de {account?.name ?? 'conta vinculada'}. Não conta como despesa nova — as
-            compras já entraram no mês em que foram feitas.
-          </p>
-          <div className="flex gap-2">
-            <button
-              disabled={pending}
-              onClick={() =>
-                run(() =>
-                  payStatement({
-                    cardId: card.id,
-                    statementMonth: month,
-                    amount: Number(amount.replace(',', '.') || '0'),
-                    date,
-                  }),
-                )
-              }
-              className="btn-primary btn-sm"
-            >
-              {pending ? 'Registrando...' : 'Confirmar pagamento'}
-            </button>
-            <button onClick={() => setPaying(false)} className="btn-secondary btn-sm">
-              Cancelar
-            </button>
-          </div>
-        </div>
-      ) : null}
+      {/* Rodapé preso à base do card: as prévias de lançamentos e a faixa
+          de próximas faturas têm alturas diferentes de um cartão para
+          outro, e sem isto a linha de ações de cada card parava numa
+          altura, desalinhando a grade. */}
+      <div className="mt-auto">
+        <UpcomingStatements cardId={card.id} statements={upcoming} />
 
-      {error ? <p className="mt-2 text-xs text-expense">{error}</p> : null}
-
-      <div className="mt-3 flex flex-wrap gap-3 border-t border-border pt-3 text-xs">
-        {open > 0 ? (
-          <button
-            onClick={() => setPaying((value) => !value)}
-            className="text-accent transition-opacity hover:opacity-80"
-          >
-            Pagar fatura
-          </button>
+        {paying ? (
+          <PayStatementForm
+            card={card}
+            account={account}
+            month={month}
+            suggested={open > 0 ? open : total}
+            onDone={() => setPaying(false)}
+            onCancel={() => setPaying(false)}
+          />
         ) : null}
 
-        <CardFormModal
-          accounts={accounts}
-          card={card}
-          trigger={
-            <button className="text-textSecondary transition-colors hover:text-textPrimary">
-              Editar
-            </button>
-          }
-        />
+        {error ? <p className="mt-2 text-xs text-expense">{error}</p> : null}
 
-        {card.is_archived ? (
-          <>
+        <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3 text-xs">
+          {open > 0 ? (
             <button
-              disabled={pending}
-              onClick={() => run(() => restoreCard(card.id))}
-              className="text-textSecondary transition-colors hover:text-income"
+              onClick={() => setPaying((value) => !value)}
+              className="text-accent transition-opacity hover:opacity-80"
             >
-              Restaurar
+              Pagar fatura
             </button>
-            <button
-              disabled={pending}
-              onClick={() => run(() => deleteCard(card.id))}
-              className="ml-auto text-textMuted transition-colors hover:text-expense"
-            >
-              Excluir
-            </button>
-          </>
-        ) : (
-          <button
-            disabled={pending}
-            onClick={() => run(() => archiveCard(card.id))}
-            className="ml-auto text-textMuted transition-colors hover:text-warning"
+          ) : null}
+
+          <Link
+            href={statementHref}
+            className="text-textSecondary transition-colors hover:text-textPrimary"
           >
-            Arquivar
-          </button>
-        )}
+            Ver fatura
+          </Link>
+
+          <CardFormModal
+            accounts={accounts}
+            card={card}
+            trigger={
+              <button className="text-textSecondary transition-colors hover:text-textPrimary">
+                Editar
+              </button>
+            }
+          />
+
+          {card.is_archived ? (
+            <>
+              <button
+                disabled={pending}
+                onClick={() => run(() => restoreCard(card.id))}
+                className="text-textSecondary transition-colors hover:text-income"
+              >
+                Restaurar
+              </button>
+              <button
+                disabled={pending}
+                onClick={() => run(() => deleteCard(card.id))}
+                className="ml-auto text-textMuted transition-colors hover:text-expense"
+              >
+                Excluir
+              </button>
+            </>
+          ) : (
+            <button
+              disabled={pending}
+              onClick={() => run(() => archiveCard(card.id))}
+              className="ml-auto text-textMuted transition-colors hover:text-warning"
+            >
+              Arquivar
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

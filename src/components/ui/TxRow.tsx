@@ -21,6 +21,11 @@ import type {
 /**
  * `categories` é opcional: quando informado, a linha ganha as ações de editar
  * e excluir. O dashboard usa a versão só de leitura.
+ *
+ * `showInstallment` liga o selo de parcela. Fica desligado por padrão porque a
+ * descrição já costuma trazer o sufixo "(n/total)" — o selo existe para a
+ * fatura, onde saber o que ainda vai se repetir nos próximos meses é o ponto,
+ * e onde ele também cobre a parcela importada sem sufixo na descrição.
  */
 export function TxRow({
   tx,
@@ -28,12 +33,14 @@ export function TxRow({
   accounts = [],
   cards = [],
   tags = [],
+  showInstallment = false,
 }: {
   tx: TransactionWithCategory;
   categories?: Category[];
   accounts?: Account[];
   cards?: CreditCard[];
   tags?: Tag[];
+  showInstallment?: boolean;
 }) {
   const money = useMoney();
   const isIncome = tx.type === 'income';
@@ -75,6 +82,15 @@ export function TxRow({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="truncate text-sm text-textPrimary">{tx.description}</p>
+
+            {showInstallment && tx.installment_no && tx.installment_total ? (
+              <span
+                title={`Parcela ${tx.installment_no} de ${tx.installment_total}`}
+                className="num shrink-0 rounded-sm border border-border px-1.5 py-0.5 text-3xs leading-tight text-textSecondary"
+              >
+                {tx.installment_no}/{tx.installment_total}
+              </span>
+            ) : null}
 
             {tx.tags?.length ? (
               <div className="flex shrink-0 items-center gap-1">
