@@ -25,6 +25,7 @@ export const FINANCE_ROUTES = [
   '/reports',
   '/settings',
   '/settings/import',
+  '/cards/[id]',
 ] as const;
 
 /**
@@ -36,5 +37,10 @@ export const FINANCE_ROUTES = [
  * tags por entidade — não voltar a manter listas parciais na mão.
  */
 export function revalidateFinance() {
-  for (const path of FINANCE_ROUTES) revalidatePath(path);
+  for (const path of FINANCE_ROUTES) {
+    // Rota dinâmica precisa do segundo argumento: sem ele o Next trata
+    // "/cards/[id]" como um caminho literal e nenhuma fatura é invalidada.
+    if (path.includes('[')) revalidatePath(path, 'page');
+    else revalidatePath(path);
+  }
 }

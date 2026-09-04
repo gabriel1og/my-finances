@@ -39,7 +39,9 @@ describe('revalidateFinance', () => {
 
     expect(revalidatePath).toHaveBeenCalledTimes(FINANCE_ROUTES.length);
     for (const route of FINANCE_ROUTES) {
-      expect(revalidatePath).toHaveBeenCalledWith(route);
+      // A rota dinâmica só é invalidada com o tipo 'page'.
+      if (route.includes('[')) expect(revalidatePath).toHaveBeenCalledWith(route, 'page');
+      else expect(revalidatePath).toHaveBeenCalledWith(route);
     }
   });
 });

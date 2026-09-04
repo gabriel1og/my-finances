@@ -5,6 +5,7 @@ import {
   formatCurrency,
   formatDate,
   formatMonthLabel,
+  formatMonthLong,
   formatPercent,
   monthRange,
 } from '@/lib/format';
@@ -67,5 +68,15 @@ describe('monthRange', () => {
 describe('currentMonth', () => {
   it('devolve o primeiro dia do mês corrente', () => {
     expect(currentMonth()).toMatch(/^\d{4}-\d{2}-01$/);
+  });
+});
+
+describe('formatMonthLong', () => {
+  it('escreve o mês por extenso com o ano', () => {
+    expect(formatMonthLong('2026-09-01')).toBe('setembro de 2026');
+  });
+
+  it('aceita o mês sem o dia', () => {
+    expect(formatMonthLong('2026-12')).toBe('dezembro de 2026');
   });
 });

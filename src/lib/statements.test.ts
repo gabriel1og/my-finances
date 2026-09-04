@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dayInMonth, dueDateFor, statementMonth } from '@/lib/statements';
+import { dayInMonth, dueDateFor, paymentStatementMonth, statementMonth } from '@/lib/statements';
 
 describe('statementMonth', () => {
   it('entra na fatura do próprio mês quando a compra é antes do fechamento', () => {
@@ -70,5 +70,26 @@ describe('dayInMonth', () => {
     expect(dayInMonth('2026-02-01', 31)).toBe('2026-02-28');
     expect(dayInMonth('2028-02-01', 31)).toBe('2028-02-29');
     expect(dayInMonth('2026-04-01', 31)).toBe('2026-04-30');
+  });
+});
+
+describe('paymentStatementMonth', () => {
+  // Espelho do coalesce da view (migration 0018): sem `card_payment_month`, o
+  // pagamento quita a última fatura já fechada na data em que foi feito — o
+  // mês anterior ao que `statementMonth()` devolve para essa data.
+  it('quita a fatura fechada, não a que ainda está aberta', () => {
+    // Fechamento dia 5: em 12/10 a fatura aberta é a de novembro, então a
+    // última fechada — a que se paga — é a de outubro.
+    expect(paymentStatementMonth('2026-10-12', 5)).toBe('2026-10-01');
+  });
+
+  it('recua mais um mês quando a fatura do mês ainda não fechou', () => {
+    // Fechamento dia 20: em 10/10 a fatura de outubro segue aberta, e a
+    // fechada é a de setembro.
+    expect(paymentStatementMonth('2026-10-10', 20)).toBe('2026-09-01');
+  });
+
+  it('vira o ano para trás em janeiro', () => {
+    expect(paymentStatementMonth('2027-01-03', 5)).toBe('2026-12-01');
   });
 });

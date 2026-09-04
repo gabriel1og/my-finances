@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { monthRange } from '@/lib/format';
+import { paymentStatementMonth } from '@/lib/statements';
 import type {
   AccountBalance,
   AccountMonthTotals,
@@ -18,20 +19,25 @@ import type {
   TransactionWithCategory,
 } from '@/types/database.types';
 
+/**
+ * Seleção completa de uma transação, com as relações que a UI mostra.
+ *
+ * FKs explícitas: transactions aponta duas vezes para credit_cards (card_id e
+ * card_payment_for), então o embed precisa dizer qual usar. `tags(...)` é
+ * embed many-to-many: o PostgREST atravessa transaction_tags sozinho porque a
+ * PK dela é composta pelas duas FKs.
+ */
+const TRANSACTION_SELECT =
+  '*, category:categories!transactions_category_id_fkey(id,name,color)' +
+  ', account:accounts!transactions_account_id_fkey(id,name,color)' +
+  ', card:credit_cards!transactions_card_id_fkey(id,name,color)' +
+  ', tags(id,name,color)';
+
 export async function getTransactions(month?: string, limit?: number) {
   const supabase = await createClient();
   let query = supabase
     .from('transactions')
-    .select(
-      // FKs explícitas: transactions aponta duas vezes para credit_cards
-      // (card_id e card_payment_for), então o embed precisa dizer qual usar.
-      // `tags(...)` é embed many-to-many: o PostgREST atravessa
-      // transaction_tags sozinho porque a PK dela é composta pelas duas FKs.
-      '*, category:categories!transactions_category_id_fkey(id,name,color)' +
-        ', account:accounts!transactions_account_id_fkey(id,name,color)' +
-        ', card:credit_cards!transactions_card_id_fkey(id,name,color)' +
-        ', tags(id,name,color)',
-    )
+    .select(TRANSACTION_SELECT)
     .order('date', { ascending: false })
     .order('created_at', { ascending: false });
 
@@ -177,6 +183,93 @@ export async function getStatementItems(month: string) {
     .order('date', { ascending: false });
   if (error) throw error;
   return (data ?? []) as CardStatementItem[];
+}
+
+/** Um cartão pelo id; null quando não existe (ou não é do usuário). */
+export async function getCard(id: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('credit_cards')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as CreditCard | null) ?? null;
+}
+
+/** A fatura de um cartão num mês. null quando a view ainda não tem a linha. */
+export async function getCardStatement(cardId: string, month: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('card_statements')
+    .select('*')
+    .eq('card_id', cardId)
+    .eq('statement_month', `${month.slice(0, 7)}-01`)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as CardStatement | null) ?? null;
+}
+
+/**
+ * Todos os lançamentos de uma fatura, completos — com categoria, tags e o que
+ * mais a linha da lista mostra.
+ *
+ * Duas idas ao banco de propósito: quem decide o que entra na fatura é a view
+ * `card_statement_items` (o `statement_month` sai de lá, não de uma conta
+ * refeita aqui), e o embed das relações só existe na tabela. A primeira
+ * consulta diz quais transações são; a segunda as carrega inteiras.
+ */
+export async function getStatementTransactions(cardId: string, month: string) {
+  const supabase = await createClient();
+  const { data: items, error: itemsError } = await supabase
+    .from('card_statement_items')
+    .select('transaction_id')
+    .eq('card_id', cardId)
+    .eq('statement_month', `${month.slice(0, 7)}-01`);
+
+  if (itemsError) throw itemsError;
+
+  const ids = (items ?? []).map((item) => item.transaction_id as string);
+  if (ids.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(TRANSACTION_SELECT)
+    .in('id', ids)
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as TransactionWithCategory[];
+}
+
+/**
+ * Pagamentos registrados para a fatura do mês informado.
+ *
+ * O filtro do mês acontece aqui, e não no `.eq()`: desde a 0018 quem manda é
+ * `card_payment_month`, mas lançamentos importados antes dela têm a coluna
+ * nula e a view cai no mês deduzido da data. `paymentStatementMonth()` é o
+ * espelho dessa mesma regra — sem ele, um pagamento antigo apareceria como
+ * "sem pagamento" numa fatura que a view mostra como paga.
+ */
+export async function getStatementPayments(card: CreditCard, month: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(TRANSACTION_SELECT)
+    .eq('card_payment_for', card.id)
+    .eq('is_card_payment', true)
+    .order('date', { ascending: false });
+
+  if (error) throw error;
+
+  const target = `${month.slice(0, 7)}-01`;
+  return ((data ?? []) as unknown as TransactionWithCategory[]).filter((payment) => {
+    const statement =
+      payment.card_payment_month?.slice(0, 10) ??
+      paymentStatementMonth(payment.date, card.closing_day);
+    return statement === target;
+  });
 }
 
 export async function getTags() {
