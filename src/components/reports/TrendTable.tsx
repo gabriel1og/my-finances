@@ -13,7 +13,8 @@ import type { TrendRow } from '@/lib/reports';
  *
  * No celular a tabela vira um bloco por linha: seis colunas obrigavam a rolar
  * na horizontal, e ler número comparando com o que saiu da tela não compara
- * nada.
+ * nada. Dentro do bloco, cada mês é um par empilhado — o rótulo em cima do
+ * valor —, porque mês e valor lado a lado só cabem a partir de `sm`.
  */
 export function TrendTable({
   rows,
@@ -79,7 +80,7 @@ export function TrendTable({
                   return (
                     <td
                       key={months[index]}
-                      className={`num py-2 text-right text-sm ${
+                      className={`money py-2 text-right text-sm ${
                         value === 0
                           ? 'text-textMuted'
                           : jumped
@@ -97,7 +98,7 @@ export function TrendTable({
             <tr className="border-t border-borderHover">
               <td className="label-caps py-2">Total</td>
               {monthTotals.map((total, index) => (
-                <td key={months[index]} className="num py-2 text-right text-sm text-expense">
+                <td key={months[index]} className="money py-2 text-right text-sm text-expense">
                   {money(total)}
                 </td>
               ))}
@@ -110,22 +111,27 @@ export function TrendTable({
         {rows.map((item) => (
           <div key={item.id} className="border-b border-border py-3 last:border-b-0">
             <div className="flex items-baseline justify-between gap-2">
-              <span className="flex items-center gap-2 text-sm text-textPrimary">
+              <span className="flex min-w-0 items-center gap-2 text-sm text-textPrimary">
                 <span
                   className="h-1.5 w-1.5 shrink-0 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
-                {item.name}
+                <span className="truncate">{item.name}</span>
               </span>
-              <span className="num text-xs text-expense">{money(item.total)}</span>
+              <span className="money shrink-0 text-xs text-expense">{money(item.total)}</span>
             </div>
 
-            <dl className="mt-2 grid grid-cols-3 gap-x-4 gap-y-1">
+            {/* Par empilhado — rótulo em cima, valor embaixo — e no máximo duas
+                colunas antes de `sm`. Lado a lado, três pares de mês e valor em
+                BRL completo não cabem em 380px: o rótulo de um mês encavalava no
+                valor do anterior ("R$ 1.455,65UN"), que é o pior tipo de erro de
+                leitura, porque não parece erro, parece número. */}
+            <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-6">
               {item.values.map((value, index) => (
-                <div key={months[index]} className="flex items-baseline justify-between gap-2">
-                  <dt className="label-caps">{formatMonthShort(months[index], withYear)}</dt>
+                <div key={months[index]} className="min-w-0">
+                  <dt className="label-caps-tight">{formatMonthShort(months[index], withYear)}</dt>
                   <dd
-                    className={`num text-xs ${value === 0 ? 'text-textMuted' : 'text-textPrimary'}`}
+                    className={`money text-xs ${value === 0 ? 'text-textMuted' : 'text-textPrimary'}`}
                   >
                     {value === 0 ? '—' : money(value)}
                   </dd>
@@ -137,7 +143,7 @@ export function TrendTable({
 
         <div className="flex items-baseline justify-between gap-2 border-t border-borderHover pt-3">
           <span className="label-caps">Total do período</span>
-          <span className="num text-sm text-expense">
+          <span className="money text-sm text-expense">
             {money(monthTotals.reduce((sum, value) => sum + value, 0))}
           </span>
         </div>

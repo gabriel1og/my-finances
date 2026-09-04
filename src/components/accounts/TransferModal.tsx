@@ -16,17 +16,33 @@ export type TransferDraft = {
   description: string;
 };
 
+/**
+ * Como o `TransactionModal`: com `open`/`onOpenChange` o diálogo fica
+ * controlado por fora e nenhum gatilho é renderizado.
+ */
 export function TransferModal({
   accounts,
   transfer,
   trigger,
+  open: openProp,
+  onOpenChange,
 }: {
   accounts: Account[];
   transfer?: TransferDraft;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const editing = Boolean(transfer);
-  const [open, setOpen] = useState(false);
+  const controlled = openProp !== undefined;
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlled ? openProp : uncontrolledOpen;
+
+  function setOpen(next: boolean) {
+    if (!controlled) setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  }
+
   const [fromAccountId, setFromAccountId] = useState(
     transfer?.fromAccountId ?? accounts[0]?.id ?? '',
   );
@@ -65,19 +81,21 @@ export function TransferModal({
 
   return (
     <>
-      <ModalTrigger
-        trigger={trigger}
-        onOpen={() => setOpen(true)}
-        fallback={
-          <button
-            disabled={accounts.length < 2}
-            title={accounts.length < 2 ? 'Cadastre ao menos duas contas' : undefined}
-            className="btn-secondary"
-          >
-            Transferir
-          </button>
-        }
-      />
+      {controlled ? null : (
+        <ModalTrigger
+          trigger={trigger}
+          onOpen={() => setOpen(true)}
+          fallback={
+            <button
+              disabled={accounts.length < 2}
+              title={accounts.length < 2 ? 'Cadastre ao menos duas contas' : undefined}
+              className="btn-secondary"
+            >
+              Transferir
+            </button>
+          }
+        />
+      )}
 
       <Modal
         open={open}

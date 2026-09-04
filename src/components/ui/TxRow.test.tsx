@@ -18,6 +18,11 @@ vi.mock('@/app/(app)/transactions/actions', () => ({
 
 const { TxRow } = await import('@/components/ui/TxRow');
 
+/** As ações vivem atrás do menu da linha desde que deixaram de ser links de texto. */
+function menu(description = 'Mercado') {
+  return screen.getByRole('button', { name: `Ações de ${description}` });
+}
+
 function tx(overrides: Partial<TransactionWithCategory> = {}): TransactionWithCategory {
   return {
     id: 't-1',
@@ -60,8 +65,19 @@ describe('TxRow — leitura', () => {
   it('sem `categories`, a linha é só leitura — o dashboard usa assim', () => {
     renderWithProviders(<TxRow tx={tx()} />);
 
+    expect(screen.queryByRole('button', { name: 'Ações de Mercado' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument();
+  });
+
+  it('sinal e valor saem na mesma string, que não quebra linha', () => {
+    renderWithProviders(<TxRow tx={tx()} />);
+
+    // O "−" separado do valor por uma quebra fazia a linha parecer duas
+    // informações; é o bug que a classe `.money` fecha.
+    const amount = screen.getByText(/150,00/);
+    expect(amount.textContent).toMatch(/^−\s?R\$/);
+    expect(amount.className).toContain('money');
   });
 });
 
@@ -73,8 +89,9 @@ describe('TxRow — exclusão', () => {
   it('pede confirmação antes de excluir', async () => {
     const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
 
+    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
-    expect(screen.getByText('Excluir?')).toBeInTheDocument();
+    expect(screen.getByText('Excluir este lançamento?')).toBeInTheDocument();
     expect(deleteTransaction).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('button', { name: 'Sim' }));
@@ -84,10 +101,12 @@ describe('TxRow — exclusão', () => {
   it('dá para desistir da confirmação', async () => {
     const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
 
+    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     await user.click(screen.getByRole('button', { name: 'Não' }));
 
-    expect(screen.queryByText('Excluir?')).not.toBeInTheDocument();
+    // "Não" fecha o painel junto: a linha volta ao estado de leitura.
+    expect(screen.queryByText('Excluir este lançamento?')).not.toBeInTheDocument();
     expect(deleteTransaction).not.toHaveBeenCalled();
   });
 
@@ -96,6 +115,7 @@ describe('TxRow — exclusão', () => {
       <TxRow tx={tx({ installment_group: 'grupo-1' })} categories={categories} />,
     );
 
+    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     expect(screen.getByRole('button', { name: 'Só esta' })).toBeInTheDocument();
 
@@ -108,6 +128,7 @@ describe('TxRow — exclusão', () => {
       <TxRow tx={tx({ is_transfer: true, transfer_group: 'grupo-t' })} categories={categories} />,
     );
 
+    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     await user.click(screen.getByRole('button', { name: 'Os dois lados' }));
 
@@ -119,9 +140,28 @@ describe('TxRow — exclusão', () => {
     deleteTransaction.mockResolvedValueOnce({ error: 'permission denied' });
     const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
 
+    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     await user.click(screen.getByRole('button', { name: 'Sim' }));
 
+    // O painel se fecha para não cobrir a mensagem, que fica na própria linha.
     expect(await screen.findByText('permission denied')).toBeInTheDocument();
+  });
+});
+
+describe('TxRow — edição', () => {
+  const categories = [
+    { id: 'cat-1', name: 'Alimentação', color: '#5B6EF5', kind: 'expense' },
+  ] as Parameters<typeof TxRow>[0]['categories'];
+
+  it('"Editar" abre o formulário e fecha o menu', async () => {
+    const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
+
+    await user.click(menu());
+    await user.click(screen.getByRole('button', { name: 'Editar' }));
+
+    // O popover (z-60) por cima do modal (z-50) esconderia o formulário.
+    expect(screen.getByRole('dialog', { name: 'Editar lançamento' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument();
   });
 });

@@ -11,6 +11,11 @@ vi.mock('@/app/(app)/transactions/actions', () => ({
 
 const { TransferRow } = await import('@/components/ui/TransferRow');
 
+/** As ações da linha ficam atrás do menu, fora do fluxo do conteúdo. */
+function menu() {
+  return screen.getByRole('button', { name: 'Ações de Reserva de emergência' });
+}
+
 const entry = {
   kind: 'transfer',
   key: 'grupo-1',
@@ -51,12 +56,13 @@ describe('TransferRow', () => {
 
   it('sem `editable`, não oferece ações', () => {
     renderWithProviders(<TransferRow entry={entry} />);
-    expect(screen.queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Ações de/ })).not.toBeInTheDocument();
   });
 
   it('excluir apaga as duas pontas, depois de confirmar', async () => {
     const { user } = renderWithProviders(<TransferRow entry={entry} editable />);
 
+    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     expect(deleteTransfer).not.toHaveBeenCalled();
 
@@ -68,9 +74,20 @@ describe('TransferRow', () => {
     deleteTransfer.mockResolvedValueOnce({ error: 'permission denied' });
     const { user } = renderWithProviders(<TransferRow entry={entry} editable />);
 
+    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     await user.click(screen.getByRole('button', { name: 'Sim' }));
 
     expect(await screen.findByText('permission denied')).toBeInTheDocument();
+  });
+
+  it('sem o par completo, sobra excluir — não dá para editar meia transferência', async () => {
+    const { user } = renderWithProviders(
+      <TransferRow entry={{ ...entry, to: null, toId: null }} editable />,
+    );
+
+    await user.click(menu());
+    expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Excluir' })).toBeInTheDocument();
   });
 });

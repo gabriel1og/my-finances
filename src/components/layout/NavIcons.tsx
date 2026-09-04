@@ -1,7 +1,9 @@
 /**
- * Ícones do menu em SVG inline: com a sidebar recolhida eles são a única
- * identificação de cada rota, e não vale puxar uma biblioteca por 11 formas.
- * Todos em 20x20, stroke currentColor, para herdarem a cor do link.
+ * Ícones em SVG inline: com a sidebar recolhida eles são a única identificação
+ * de cada rota, e não vale puxar uma biblioteca por meia dúzia de formas. O
+ * arquivo cresceu para além do menu — as ações de linha (⋯, lápis, lixeira)
+ * moram aqui pelo mesmo motivo.
+ * Todos em 20x20, stroke currentColor, para herdarem a cor de quem os usa.
  */
 type IconProps = { className?: string };
 
@@ -146,6 +148,39 @@ export function ExpandIcon(props: IconProps) {
     <svg {...base} {...props}>
       <path d="M10 7l5 5-5 5" />
       <path d="M5 4v16" />
+    </svg>
+  );
+}
+
+/** Gatilho das ações de uma linha de lista. Preenchido, não traçado: com
+ *  stroke em raio 1.4 os três pontos viravam três anéis borrados. */
+export function MoreIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function PencilIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+      <path d="m14 6 4 4" />
+    </svg>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 7h16" />
+      <path d="M10 4h4" />
+      <path d="m6 7 1 13h10l1-13" />
+      <path d="M10 11v5" />
+      <path d="M14 11v5" />
     </svg>
   );
 }

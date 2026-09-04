@@ -23,6 +23,10 @@ import type {
  * Serve para criar e editar lançamentos.
  * Sem `transaction` -> modo criação (botão "Novo lançamento").
  * Com `transaction`  -> modo edição, acionado pelo `trigger` recebido.
+ *
+ * Passando `open`/`onOpenChange` o diálogo fica controlado por fora e nenhum
+ * gatilho é renderizado: é o que a linha de lançamento usa, onde quem abre é
+ * um item do menu da linha, que precisa se fechar antes de o modal aparecer.
  */
 export function TransactionModal({
   categories,
@@ -31,6 +35,8 @@ export function TransactionModal({
   tags = [],
   transaction,
   trigger,
+  open: openProp,
+  onOpenChange,
 }: {
   categories: Category[];
   accounts: Account[];
@@ -38,9 +44,19 @@ export function TransactionModal({
   tags?: Tag[];
   transaction?: TransactionWithCategory;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const editing = Boolean(transaction);
-  const [open, setOpen] = useState(false);
+  const controlled = openProp !== undefined;
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlled ? openProp : uncontrolledOpen;
+
+  function setOpen(next: boolean) {
+    if (!controlled) setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  }
+
   const [type, setType] = useState<TransactionType>(transaction?.type ?? 'expense');
   const [description, setDescription] = useState(transaction?.description ?? '');
   const [amount, setAmount] = useState(
@@ -133,11 +149,13 @@ export function TransactionModal({
 
   return (
     <>
-      <ModalTrigger
-        trigger={trigger}
-        onOpen={() => setOpen(true)}
-        fallback={<button className="btn-primary">Novo lançamento</button>}
-      />
+      {controlled ? null : (
+        <ModalTrigger
+          trigger={trigger}
+          onOpen={() => setOpen(true)}
+          fallback={<button className="btn-primary">Novo lançamento</button>}
+        />
+      )}
 
       <Modal open={open} onClose={close} title={editing ? 'Editar lançamento' : 'Novo lançamento'}>
         <div className="mt-4 grid grid-cols-2 gap-2 rounded-md border border-border p-1">
