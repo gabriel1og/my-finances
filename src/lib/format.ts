@@ -25,6 +25,22 @@ export function formatMonthLabel(iso: string): string {
   return new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(date).replace('.', '');
 }
 
+/**
+ * Rótulo curto de eixo e cabeçalho: "set" ou "set/26".
+ *
+ * O ano entra quando a janela cruza a virada — com 12 ou 24 meses na tela,
+ * "jan" sem ano não diz de qual janeiro se trata.
+ */
+export function formatMonthShort(iso: string, withYear = false): string {
+  const label = formatMonthLabel(iso);
+  return withYear ? `${label}/${iso.slice(2, 4)}` : label;
+}
+
+/** true quando a lista de meses passa por mais de um ano. */
+export function spansYears(months: string[]): boolean {
+  return new Set(months.map((month) => month.slice(0, 4))).size > 1;
+}
+
 /** "setembro de 2026" — usado onde o mês é o assunto da tela, não um eixo. */
 export function formatMonthLong(iso: string): string {
   return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(

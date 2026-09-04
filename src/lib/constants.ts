@@ -16,6 +16,15 @@ export const CATEGORY_PALETTE = [
 export const BUDGET_ALERT_THRESHOLD = 85;
 
 /**
+ * Janelas oferecidas em /reports, em meses. 12 é o padrão: um ano é o período
+ * em que sazonalidade aparece (IPVA, matrícula, festas), e era justamente o
+ * que a janela fixa de 6 escondia.
+ */
+export const REPORT_RANGES = [3, 6, 12, 24] as const;
+
+export const DEFAULT_REPORT_RANGE = 12;
+
+/**
  * Rotas do app com o que o cabeçalho precisa saber sobre cada uma.
  *
  * `title` e `subtitle` são a fonte única do cabeçalho global — antes cada
