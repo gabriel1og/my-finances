@@ -80,7 +80,7 @@ export function TrendTable({
                   return (
                     <td
                       key={months[index]}
-                      className={`money py-2 text-right text-sm ${
+                      className={`num py-2 text-right text-sm ${
                         value === 0
                           ? 'text-textMuted'
                           : jumped
@@ -98,7 +98,7 @@ export function TrendTable({
             <tr className="border-t border-borderHover">
               <td className="label-caps py-2">Total</td>
               {monthTotals.map((total, index) => (
-                <td key={months[index]} className="money py-2 text-right text-sm text-expense">
+                <td key={months[index]} className="num py-2 text-right text-sm text-expense">
                   {money(total)}
                 </td>
               ))}
@@ -126,7 +126,7 @@ export function TrendTable({
                 BRL completo não cabem em 380px: o rótulo de um mês encavalava no
                 valor do anterior ("R$ 1.455,65UN"), que é o pior tipo de erro de
                 leitura, porque não parece erro, parece número. */}
-            <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-6">
+            <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
               {item.values.map((value, index) => (
                 <div key={months[index]} className="min-w-0">
                   <dt className="label-caps-tight">{formatMonthShort(months[index], withYear)}</dt>

@@ -28,13 +28,18 @@ import type {
  * fatura, onde saber o que ainda vai se repetir nos próximos meses é o ponto,
  * e onde ele também cobre a parcela importada sem sufixo na descrição.
  *
- * O desenho é de duas linhas empilhadas, e não de colunas: a coluna fixa de
- * valor mais as ações no meio não deixavam largura para a descrição no
- * celular, e "TotalP…" não identifica lançamento nenhum. Agora cada linha tem
- * um texto que trunca (`min-w-0` no container, sem o qual `truncate` nunca
- * dispara) e um dado curto à direita que não quebra. As tags ficam numa
- * terceira linha, só quando existem: elas são o único conteúdo variável que
- * não cabe na disputa por largura.
+ * Duas leituras, com a virada em `lg` — a mesma do resto do app:
+ *
+ * - A partir de `lg` o desenho é o de sempre: coluna fixa de valor à direita,
+ *   tags na linha do título, ações em texto reveladas no hover. Com 1024px ou
+ *   mais há largura para as três coisas, e é a coluna fixa que alinha os
+ *   valores de uma linha para a outra.
+ * - Abaixo dela nada disso cabia: a coluna de valor mais as ações no meio não
+ *   deixavam largura para a descrição, e "TotalP…" não identifica lançamento
+ *   nenhum. Ali o conteúdo empilha em duas linhas — cada uma com um texto que
+ *   trunca (`min-w-0` no container, sem o qual `truncate` nunca dispara) e um
+ *   dado curto à direita que não quebra — e as ações saem do fluxo, atrás de
+ *   um alvo de 44px.
  */
 export function TxRow({
   tx,
@@ -58,7 +63,7 @@ export function TxRow({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function remove(scope: 'one' | 'group', closeMenu: () => void) {
+  function remove(scope: 'one' | 'group', closeMenu?: () => void) {
     setError(null);
     startTransition(async () => {
       const result =
@@ -73,18 +78,26 @@ export function TxRow({
         setConfirming(false);
         // O erro aparece na linha, não no painel: deixá-lo aberto esconderia
         // justamente a mensagem.
-        closeMenu();
+        closeMenu?.();
       }
     });
   }
 
   const hasGroup = Boolean(tx.installment_group || tx.transfer_group);
+  const tone = isIncome ? 'text-income' : 'text-expense';
+  // Sinal e valor numa string só, com espaço inquebrável entre eles: soltos, o
+  // "−" caía numa linha e o valor na seguinte assim que a coluna apertava.
+  const amount = `${isIncome ? '+' : '−'} ${money(tx.amount)}`;
+
+  const chips = tx.tags?.length
+    ? tx.tags.map((tag) => <TagChip key={tag.id} name={tag.name} color={tag.color} />)
+    : null;
 
   return (
-    <div className="row-divider">
-      <div className="flex items-start gap-3">
+    <div className="row-divider group">
+      <div className="flex items-start gap-3 lg:items-center">
         <span
-          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm ${
+          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm lg:mt-0 ${
             isIncome ? 'bg-incomeDim text-income' : 'bg-expenseDim text-expense'
           }`}
           aria-hidden
@@ -94,7 +107,12 @@ export function TxRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <p className="min-w-0 flex-1 truncate text-sm text-textPrimary">{tx.description}</p>
+            {/* `flex-1` empurra o valor para a direita no celular; a partir de `lg` o
+                valor tem coluna própria, e a descrição volta a se dimensionar pelo
+                conteúdo — é o que mantém o selo e as tags colados nela. */}
+            <p className="min-w-0 flex-1 truncate text-sm text-textPrimary lg:flex-initial">
+              {tx.description}
+            </p>
 
             {showInstallment && tx.installment_no && tx.installment_total ? (
               <span
@@ -105,10 +123,11 @@ export function TxRow({
               </span>
             ) : null}
 
-            {/* Sinal e valor na mesma string, sem espaço quebrável entre eles. */}
-            <p className={`money shrink-0 text-sm ${isIncome ? 'text-income' : 'text-expense'}`}>
-              {isIncome ? '+' : '−'}&nbsp;{money(tx.amount)}
-            </p>
+            {chips ? (
+              <div className="hidden shrink-0 items-center gap-1 lg:flex">{chips}</div>
+            ) : null}
+
+            <p className={`money shrink-0 text-sm lg:hidden ${tone}`}>{amount}</p>
           </div>
 
           <div className="mt-0.5 flex items-baseline gap-2">
@@ -121,74 +140,125 @@ export function TxRow({
               {tx.card ? ` · ${tx.card.name}` : tx.account ? ` · ${tx.account.name}` : ''}
             </p>
 
-            <p className="money shrink-0 text-2xs text-textMuted">{formatDate(tx.date)}</p>
+            <p className="money shrink-0 text-2xs text-textMuted lg:hidden">
+              {formatDate(tx.date)}
+            </p>
           </div>
 
-          {/* Linha própria: disputando espaço com a categoria, os chips a
-              faziam encolher até "T…" nas telas de 320px — e categoria é a
-              informação de que a linha não abre mão. */}
-          {tx.tags?.length ? (
-            <div className="mt-1 flex flex-wrap items-center gap-1">
-              {tx.tags.map((tag) => (
-                <TagChip key={tag.id} name={tag.name} color={tag.color} />
-              ))}
-            </div>
+          {/* Linha própria só no celular: disputando espaço com a categoria, os
+              chips a faziam encolher até "T…" numa tela de 320px. */}
+          {chips ? (
+            <div className="mt-1 flex flex-wrap items-center gap-1 lg:hidden">{chips}</div>
           ) : null}
         </div>
 
         {categories ? (
-          <RowMenu label={`Ações de ${tx.description}`}>
-            {(close) =>
-              confirming ? (
+          <>
+            <div className="hidden items-center gap-3 text-xs opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 lg:flex">
+              {confirming ? (
                 <>
-                  <RowMenuNote>
-                    {hasGroup
-                      ? 'Este lançamento faz parte de um grupo.'
-                      : 'Excluir este lançamento?'}
-                  </RowMenuNote>
-                  <RowMenuItem
-                    tone="danger"
+                  <span className="text-textSecondary">Excluir?</span>
+                  <button
                     disabled={pending}
-                    onClick={() => remove('one', close)}
+                    onClick={() => remove('one')}
+                    className="text-expense transition-opacity hover:opacity-80 disabled:opacity-50"
                   >
-                    {pending ? 'Excluindo...' : hasGroup ? 'Só esta' : 'Sim'}
-                  </RowMenuItem>
+                    {pending ? '...' : hasGroup ? 'Só esta' : 'Sim'}
+                  </button>
                   {hasGroup ? (
-                    <RowMenuItem
-                      tone="danger"
+                    <button
                       disabled={pending}
-                      onClick={() => remove('group', close)}
+                      onClick={() => remove('group')}
+                      className="text-expense transition-opacity hover:opacity-80 disabled:opacity-50"
                     >
                       {tx.transfer_group ? 'Os dois lados' : 'Todas as parcelas'}
-                    </RowMenuItem>
+                    </button>
                   ) : null}
-                  <RowMenuItem
-                    onClick={() => {
-                      setConfirming(false);
-                      close();
-                    }}
+                  <button
+                    onClick={() => setConfirming(false)}
+                    className="text-textSecondary transition-colors hover:text-textPrimary"
                   >
                     Não
-                  </RowMenuItem>
+                  </button>
                 </>
               ) : (
                 <>
-                  <RowMenuItem
-                    onClick={() => {
-                      close();
-                      setEditing(true);
-                    }}
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="text-textSecondary transition-colors hover:text-textPrimary"
                   >
                     Editar
-                  </RowMenuItem>
-                  <RowMenuItem tone="danger" onClick={() => setConfirming(true)}>
+                  </button>
+                  <button
+                    onClick={() => setConfirming(true)}
+                    className="text-textMuted transition-colors hover:text-expense"
+                  >
                     Excluir
-                  </RowMenuItem>
+                  </button>
                 </>
-              )
-            }
-          </RowMenu>
+              )}
+            </div>
+
+            <div className="lg:hidden">
+              <RowMenu label={`Ações de ${tx.description}`}>
+                {(close) =>
+                  confirming ? (
+                    <>
+                      <RowMenuNote>
+                        {hasGroup
+                          ? 'Este lançamento faz parte de um grupo.'
+                          : 'Excluir este lançamento?'}
+                      </RowMenuNote>
+                      <RowMenuItem
+                        tone="danger"
+                        disabled={pending}
+                        onClick={() => remove('one', close)}
+                      >
+                        {pending ? 'Excluindo...' : hasGroup ? 'Só esta' : 'Sim'}
+                      </RowMenuItem>
+                      {hasGroup ? (
+                        <RowMenuItem
+                          tone="danger"
+                          disabled={pending}
+                          onClick={() => remove('group', close)}
+                        >
+                          {tx.transfer_group ? 'Os dois lados' : 'Todas as parcelas'}
+                        </RowMenuItem>
+                      ) : null}
+                      <RowMenuItem
+                        onClick={() => {
+                          setConfirming(false);
+                          close();
+                        }}
+                      >
+                        Não
+                      </RowMenuItem>
+                    </>
+                  ) : (
+                    <>
+                      <RowMenuItem
+                        onClick={() => {
+                          close();
+                          setEditing(true);
+                        }}
+                      >
+                        Editar
+                      </RowMenuItem>
+                      <RowMenuItem tone="danger" onClick={() => setConfirming(true)}>
+                        Excluir
+                      </RowMenuItem>
+                    </>
+                  )
+                }
+              </RowMenu>
+            </div>
+          </>
         ) : null}
+
+        <div className="hidden w-32 shrink-0 text-right lg:block">
+          <p className={`money text-sm ${tone}`}>{amount}</p>
+          <p className="money text-2xs text-textMuted">{formatDate(tx.date)}</p>
+        </div>
       </div>
 
       {error ? <p className="mt-1 pl-11 text-xs text-expense">{error}</p> : null}

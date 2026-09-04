@@ -8,12 +8,13 @@ import { CATEGORY_PALETTE } from '@/lib/constants';
 import type { Tag } from '@/types/database.types';
 
 /**
- * A paleta sai da linha e vira painel.
+ * A paleta em painel — só abaixo de `lg`.
  *
- * Doze bolinhas inline empurravam o nome da tag para duas ou três linhas —
- * espremendo justamente o conteúdo principal da linha — e cada uma era um
- * alvo de 12px, longe dos 44 que o resto do app usa. Aqui a cor é um alvo só,
- * o próprio ponto colorido, e a escolha acontece numa grade 6×2 com folga.
+ * Nas larguras grandes as doze bolinhas cabem na linha e trocar a cor é um
+ * clique; no celular elas empurravam o nome da tag para duas ou três linhas,
+ * espremendo justamente o conteúdo principal, e cada uma era um alvo de 12px.
+ * Ali a cor vira um alvo só, o próprio ponto colorido, e a escolha acontece
+ * numa grade 6×2 com folga.
  */
 function ColorPicker({
   tag,
@@ -57,7 +58,7 @@ function ColorPicker({
                 key={color}
                 type="button"
                 disabled={disabled}
-                aria-label={`Cor ${color}`}
+                aria-label={`Cor ${color} para ${tag.name}`}
                 aria-pressed={active}
                 onClick={() => {
                   onPick(color);
@@ -141,18 +142,25 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
           tags.map((tag) => (
             <div
               key={tag.id}
-              className="flex items-center gap-2 border-b border-border py-1 last:border-b-0"
+              className="flex items-center gap-2 border-b border-border py-1 last:border-b-0 lg:flex-wrap lg:py-2"
             >
-              <ColorPicker
-                tag={tag}
-                disabled={pending}
-                onPick={(color) => run(() => updateTag(tag.id, { name: tag.name, color }))}
+              <div className="lg:hidden">
+                <ColorPicker
+                  tag={tag}
+                  disabled={pending}
+                  onPick={(color) => run(() => updateTag(tag.id, { name: tag.name, color }))}
+                />
+              </div>
+
+              <span
+                className="hidden h-2 w-2 shrink-0 rounded-full lg:block"
+                style={{ backgroundColor: tag.color }}
               />
 
               {editingId === tag.id ? (
-                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 py-1">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 py-1 lg:py-0">
                   <input
-                    className="input-base min-w-0 flex-1"
+                    className="input-base min-w-0 flex-1 lg:py-1"
                     value={editName}
                     maxLength={30}
                     onChange={(e) => setEditName(e.target.value)}
@@ -182,52 +190,114 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
                     {tag.name}
                   </span>
 
-                  <RowMenu label={`Ações de ${tag.name}`}>
-                    {(close) =>
-                      confirmingId === tag.id ? (
-                        <>
-                          <RowMenuNote>
-                            O rótulo sai das transações; os lançamentos continuam intactos.
-                          </RowMenuNote>
-                          <RowMenuItem
-                            tone="danger"
-                            disabled={pending}
-                            onClick={() =>
-                              run(
-                                () => deleteTag(tag.id),
-                                () => setConfirmingId(null),
-                              )
-                            }
-                          >
-                            {pending ? 'Excluindo...' : 'Sim, excluir'}
-                          </RowMenuItem>
-                          <RowMenuItem
-                            onClick={() => {
-                              setConfirmingId(null);
-                              close();
-                            }}
-                          >
-                            Não
-                          </RowMenuItem>
-                        </>
-                      ) : (
-                        <>
-                          <RowMenuItem
-                            onClick={() => {
-                              setEditingId(tag.id);
-                              setEditName(tag.name);
-                              close();
-                            }}
-                          >
-                            Renomear
-                          </RowMenuItem>
-                          <RowMenuItem tone="danger" onClick={() => setConfirmingId(tag.id)}>
-                            Excluir
-                          </RowMenuItem>
-                        </>
-                      )
-                    }
-                  </RowMenu>
+                  <div className="hidden shrink-0 gap-2 lg:flex">
+                    {CATEGORY_PALETTE.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        aria-label={`Cor ${color} para ${tag.name}`}
+                        onClick={() => run(() => updateTag(tag.id, { name: tag.name, color }))}
+                        className={[
+                          'h-3 w-3 rounded-full border transition-colors',
+                          tag.color.toLowerCase() === color.toLowerCase()
+                            ? 'border-textPrimary'
+                            : 'border-transparent',
+                        ].join(' ')}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="hidden shrink-0 items-center gap-2 lg:flex">
+                    <button
+                      onClick={() => {
+                        setEditingId(tag.id);
+                        setEditName(tag.name);
+                      }}
+                      className="text-xs text-textSecondary transition-colors hover:text-textPrimary"
+                    >
+                      Renomear
+                    </button>
+                    {confirmingId === tag.id ? (
+                      <>
+                        <span className="text-xs text-textSecondary">Excluir?</span>
+                        <button
+                          disabled={pending}
+                          onClick={() =>
+                            run(
+                              () => deleteTag(tag.id),
+                              () => setConfirmingId(null),
+                            )
+                          }
+                          className="text-xs text-expense"
+                        >
+                          Sim
+                        </button>
+                        <button
+                          onClick={() => setConfirmingId(null)}
+                          className="text-xs text-textSecondary"
+                        >
+                          Não
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmingId(tag.id)}
+                        className="text-xs text-textMuted transition-colors hover:text-expense"
+                      >
+                        Excluir
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="lg:hidden">
+                    <RowMenu label={`Ações de ${tag.name}`}>
+                      {(close) =>
+                        confirmingId === tag.id ? (
+                          <>
+                            <RowMenuNote>
+                              O rótulo sai das transações; os lançamentos continuam intactos.
+                            </RowMenuNote>
+                            <RowMenuItem
+                              tone="danger"
+                              disabled={pending}
+                              onClick={() =>
+                                run(
+                                  () => deleteTag(tag.id),
+                                  () => setConfirmingId(null),
+                                )
+                              }
+                            >
+                              {pending ? 'Excluindo...' : 'Sim'}
+                            </RowMenuItem>
+                            <RowMenuItem
+                              onClick={() => {
+                                setConfirmingId(null);
+                                close();
+                              }}
+                            >
+                              Não
+                            </RowMenuItem>
+                          </>
+                        ) : (
+                          <>
+                            <RowMenuItem
+                              onClick={() => {
+                                setEditingId(tag.id);
+                                setEditName(tag.name);
+                                close();
+                              }}
+                            >
+                              Renomear
+                            </RowMenuItem>
+                            <RowMenuItem tone="danger" onClick={() => setConfirmingId(tag.id)}>
+                              Excluir
+                            </RowMenuItem>
+                          </>
+                        )
+                      }
+                    </RowMenu>
+                  </div>
                 </>
               )}
             </div>

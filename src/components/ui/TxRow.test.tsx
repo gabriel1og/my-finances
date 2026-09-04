@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { renderWithProviders, screen } from '@/test/render';
+import { renderWithProviders, screen, within } from '@/test/render';
 import type { TransactionWithCategory } from '@/types/database.types';
 
 const deleteTransaction = vi.fn(async () => ({ error: null as string | null }));
@@ -18,11 +18,12 @@ vi.mock('@/app/(app)/transactions/actions', () => ({
 
 const { TxRow } = await import('@/components/ui/TxRow');
 
-/** As ações vivem atrás do menu da linha desde que deixaram de ser links de texto. */
-function menu(description = 'Mercado') {
-  return screen.getByRole('button', { name: `Ações de ${description}` });
-}
-
+/**
+ * A linha tem dois desenhos — o de `lg` para cima e o do celular — e o jsdom
+ * não aplica media query, então os dois estão na árvore ao mesmo tempo. As
+ * ações em texto são as de `lg`; as do celular vivem dentro do painel do menu,
+ * e por isso os testes daquele caminho consultam sempre dentro dele.
+ */
 function tx(overrides: Partial<TransactionWithCategory> = {}): TransactionWithCategory {
   return {
     id: 't-1',
@@ -41,6 +42,10 @@ function tx(overrides: Partial<TransactionWithCategory> = {}): TransactionWithCa
   } as unknown as TransactionWithCategory;
 }
 
+const categories = [
+  { id: 'cat-1', name: 'Alimentação', color: '#5B6EF5', kind: 'expense' },
+] as Parameters<typeof TxRow>[0]['categories'];
+
 describe('TxRow — leitura', () => {
   it('mostra descrição, categoria e origem', () => {
     renderWithProviders(<TxRow tx={tx()} />);
@@ -54,12 +59,13 @@ describe('TxRow — leitura', () => {
     expect(screen.getByText(/Sem categoria/)).toBeInTheDocument();
   });
 
-  it('mostra as tags ao lado do título', () => {
+  it('mostra as tags', () => {
     renderWithProviders(
       <TxRow tx={tx({ tags: [{ id: 'tag-1', name: 'Viagem', color: '#22D3EE' }] })} />,
     );
 
-    expect(screen.getByText('Viagem')).toBeInTheDocument();
+    // Na linha do título a partir de `lg`, em linha própria no celular.
+    expect(screen.getAllByText('Viagem')).toHaveLength(2);
   });
 
   it('sem `categories`, a linha é só leitura — o dashboard usa assim', () => {
@@ -75,23 +81,19 @@ describe('TxRow — leitura', () => {
 
     // O "−" separado do valor por uma quebra fazia a linha parecer duas
     // informações; é o bug que a classe `.money` fecha.
-    const amount = screen.getByText(/150,00/);
-    expect(amount.textContent).toMatch(/^−\s?R\$/);
-    expect(amount.className).toContain('money');
+    for (const amount of screen.getAllByText(/150,00/)) {
+      expect(amount.textContent).toMatch(/^−\s?R\$/);
+      expect(amount.className).toContain('money');
+    }
   });
 });
 
 describe('TxRow — exclusão', () => {
-  const categories = [
-    { id: 'cat-1', name: 'Alimentação', color: '#5B6EF5', kind: 'expense' },
-  ] as Parameters<typeof TxRow>[0]['categories'];
-
   it('pede confirmação antes de excluir', async () => {
     const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
 
-    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
-    expect(screen.getByText('Excluir este lançamento?')).toBeInTheDocument();
+    expect(screen.getByText('Excluir?')).toBeInTheDocument();
     expect(deleteTransaction).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('button', { name: 'Sim' }));
@@ -101,12 +103,10 @@ describe('TxRow — exclusão', () => {
   it('dá para desistir da confirmação', async () => {
     const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
 
-    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     await user.click(screen.getByRole('button', { name: 'Não' }));
 
-    // "Não" fecha o painel junto: a linha volta ao estado de leitura.
-    expect(screen.queryByText('Excluir este lançamento?')).not.toBeInTheDocument();
+    expect(screen.queryByText('Excluir?')).not.toBeInTheDocument();
     expect(deleteTransaction).not.toHaveBeenCalled();
   });
 
@@ -115,7 +115,6 @@ describe('TxRow — exclusão', () => {
       <TxRow tx={tx({ installment_group: 'grupo-1' })} categories={categories} />,
     );
 
-    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     expect(screen.getByRole('button', { name: 'Só esta' })).toBeInTheDocument();
 
@@ -128,7 +127,6 @@ describe('TxRow — exclusão', () => {
       <TxRow tx={tx({ is_transfer: true, transfer_group: 'grupo-t' })} categories={categories} />,
     );
 
-    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     await user.click(screen.getByRole('button', { name: 'Os dois lados' }));
 
@@ -140,28 +138,50 @@ describe('TxRow — exclusão', () => {
     deleteTransaction.mockResolvedValueOnce({ error: 'permission denied' });
     const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
 
-    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Excluir' }));
     await user.click(screen.getByRole('button', { name: 'Sim' }));
 
-    // O painel se fecha para não cobrir a mensagem, que fica na própria linha.
     expect(await screen.findByText('permission denied')).toBeInTheDocument();
   });
 });
 
 describe('TxRow — edição', () => {
-  const categories = [
-    { id: 'cat-1', name: 'Alimentação', color: '#5B6EF5', kind: 'expense' },
-  ] as Parameters<typeof TxRow>[0]['categories'];
-
-  it('"Editar" abre o formulário e fecha o menu', async () => {
+  it('"Editar" abre o formulário do lançamento', async () => {
     const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
 
-    await user.click(menu());
     await user.click(screen.getByRole('button', { name: 'Editar' }));
+    expect(screen.getByRole('dialog', { name: 'Editar lançamento' })).toBeInTheDocument();
+  });
+});
+
+describe('TxRow — menu do celular', () => {
+  function openMenu(user: ReturnType<typeof renderWithProviders>['user']) {
+    return user.click(screen.getByRole('button', { name: 'Ações de Mercado' }));
+  }
+
+  function panel() {
+    return screen.getByRole('dialog', { name: 'Ações de Mercado' });
+  }
+
+  it('exclui pelo painel, com a confirmação dentro dele', async () => {
+    const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
+
+    await openMenu(user);
+    await user.click(within(panel()).getByRole('button', { name: 'Excluir' }));
+    expect(within(panel()).getByText('Excluir este lançamento?')).toBeInTheDocument();
+
+    await user.click(within(panel()).getByRole('button', { name: 'Sim' }));
+    expect(deleteTransaction).toHaveBeenCalledWith('t-1');
+  });
+
+  it('"Editar" fecha o painel antes de abrir o formulário', async () => {
+    const { user } = renderWithProviders(<TxRow tx={tx()} categories={categories} />);
+
+    await openMenu(user);
+    await user.click(within(panel()).getByRole('button', { name: 'Editar' }));
 
     // O popover (z-60) por cima do modal (z-50) esconderia o formulário.
     expect(screen.getByRole('dialog', { name: 'Editar lançamento' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Ações de Mercado' })).not.toBeInTheDocument();
   });
 });

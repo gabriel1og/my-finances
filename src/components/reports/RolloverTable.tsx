@@ -82,7 +82,7 @@ export function RolloverTable({ rows }: { rows: RolloverRow[] }) {
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    className={`money py-2 text-right text-xs ${toneOf(row, column.key)}`}
+                    className={`num py-2 text-right text-xs ${toneOf(row, column.key)}`}
                   >
                     {render(row, column.key)}
                   </td>
