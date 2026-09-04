@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { renderWithProviders, screen } from '@/test/render';
+import { renderWithProviders, screen, within } from '@/test/render';
 import type { Entry } from '@/lib/transactions';
 
 const deleteTransfer = vi.fn(async () => ({ error: null as string | null }));
@@ -44,14 +44,18 @@ describe('TransferRow', () => {
   it('o valor não é pintado como receita nem como despesa', () => {
     renderWithProviders(<TransferRow entry={entry} />);
 
-    const amount = screen.getByText(/500,00/);
-    expect(amount.className).not.toContain('text-income');
-    expect(amount.className).not.toContain('text-expense');
+    // Os dois desenhos estão na árvore (celular e `lg`); a regra vale para os dois.
+    for (const amount of screen.getAllByText(/500,00/)) {
+      expect(amount.className).not.toContain('text-income');
+      expect(amount.className).not.toContain('text-expense');
+    }
   });
 
   it('sem `editable`, não oferece ações', () => {
     renderWithProviders(<TransferRow entry={entry} />);
+
     expect(screen.queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Ações de/ })).not.toBeInTheDocument();
   });
 
   it('excluir apaga as duas pontas, depois de confirmar', async () => {
@@ -72,5 +76,25 @@ describe('TransferRow', () => {
     await user.click(screen.getByRole('button', { name: 'Sim' }));
 
     expect(await screen.findByText('permission denied')).toBeInTheDocument();
+  });
+
+  it('sem o par completo, sobra excluir — não dá para editar meia transferência', () => {
+    renderWithProviders(<TransferRow entry={{ ...entry, to: null, toId: null }} editable />);
+
+    expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Excluir' })).toBeInTheDocument();
+  });
+
+  it('no celular as mesmas ações vivem dentro do menu da linha', async () => {
+    const { user } = renderWithProviders(<TransferRow entry={entry} editable />);
+
+    await user.click(screen.getByRole('button', { name: 'Ações de Reserva de emergência' }));
+    const panel = screen.getByRole('dialog', { name: 'Ações de Reserva de emergência' });
+
+    await user.click(within(panel).getByRole('button', { name: 'Excluir' }));
+    expect(within(panel).getByText('Apaga as duas pontas da transferência.')).toBeInTheDocument();
+
+    await user.click(within(panel).getByRole('button', { name: 'Sim' }));
+    expect(deleteTransfer).toHaveBeenCalledWith('grupo-1');
   });
 });

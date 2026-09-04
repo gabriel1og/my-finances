@@ -133,6 +133,13 @@
     @apply text-2xs font-medium uppercase tracking-[0.08em] text-textSecondary;
   }
 
+  /* O mesmo rótulo, com o tracking apertado e um passo menor: em coluna
+     estreita — o par mês/valor do comparativo, o orçamento empilhado — o
+     espaçamento de 0.08em come metade da largura útil do rótulo. */
+  .label-caps-tight {
+    @apply text-3xs font-medium uppercase tracking-[0.04em] text-textSecondary;
+  }
+
   /* Dado numérico: valor, data, percentual, contador.
      Não é mais monoespaçada — a Inter tem algarismos tabulares (`tnum`), que é
      o que faz coluna de número alinhar. O que se abre mão é do contraste
@@ -140,6 +147,24 @@
      Para diferenciar 0 de O em telas densas, acrescente `slashed-zero`. */
   .num {
     @apply tabular-nums;
+  }
+
+  /* Valor monetário: `.num` mais a garantia de que a string não quebra.
+     O sinal faz parte do valor, e sem isto ele se separava dele — em coluna
+     apertada o "−" ficava numa linha e "R$ 470,53" na seguinte, o que faz a
+     linha parecer duas informações em vez de uma. Vale para qualquer dado que
+     só se lê inteiro: valor, data, percentual. */
+  .money {
+    @apply tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Ação de linha em ícone. Abaixo de `lg` as ações de uma lista ficam
+     visíveis (decisão da doc de responsividade), mas como link de texto elas
+     nasciam no meio do conteúdo, atravessando a descrição, e ainda assim eram
+     alvo pequeno. 44px de alvo no celular, 36 a partir de `sm`, onde há mouse. */
+  .icon-btn {
+    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-textSecondary transition-colors hover:bg-surfaceAlt hover:text-textPrimary sm:h-9 sm:w-9;
   }
 
   /* min-h-11 = 44px, o alvo de toque confortável no celular. */
