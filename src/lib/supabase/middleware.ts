@@ -26,11 +26,32 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Resgate do `code` do OAuth.
+  //
+  // Quando a URL passada em `redirectTo` nao esta na lista de Redirect URLs do
+  // Supabase, ele ignora o pedido e devolve o usuario na Site URL — com o
+  // `code` na query, mas fora de `/auth/callback`. Ai o codigo chega em `/`,
+  // este middleware manda para `/login` por falta de sessao e o login "nao sai
+  // do lugar", mesmo com o usuario ja criado no Supabase.
+  //
+  // Nenhuma rota da aplicacao usa `code` como parametro, entao encaminhar e
+  // seguro. Nao vale para `error`: `/login?error=...` e justamente para onde o
+  // callback devolve as falhas, e encaminhar criaria um laco.
+  if (searchParams.has('code') && !pathname.startsWith('/auth/callback')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/callback';
+    if (pathname !== '/' && !PUBLIC_ROUTES.includes(pathname)) {
+      url.searchParams.set('next', pathname);
+    }
+    return NextResponse.redirect(url);
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 
   if (!user && !isPublic) {
