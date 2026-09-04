@@ -1,14 +1,16 @@
 'use client';
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { formatCompact, formatMonthLabel } from '@/lib/format';
+import { formatCompact, formatMonthShort, spansYears } from '@/lib/format';
 import { useMoney } from '@/lib/currency';
 import type { MonthlyFlow } from '@/types/database.types';
 
 export function FlowChart({ data }: { data: MonthlyFlow[] }) {
   const money = useMoney();
+  // Janela longa cruza a virada do ano: sem o ano, dois "jan" no mesmo eixo.
+  const withYear = spansYears(data.map((row) => row.month));
   const rows = data.map((row) => ({
-    month: formatMonthLabel(row.month),
+    month: formatMonthShort(row.month, withYear),
     income: Number(row.income),
     expense: Number(row.expense),
   }));

@@ -343,17 +343,21 @@ export async function getUpcomingStatements(fromMonth: string, monthsAhead = 6) 
   return (data ?? []) as CardStatement[];
 }
 
-/** Faixa de meses para o comparativo por categoria. */
-export async function getCategorySpendingRange(fromMonth: string, months: number) {
+/**
+ * Faixa de meses para o comparativo por categoria.
+ *
+ * A conta do início do intervalo era uma linha à parte e estava um mês curta:
+ * com `monthsBack = 5` a janela começava em maio, enquanto a tabela desenhava
+ * a coluna de abril — que aparecia sempre vazia. Agora usa o mesmo
+ * `monthsBefore()` das outras faixas.
+ */
+export async function getCategorySpendingRange(fromMonth: string, monthsBack: number) {
   const supabase = await createClient();
-  const [year, month] = fromMonth.slice(0, 7).split('-').map(Number);
-  const start = new Date(year, month - months, 1);
-  const startISO = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`;
 
   const { data, error } = await supabase
     .from('category_month_spending')
     .select('*')
-    .gte('month', startISO)
+    .gte('month', monthsBefore(fromMonth, monthsBack))
     .lte('month', `${fromMonth.slice(0, 7)}-01`)
     .order('month');
 
@@ -361,24 +365,41 @@ export async function getCategorySpendingRange(fromMonth: string, months: number
   return (data ?? []) as CategorySpending[];
 }
 
-export async function getAccountMonthTotals(month: string) {
+/** Primeiro dia do mês `months` meses antes de `month`. */
+function monthsBefore(month: string, months: number) {
+  const [year, monthNumber] = month.slice(0, 7).split('-').map(Number);
+  const start = new Date(year, monthNumber - 1 - months, 1);
+  return `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`;
+}
+
+/**
+ * Totais por conta do mês informado e dos `monthsBack` anteriores.
+ *
+ * Uma consulta só para as duas leituras de `/reports`: o mês em tela sai
+ * filtrando a janela, e a evolução usa a janela inteira. Antes eram duas
+ * consultas quase iguais para a mesma view.
+ */
+export async function getAccountMonthTotalsRange(month: string, monthsBack: number) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('account_month_totals')
     .select('*')
-    .eq('month', `${month.slice(0, 7)}-01`)
+    .gte('month', monthsBefore(month, monthsBack))
+    .lte('month', `${month.slice(0, 7)}-01`)
     .order('expense', { ascending: false });
 
   if (error) throw error;
   return (data ?? []) as AccountMonthTotals[];
 }
 
-export async function getCardMonthTotals(month: string) {
+/** Idem para cartões — pelo mês da compra, que é o que a view calcula. */
+export async function getCardMonthTotalsRange(month: string, monthsBack: number) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('card_month_totals')
     .select('*')
-    .eq('month', `${month.slice(0, 7)}-01`)
+    .gte('month', monthsBefore(month, monthsBack))
+    .lte('month', `${month.slice(0, 7)}-01`)
     .order('expense', { ascending: false });
 
   if (error) throw error;

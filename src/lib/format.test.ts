@@ -6,7 +6,9 @@ import {
   formatDate,
   formatMonthLabel,
   formatMonthLong,
+  formatMonthShort,
   formatPercent,
+  spansYears,
   monthRange,
 } from '@/lib/format';
 
@@ -78,5 +80,17 @@ describe('formatMonthLong', () => {
 
   it('aceita o mês sem o dia', () => {
     expect(formatMonthLong('2026-12')).toBe('dezembro de 2026');
+  });
+});
+
+describe('formatMonthShort e spansYears', () => {
+  it('mostra só o mês quando a janela fica no mesmo ano', () => {
+    expect(spansYears(['2026-07-01', '2026-09-01'])).toBe(false);
+    expect(formatMonthShort('2026-09-01')).toBe('set');
+  });
+
+  it('acrescenta o ano quando a janela cruza a virada', () => {
+    expect(spansYears(['2025-11-01', '2026-01-01'])).toBe(true);
+    expect(formatMonthShort('2026-01-01', true)).toBe('jan/26');
   });
 });
