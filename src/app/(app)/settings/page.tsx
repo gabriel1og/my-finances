@@ -2,6 +2,7 @@ import { PageActions } from '@/components/ui/PageActions';
 import { SettingsForm } from '@/components/settings/SettingsForm';
 import { TagsManager } from '@/components/settings/TagsManager';
 import { DataPanel } from '@/components/settings/DataPanel';
+import { BiometricPanel } from '@/components/settings/BiometricPanel';
 import { SignOutButton } from '@/components/settings/SignOutButton';
 import { createClient } from '@/lib/supabase/server';
 import { getTags } from '@/lib/queries';
@@ -25,11 +26,13 @@ export default async function SettingsPage() {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-1 xl:grid-cols-2">
         <SettingsForm profile={profile as Profile} email={user?.email ?? ''} />
 
-        <div className="flex-shrink-0">
-          <TagsManager tags={tags} />
-        </div>
-
         <DataPanel />
+        <TagsManager tags={tags} />
+
+        <BiometricPanel
+          userId={user!.id}
+          label={(profile as Profile)?.display_name ?? user?.email ?? 'flowly'}
+        />
       </div>
     </>
   );

@@ -50,7 +50,7 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
   };
 
   return (
-    <form onSubmit={submit} className="card">
+    <form onSubmit={submit} className="card flex flex-col">
       <div className="flex items-center justify-between border-b border-border pb-3">
         <span className="text-sm text-textSecondary">E-mail</span>
         <span className="num text-sm">{email}</span>
@@ -112,12 +112,18 @@ export function SettingsForm({ profile, email }: { profile: Profile; email: stri
         </div>
       </div>
 
-      {error ? <p className="mt-3 text-xs text-expense">{error}</p> : null}
-      {saved ? <p className="mt-3 text-xs text-income">Preferências salvas.</p> : null}
+      {/* `mt-auto` cola o bloco de ação na base: os cards da mesma linha do
+          grid têm a altura do mais alto, e sem isto o botão ficava boiando no
+          meio de um vazio. O wrapper existe para o botão não virar item flex
+          direto da coluna e esticar de ponta a ponta. */}
+      <div className="mt-auto pt-5">
+        {error ? <p className="mb-3 text-xs text-expense">{error}</p> : null}
+        {saved ? <p className="mb-3 text-xs text-income">Preferências salvas.</p> : null}
 
-      <button type="submit" disabled={pending} className="btn-primary mt-5">
-        {pending ? 'Salvando...' : 'Salvar'}
-      </button>
+        <button type="submit" disabled={pending} className="btn-primary">
+          {pending ? 'Salvando...' : 'Salvar'}
+        </button>
+      </div>
     </form>
   );
 }

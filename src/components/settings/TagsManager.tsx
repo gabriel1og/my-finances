@@ -23,7 +23,7 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
   }
 
   return (
-    <div className="card">
+    <div className="card flex flex-col">
       <span className="label-caps">Tags</span>
       <p className="mt-1 text-xs text-textSecondary">
         Dimensão paralela à categoria: uma transação tem uma categoria, mas pode ter várias tags.
@@ -57,7 +57,7 @@ export function TagsManager({ tags }: { tags: Tag[] }) {
 
       {error ? <p className="mt-2 text-xs text-expense">{error}</p> : null}
 
-      <div className="mt-4">
+      <div className="mt-4 flex-1">
         {tags.length === 0 ? (
           <p className="text-xs text-textMuted">Nenhuma tag ainda.</p>
         ) : (
