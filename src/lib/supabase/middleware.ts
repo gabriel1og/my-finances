@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/types/database.types';
+import { SESSION_COOKIE, sessionCookieOptions, sessionCookieValue } from '@/lib/session';
 
 const PUBLIC_ROUTES = ['/login', '/auth'];
 
@@ -60,6 +61,19 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (user) {
+    // Prazo de inatividade (ver `src/lib/session.ts`). O marcador e regravado
+    // com 12h novas a cada request autenticada; se ele sumiu, o navegador o
+    // descartou por vencimento — ou seja, 12h sem nenhuma request.
+    //
+    // `/auth` fica de fora: e por la que a sessao comeca, e derrubar os cookies
+    // no meio do callback descartaria o `code` antes da troca por sessao.
+    if (!request.cookies.has(SESSION_COOKIE) && !pathname.startsWith('/auth')) {
+      return expire(request);
+    }
+    response.cookies.set(SESSION_COOKIE, sessionCookieValue(), sessionCookieOptions());
+  }
+
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
@@ -67,4 +81,22 @@ export async function updateSession(request: NextRequest) {
   }
 
   return response;
+}
+
+/**
+ * Encerra a sessao expirada: manda para o login com aviso e apaga os cookies do
+ * Supabase, para a proxima request ja chegar deslogada. Apagar na resposta e
+ * melhor que `signOut()` aqui, que custaria uma ida a rede no middleware.
+ */
+function expire(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  url.pathname = '/login';
+  url.search = '?expired=1';
+
+  const redirect = NextResponse.redirect(url);
+  for (const cookie of request.cookies.getAll()) {
+    if (cookie.name.startsWith('sb-')) redirect.cookies.delete({ name: cookie.name, path: '/' });
+  }
+  redirect.cookies.delete({ name: SESSION_COOKIE, path: '/' });
+  return redirect;
 }

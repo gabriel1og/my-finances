@@ -3,33 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { signIn, signUp } from '@/app/login/actions';
+import { translateAuthError } from '@/lib/auth-messages';
 import { Logo } from '@/components/layout/Logo';
 import { Spinner } from '@/components/ui/Spinner';
-
-/**
- * Mensagens do Supabase Auth chegam em inglês. Traduzir só as que o usuário
- * realmente encontra — o resto cai no texto original, que é melhor que um
- * "erro inesperado" genérico na hora de depurar.
- */
-const MESSAGES: Record<string, string> = {
-  'Invalid login credentials': 'E-mail ou senha incorretos.',
-  'Email not confirmed': 'Confirme o e-mail antes de entrar. Verifique sua caixa de entrada.',
-  'User already registered': 'Este e-mail já tem conta. Entre em vez de cadastrar.',
-  'Password should be at least 6 characters.': 'A senha precisa ter ao menos 6 caracteres.',
-  'Signups not allowed for this instance': 'Cadastro desativado no momento.',
-  'Email address not authorized':
-    'O envio de e-mail do projeto ainda está restrito. Configure o SMTP ou desligue a confirmação.',
-};
-
-function translate(message: string) {
-  return MESSAGES[message] ?? message;
-}
 
 /**
  * `redirecting` é um estado terminal: entra quando a autenticação deu certo e
  * não sai mais. A navegação para `/dashboard` é uma rota dinâmica (busca perfil
  * e dados no servidor) e leva um tempo perceptível; se o botão voltasse ao
- * normal quando o `signIn` responde, a tela ficaria parada e sem explicação
+ * normal quando a action responde, a tela ficaria parada e sem explicação
  * justamente no trecho mais lento. O mesmo vale para o Google, em que a página
  * ainda vai ser trocada pelo navegador.
  */
@@ -60,41 +43,18 @@ export function LoginForm({ initialError }: { initialError?: string }) {
     setError(null);
     setNotice(null);
 
-    const supabase = createClient();
+    // Server actions, e não chamadas do browser: é no servidor que a sessão da
+    // aplicação é marcada (prazo de inatividade). Ver `src/lib/session.ts`.
+    const result =
+      mode === 'signin' ? await signIn(email, password) : await signUp(email, password);
 
-    if (mode === 'signin') {
-      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-      if (authError) {
-        setStatus('idle');
-        return setError(translate(authError.message));
-      }
-      return toDashboard();
-    }
-
-    const { data, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (authError) {
-      setStatus('idle');
-      return setError(translate(authError.message));
-    }
-
-    // Com "Confirm email" desligado o signup já devolve sessão e entra direto.
-    if (data.session) return toDashboard();
+    if (result.status === 'ok') return toDashboard();
 
     setStatus('idle');
+    if (result.status === 'notice') return setNotice(result.message);
 
-    // Com a confirmação ligada, e-mail já cadastrado volta como usuário sem
-    // identities (o Supabase não revela que a conta existe). Sem este caso o
-    // usuário fica esperando um e-mail que nunca chega.
-    if (data.user && data.user.identities?.length === 0) {
-      setMode('signin');
-      return setError('Este e-mail já tem conta. Entre em vez de cadastrar.');
-    }
-
-    setNotice(`Enviamos um link de confirmação para ${email}. Abra o link para ativar a conta.`);
+    if (result.switchToSignIn) setMode('signin');
+    setError(result.message);
   }
 
   async function signInWithGoogle() {
@@ -102,6 +62,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
     setError(null);
     setNotice(null);
 
+    // O OAuth continua no browser: quem marca a sessão é `/auth/callback`.
     const supabase = createClient();
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -111,7 +72,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
     // Em caso de sucesso o navegador já está saindo da página; só o erro volta.
     if (authError) {
       setStatus('idle');
-      setError(translate(authError.message));
+      setError(translateAuthError(authError.message));
     }
   }
 
