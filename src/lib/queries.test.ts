@@ -6,7 +6,8 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(async () => supabase.client),
 }));
 
-const { buildTransactionSearchFilter, getTransactionsPage } = await import('@/lib/queries');
+const { buildTransactionSearchFilter, getTagTotalsRange, getTransactionsPage } =
+  await import('@/lib/queries');
 
 beforeEach(() => {
   supabase = createSupabaseMock({ responses: { 'transactions.select': { count: 0 } } });
@@ -42,5 +43,15 @@ describe('getTransactionsPage', () => {
       column: 'or',
       value: 'description.ilike.%175 68%,notes.ilike.%175 68%,amount.eq.175.68',
     });
+  });
+});
+
+describe('getTagTotalsRange', () => {
+  it('consulta as tags dentro da janela de meses', async () => {
+    await getTagTotalsRange('2026-09-01', 2);
+
+    const [call] = supabase.callsTo('tag_month_totals', 'select');
+    expect(call.filters).toContainEqual({ kind: 'gte', column: 'month', value: '2026-07-01' });
+    expect(call.filters).toContainEqual({ kind: 'lte', column: 'month', value: '2026-09-01' });
   });
 });

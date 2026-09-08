@@ -5,6 +5,7 @@ import { NetWorthChart } from '@/components/charts/NetWorthChart';
 import { CategoryTrend } from '@/components/reports/CategoryTrend';
 import { RolloverTable } from '@/components/reports/RolloverTable';
 import { ReportRangePicker } from '@/components/reports/ReportRangePicker';
+import { ReportScopeToggle } from '@/components/reports/ReportScopeToggle';
 import { SourceBreakdown } from '@/components/reports/SourceBreakdown';
 import { TrendTable } from '@/components/reports/TrendTable';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -13,7 +14,14 @@ import { PageActions } from '@/components/ui/PageActions';
 import { Money } from '@/lib/currency';
 import { monthSequence } from '@/lib/forecast';
 import { buildRolloverRows } from '@/lib/rollover';
-import { buildSourceTotals, buildTrendRows, parseReportRange } from '@/lib/reports';
+import {
+  buildCategorySpendingTotals,
+  buildSourceTotals,
+  buildTagTotals,
+  buildTrendRows,
+  parseReportCardScope,
+  parseReportRange,
+} from '@/lib/reports';
 import { currentMonth, formatMonthLong, formatMonthShort } from '@/lib/format';
 import {
   getAccountMonthTotalsRange,
@@ -24,26 +32,38 @@ import {
   getCategorySpendingRange,
   getMonthlyFlow,
   getNetWorthSeries,
-  getTagTotals,
+  getTagTotalsRange,
 } from '@/lib/queries';
 
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; range?: string }>;
+  searchParams: Promise<{
+    compositionScope?: string;
+    month?: string;
+    range?: string;
+    tagScope?: string;
+  }>;
 }) {
-  const { month = currentMonth(), range: rangeParam } = await searchParams;
+  const {
+    compositionScope: compositionScopeParam,
+    month = currentMonth(),
+    range: rangeParam,
+    tagScope: tagScopeParam,
+  } = await searchParams;
 
   // Toda janela da página sai daqui: fluxo, comparativos e evolução olham o
   // mesmo período, senão dois números lado a lado passariam a falar de prazos
   // diferentes.
   const range = parseReportRange(rangeParam);
+  const compositionScope = parseReportCardScope(compositionScopeParam);
+  const tagScope = parseReportCardScope(tagScopeParam);
 
   const [flow, spending, tagTotals, trend, accounts, cards, netWorth, categories, history] =
     await Promise.all([
       getMonthlyFlow(range, month),
       getCategorySpending(month),
-      getTagTotals(month),
+      getTagTotalsRange(month, range - 1),
       getCategorySpendingRange(month, range - 1),
       getAccountMonthTotalsRange(month, range - 1),
       getCardMonthTotalsRange(month, range - 1),
@@ -113,6 +133,20 @@ export default async function ReportsPage({
 
   const accountTrend = buildTrendRows(accountSeries, trendMonths);
   const cardTrend = buildTrendRows(cardSeries, trendMonths);
+  const compositionRows =
+    compositionScope === 'month' ? spending : buildCategorySpendingTotals(trend);
+  const compositionLabel =
+    compositionScope === 'month'
+      ? formatMonthLong(month)
+      : `${range} meses até ${formatMonthLong(month)}`;
+  const compositionHasExpenses = compositionRows.some(
+    (row) => row.kind === 'expense' && Number(row.spent) > 0,
+  );
+
+  const tagRows = buildTagTotals(tagScope === 'month' ? tagTotals.filter(inMonth) : tagTotals);
+  const tagExpense = tagRows.reduce((sum, row) => sum + row.expense, 0);
+  const tagLabel =
+    tagScope === 'month' ? formatMonthLong(month) : `${range} meses até ${formatMonthLong(month)}`;
 
   const currentNetWorth = netWorth.length ? Number(netWorth[netWorth.length - 1].net_worth) : 0;
 
@@ -162,12 +196,20 @@ export default async function ReportsPage({
       </section>
 
       <section className="card mt-6">
-        <span className="label-caps">Composição das despesas do mês</span>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <span className="label-caps">Composição das despesas</span>
+            <p className="mt-1 text-2xs text-textMuted">{compositionLabel}</p>
+          </div>
+          <Suspense fallback={<div className="h-9" />}>
+            <ReportScopeToggle paramKey="compositionScope" scope={compositionScope} />
+          </Suspense>
+        </div>
         <div className="mt-4">
-          {spending.some((row) => row.kind === 'expense' && Number(row.spent) > 0) ? (
-            <ExpensePie data={spending} />
+          {compositionHasExpenses ? (
+            <ExpensePie data={compositionRows} />
           ) : (
-            <EmptyState message="Nenhuma despesa neste mês." />
+            <EmptyState message="Nenhuma despesa neste período." />
           )}
         </div>
       </section>
@@ -273,10 +315,20 @@ export default async function ReportsPage({
       </section>
 
       <section className="card mt-6">
-        <span className="label-caps">Gastos por tag</span>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <span className="label-caps">Gastos por tag</span>
+            <p className="mt-1 text-2xs text-textMuted">
+              {tagLabel} · <Money value={tagExpense} /> no total
+            </p>
+          </div>
+          <Suspense fallback={<div className="h-9" />}>
+            <ReportScopeToggle paramKey="tagScope" scope={tagScope} />
+          </Suspense>
+        </div>
         <div className="mt-2">
-          {tagTotals.length ? (
-            tagTotals.map((row) => (
+          {tagRows.length ? (
+            tagRows.map((row) => (
               <div
                 key={row.tag_id}
                 className="flex items-center justify-between border-b border-border py-2 last:border-b-0"
@@ -290,7 +342,7 @@ export default async function ReportsPage({
               </div>
             ))
           ) : (
-            <EmptyState message="Nenhuma transação com tag neste mês." />
+            <EmptyState message="Nenhuma transação com tag neste período." />
           )}
         </div>
       </section>

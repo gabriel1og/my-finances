@@ -1,4 +1,5 @@
 import { DEFAULT_REPORT_RANGE, REPORT_RANGES } from '@/lib/constants';
+import type { CategorySpending, TagTotals } from '@/types/database.types';
 
 /**
  * Formas dos relatórios por origem — conta e cartão.
@@ -77,6 +78,64 @@ export type TrendRow = {
   total: number;
 };
 
+export type ReportCardScope = 'range' | 'month';
+
+export function parseReportCardScope(value: string | null | undefined): ReportCardScope {
+  return value === 'month' ? 'month' : 'range';
+}
+
+/** Junta a mesma categoria quando o donut mostra a janela inteira. */
+export function buildCategorySpendingTotals(rows: CategorySpending[]): CategorySpending[] {
+  const totals = new Map<string, CategorySpending>();
+
+  for (const row of rows) {
+    const key = `${row.kind}:${row.category_id}`;
+    const current = totals.get(key) ?? { ...row, spent: 0, budget: 0, pct_used: null };
+    current.spent = Number(current.spent) + Number(row.spent);
+    current.budget = Number(current.budget) + Number(row.budget);
+    current.pct_used = current.budget > 0 ? (current.spent / current.budget) * 100 : null;
+    totals.set(key, current);
+  }
+
+  return [...totals.values()]
+    .filter((item) => Number(item.spent) > 0)
+    .sort((a, b) => Number(b.spent) - Number(a.spent));
+}
+
+export type TagTotalRow = {
+  tag_id: string;
+  name: string;
+  color: string;
+  expense: number;
+  income: number;
+  items: number;
+};
+
+/** Soma a mesma tag quando a consulta cobre mais de um mês. */
+export function buildTagTotals(rows: TagTotals[]): TagTotalRow[] {
+  const totals = new Map<string, TagTotalRow>();
+
+  for (const row of rows) {
+    const current = totals.get(row.tag_id) ?? {
+      tag_id: row.tag_id,
+      name: row.name,
+      color: row.color,
+      expense: 0,
+      income: 0,
+      items: 0,
+    };
+
+    current.expense += Number(row.expense);
+    current.income += Number(row.income);
+    current.items += Number(row.items);
+    totals.set(row.tag_id, current);
+  }
+
+  return [...totals.values()]
+    .filter((item) => item.expense > 0 || item.income > 0)
+    .sort((a, b) => b.expense - a.expense);
+}
+
 /**
  * Matriz origem × mês para o comparativo. Linha sem nenhum gasto no período
  * fica de fora — seria uma faixa de trilhos ocupando altura.
@@ -104,7 +163,10 @@ export function buildTrendRows(rows: SourceMonthRow[], months: string[]): TrendR
  * Janela de meses pedida pela URL. Valor fora da lista — digitado à mão,
  * herdado de um link velho — cai no padrão em vez de quebrar a página.
  */
-export function parseReportRange(value: string | null | undefined): number {
+export function parseReportRange(
+  value: string | null | undefined,
+  fallback = DEFAULT_REPORT_RANGE,
+): number {
   const parsed = Number(value);
-  return (REPORT_RANGES as readonly number[]).includes(parsed) ? parsed : DEFAULT_REPORT_RANGE;
+  return (REPORT_RANGES as readonly number[]).includes(parsed) ? parsed : fallback;
 }

@@ -290,6 +290,19 @@ export async function getTagTotals(month: string) {
   return (data ?? []) as TagTotals[];
 }
 
+export async function getTagTotalsRange(month: string, monthsBack: number) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('tag_month_totals')
+    .select('*')
+    .gte('month', monthsBefore(month, monthsBack))
+    .lte('month', `${month.slice(0, 7)}-01`)
+    .order('expense', { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as TagTotals[];
+}
+
 export async function getRecurring() {
   const supabase = await createClient();
   const { data, error } = await supabase
