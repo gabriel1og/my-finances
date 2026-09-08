@@ -3,7 +3,8 @@
 import { EmptyState } from '@/components/ui/EmptyState';
 import { TransferRow } from '@/components/ui/TransferRow';
 import { TxRow } from '@/components/ui/TxRow';
-import { groupTransfers } from '@/lib/transactions';
+import { useMoney } from '@/lib/currency';
+import { groupTransfers, totalTransactionEntries } from '@/lib/transactions';
 import type {
   Account,
   Category,
@@ -29,30 +30,41 @@ export function TransactionsList({
   cards: CreditCard[];
   tags: Tag[];
 }) {
+  const money = useMoney();
   const entries = groupTransfers(transactions);
+  const total = totalTransactionEntries(entries);
+  const totalTone =
+    total > 0 ? 'text-income' : total < 0 ? 'text-expense' : 'text-textSecondary';
 
   return (
     <div className="card">
       {entries.length ? (
-        entries.map((entry) =>
-          entry.kind === 'transfer' ? (
-            <TransferRow
-              key={`${entry.key}-${entry.tx.updated_at}`}
-              entry={entry}
-              editable
-              accounts={accounts}
-            />
-          ) : (
-            <TxRow
-              key={`${entry.key}-${entry.tx.updated_at}`}
-              tx={entry.tx}
-              categories={categories}
-              accounts={accounts}
-              cards={cards}
-              tags={tags}
-            />
-          ),
-        )
+        <>
+          {entries.map((entry) =>
+            entry.kind === 'transfer' ? (
+              <TransferRow
+                key={`${entry.key}-${entry.tx.updated_at}`}
+                entry={entry}
+                editable
+                accounts={accounts}
+              />
+            ) : (
+              <TxRow
+                key={`${entry.key}-${entry.tx.updated_at}`}
+                tx={entry.tx}
+                categories={categories}
+                accounts={accounts}
+                cards={cards}
+                tags={tags}
+              />
+            ),
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-3 text-right">
+            <span className="text-xs text-textMuted">Total</span>
+            <span className={`money text-sm font-medium ${totalTone}`}>{money(total)}</span>
+          </div>
+        </>
       ) : (
         <EmptyState message="Nenhuma transação encontrada com esses filtros." />
       )}

@@ -57,3 +57,10 @@ export function groupTransfers(transactions: TransactionWithCategory[]): Entry[]
 
   return entries;
 }
+
+export function totalTransactionEntries(entries: Entry[]) {
+  return entries.reduce((sum, entry) => {
+    if (entry.kind === 'transfer') return sum;
+    return sum + (entry.tx.type === 'income' ? Number(entry.tx.amount) : -Number(entry.tx.amount));
+  }, 0);
+}

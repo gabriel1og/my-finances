@@ -5,6 +5,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import type { Account, Category, CreditCard, Tag } from '@/types/database.types';
 
+const FILTER_PARAM_KEYS = ['q', 'type', 'category', 'tag', 'account', 'card', 'scope'] as const;
+
 function selectedAccountOrCard(params: URLSearchParams) {
   const accountId = params.get('account');
   if (accountId) return `acc:${accountId}`;
@@ -14,6 +16,23 @@ function selectedAccountOrCard(params: URLSearchParams) {
 
   return '';
 }
+
+function accountFilterLabel(account: Account) {
+  return `Conta - ${account.name}`;
+}
+
+function cardFilterLabel(card: CreditCard) {
+  return `Cartão - ${card.name}`;
+}
+
+function hasActiveTransactionFilter(params: URLSearchParams, search: string) {
+  if (search.trim()) return true;
+  return FILTER_PARAM_KEYS.some((key) => {
+    if (key === 'type') return Boolean(params.get(key) && params.get(key) !== 'all');
+    return Boolean(params.get(key));
+  });
+}
+
 /**
  * Os filtros vivem na URL, não no estado local: assim a busca é feita no
  * servidor, o link pode ser compartilhado e o botão voltar funciona.
@@ -37,6 +56,7 @@ export function TransactionFilters({
   const [, startTransition] = useTransition();
   const [search, setSearch] = useState(params.get('q') ?? '');
   const accountOrCardValue = selectedAccountOrCard(params);
+  const canClearFilters = hasActiveTransactionFilter(params, search);
 
   function push(next: URLSearchParams) {
     // Qualquer mudança de filtro volta para a primeira página.
@@ -48,6 +68,13 @@ export function TransactionFilters({
     const next = new URLSearchParams(params.toString());
     if (value) next.set(key, value);
     else next.delete(key);
+    push(next);
+  }
+
+  function clearFilters() {
+    const next = new URLSearchParams(params.toString());
+    for (const key of FILTER_PARAM_KEYS) next.delete(key);
+    setSearch('');
     push(next);
   }
 
@@ -129,12 +156,12 @@ export function TransactionFilters({
         <option value="">Conta ou cartão</option>
         {accounts.map((account) => (
           <option key={account.id} value={`acc:${account.id}`}>
-            {account.name}
+            {accountFilterLabel(account)}
           </option>
         ))}
         {cards.map((card) => (
           <option key={card.id} value={`card:${card.id}`}>
-            {card.name}
+            {cardFilterLabel(card)}
           </option>
         ))}
       </select>
@@ -148,6 +175,15 @@ export function TransactionFilters({
         />
         Buscar em todos os meses
       </label>
+
+      <button
+        type="button"
+        className="btn-secondary btn-sm ml-auto w-full sm:w-auto"
+        disabled={!canClearFilters}
+        onClick={clearFilters}
+      >
+        Limpar filtros
+      </button>
     </div>
   );
 }

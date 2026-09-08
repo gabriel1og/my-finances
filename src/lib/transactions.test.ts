@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupTransfers } from '@/lib/transactions';
+import { groupTransfers, totalTransactionEntries } from '@/lib/transactions';
 import type { TransactionWithCategory } from '@/types/database.types';
 
 /** Fixture mínima: só os campos que groupTransfers lê. */
@@ -126,5 +126,25 @@ describe('groupTransfers', () => {
 
   it('devolve lista vazia para entrada vazia', () => {
     expect(groupTransfers([])).toEqual([]);
+  });
+});
+
+describe('totalTransactionEntries', () => {
+  it('soma receitas e subtrai despesas visíveis', () => {
+    const entries = groupTransfers([
+      tx({ id: 'salario', type: 'income', amount: 1000 }),
+      tx({ id: 'mercado', type: 'expense', amount: 150.5 }),
+    ]);
+
+    expect(totalTransactionEntries(entries)).toBe(849.5);
+  });
+
+  it('ignora transferência agrupada no total líquido', () => {
+    const entries = groupTransfers([
+      tx({ id: 'mercado', type: 'expense', amount: 50 }),
+      ...transferPair('g1', 200, '2026-09-10'),
+    ]);
+
+    expect(totalTransactionEntries(entries)).toBe(-50);
   });
 });
