@@ -33,8 +33,7 @@ export function TransactionsList({
   const money = useMoney();
   const entries = groupTransfers(transactions);
   const total = totalTransactionEntries(entries);
-  const totalTone =
-    total > 0 ? 'text-income' : total < 0 ? 'text-expense' : 'text-textSecondary';
+  const totalTone = total > 0 ? 'text-income' : total < 0 ? 'text-expense' : 'text-textSecondary';
 
   return (
     <div className="card">
