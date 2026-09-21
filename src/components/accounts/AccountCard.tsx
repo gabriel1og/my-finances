@@ -2,9 +2,11 @@
 
 import { useState, useTransition } from 'react';
 import { AccountFormModal } from '@/components/accounts/AccountFormModal';
+import { AccountHistoryDrawer } from '@/components/accounts/AccountHistoryDrawer';
 import { archiveAccount, deleteAccount, restoreAccount } from '@/app/(app)/accounts/actions';
 import { ACCOUNT_KIND_LABEL } from '@/lib/constants';
 import { useMoney } from '@/lib/currency';
+import { formatTimestampDate } from '@/lib/format';
 import type { Account, CreditCard } from '@/types/database.types';
 
 export function AccountCard({
@@ -19,6 +21,7 @@ export function AccountCard({
   openCardTotal: number;
 }) {
   const money = useMoney();
+  const balanceChangedAt = account.balance_changed_at ?? account.updated_at;
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -32,8 +35,8 @@ export function AccountCard({
 
   return (
     <div className={`card ${account.is_archived ? 'opacity-60' : ''}`}>
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
           <span className="flex items-center gap-2 text-sm text-textPrimary">
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: account.color }} />
             {account.name}
@@ -43,7 +46,15 @@ export function AccountCard({
             {account.institution ? ` · ${account.institution}` : ''}
           </p>
         </div>
-        {account.is_archived ? <span className="label-caps text-textMuted">arquivada</span> : null}
+        <div className="shrink-0 text-right">
+          {account.is_archived ? (
+            <span className="label-caps block text-textMuted">arquivada</span>
+          ) : null}
+          <p className="mt-0.5 text-2xs text-textMuted">Saldo atualizado</p>
+          <time dateTime={balanceChangedAt} className="num block text-2xs text-textSecondary">
+            {formatTimestampDate(balanceChangedAt)}
+          </time>
+        </div>
       </div>
 
       <p
@@ -81,6 +92,8 @@ export function AccountCard({
             </button>
           }
         />
+
+        <AccountHistoryDrawer account={account} balance={balance} />
 
         {account.is_archived ? (
           <>

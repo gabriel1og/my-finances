@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidateFinance } from '@/lib/cache';
-import type { AccountKind } from '@/types/database.types';
+import type { AccountBalanceHistory, AccountKind } from '@/types/database.types';
 
 export type AccountInput = {
   name: string;
@@ -13,6 +13,14 @@ export type AccountInput = {
 };
 
 type Result = { error: string | null };
+
+const HISTORY_PAGE_SIZE = 30;
+
+export type AccountBalanceHistoryResult = {
+  entries: AccountBalanceHistory[];
+  hasMore: boolean;
+  error: string | null;
+};
 
 function validate(input: AccountInput): string | null {
   if (!input.name.trim()) return 'Informe um nome.';
@@ -97,6 +105,56 @@ export async function restoreAccount(id: string): Promise<Result> {
 
   revalidateFinance();
   return { error: null };
+}
+
+/**
+ * Carrega uma página estável do histórico, da mudança mais recente para a mais antiga.
+ * Exemplo: `getAccountBalanceHistory(accountId, lastSequenceNo)` busca a próxima página.
+ */
+export async function getAccountBalanceHistory(
+  accountId: string,
+  beforeSequence?: number,
+): Promise<AccountBalanceHistoryResult> {
+  if (!accountId) return { entries: [], hasMore: false, error: 'Conta inválida.' };
+  if (
+    beforeSequence !== undefined &&
+    (!Number.isSafeInteger(beforeSequence) || beforeSequence < 1)
+  ) {
+    return { entries: [], hasMore: false, error: 'Página de histórico inválida.' };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { entries: [], hasMore: false, error: 'Sessão expirada.' };
+
+  let query = supabase
+    .from('account_balance_history')
+    .select('*')
+    .eq('account_id', accountId)
+    .order('sequence_no', { ascending: false })
+    .limit(HISTORY_PAGE_SIZE + 1);
+  if (beforeSequence !== undefined) query = query.lt('sequence_no', beforeSequence);
+
+  const { data, error } = await query;
+  if (error) {
+    console.error(
+      JSON.stringify({ event: 'account_balance_history_load_failed', accountId, code: error.code }),
+    );
+    return {
+      entries: [],
+      hasMore: false,
+      error: 'Não foi possível carregar o histórico agora.',
+    };
+  }
+
+  const rows = (data ?? []) as AccountBalanceHistory[];
+  return {
+    entries: rows.slice(0, HISTORY_PAGE_SIZE),
+    hasMore: rows.length > HISTORY_PAGE_SIZE,
+    error: null,
+  };
 }
 
 /** Só exclui conta sem transações e sem cartão vinculado. */

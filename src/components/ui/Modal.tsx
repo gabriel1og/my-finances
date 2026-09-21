@@ -15,11 +15,13 @@ export function Modal({
   onClose,
   title,
   children,
+  placement = 'dialog',
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  placement?: 'dialog' | 'drawer';
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
@@ -97,9 +99,18 @@ export function Modal({
 
   if (!open) return null;
 
+  const overlayClass =
+    placement === 'drawer'
+      ? 'items-end justify-center p-0 sm:items-stretch sm:justify-end'
+      : 'items-end justify-center p-0 sm:items-center sm:p-4';
+  const panelClass =
+    placement === 'drawer'
+      ? 'max-h-[92vh] w-full overflow-y-auto rounded-t-lg border border-border bg-surface p-5 sm:h-full sm:max-h-none sm:max-w-md sm:rounded-none sm:border-y-0 sm:border-r-0 sm:p-6'
+      : 'max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-lg border border-border bg-surface p-5 sm:max-h-[90vh] sm:rounded-lg sm:p-6';
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4"
+      className={`fixed inset-0 z-50 flex bg-black/60 ${overlayClass}`}
       onMouseDown={(event) => {
         // Só o clique no fundo fecha; um arraste iniciado dentro do painel não.
         if (event.target === event.currentTarget) onClose();
@@ -110,7 +121,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="max-h-[92vh] w-full max-w-md animate-fadeUp overflow-y-auto rounded-t-lg border border-border bg-surface p-5 sm:max-h-[90vh] sm:rounded-lg sm:p-6"
+        className={`animate-fadeUp ${panelClass}`}
       >
         <div className="flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-base font-medium tracking-tight">

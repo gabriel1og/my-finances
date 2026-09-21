@@ -17,6 +17,14 @@ export type TransactionType = 'income' | 'expense';
 export type AccountKind = 'checking' | 'savings' | 'cash' | 'investment';
 export type SettlementKind = 'account' | 'card';
 export type PaymentMethod = 'debit' | 'pix' | 'cash' | 'transfer' | 'boleto' | 'credit';
+export type AccountBalanceHistoryKind =
+  | 'account_created'
+  | 'opening_balance_updated'
+  | 'transaction_created'
+  | 'transaction_updated'
+  | 'transaction_deleted'
+  | 'transaction_moved_out'
+  | 'transaction_moved_in';
 
 export interface Database {
   public: {
@@ -220,6 +228,7 @@ export interface Database {
           position: number;
           created_at: string;
           updated_at: string;
+          balance_changed_at: string;
         };
         Insert: {
           id?: string;
@@ -231,11 +240,55 @@ export interface Database {
           opening_balance?: number;
           is_archived?: boolean;
           position?: number;
+          balance_changed_at?: string;
         };
         Update: Partial<Database['public']['Tables']['accounts']['Insert']>;
         Relationships: [
           {
             foreignKeyName: 'accounts_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      account_balance_history: {
+        Row: {
+          sequence_no: number;
+          user_id: string;
+          account_id: string;
+          change_kind: AccountBalanceHistoryKind;
+          delta: number;
+          balance: number;
+          description: string;
+          transaction_id: string | null;
+          changed_at: string;
+          recorded_at: string;
+        };
+        Insert: {
+          sequence_no?: number;
+          user_id: string;
+          account_id: string;
+          change_kind: AccountBalanceHistoryKind;
+          delta: number;
+          balance: number;
+          description: string;
+          transaction_id?: string | null;
+          changed_at: string;
+          recorded_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['account_balance_history']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'account_balance_history_account_id_fkey';
+            columns: ['account_id'];
+            isOneToOne: false;
+            referencedRelation: 'accounts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'account_balance_history_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
@@ -568,6 +621,8 @@ export type MonthlyFlow = Database['public']['Views']['monthly_flow']['Row'];
 export type CategorySpending = Database['public']['Views']['category_month_spending']['Row'];
 
 export type Account = Database['public']['Tables']['accounts']['Row'];
+export type AccountBalanceHistory =
+  Database['public']['Tables']['account_balance_history']['Row'];
 export type CreditCard = Database['public']['Tables']['credit_cards']['Row'];
 export type AccountBalance = Database['public']['Views']['account_balances']['Row'];
 export type CardStatement = Database['public']['Views']['card_statements']['Row'];
