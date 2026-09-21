@@ -112,6 +112,10 @@ export function createSupabaseMock({
         call.filters.push({ kind: 'lte', column, value });
         return chain;
       },
+      lt(column: string, value: unknown) {
+        call.filters.push({ kind: 'lt', column, value });
+        return chain;
+      },
       ilike(column: string, value: unknown) {
         call.filters.push({ kind: 'ilike', column, value });
         return chain;
