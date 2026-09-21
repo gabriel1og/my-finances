@@ -4,6 +4,8 @@ import {
   formatCompact,
   formatCurrency,
   formatDate,
+  formatTimestampDate,
+  formatTimestampDateTime,
   formatMonthLabel,
   formatMonthLong,
   formatMonthShort,
@@ -36,6 +38,19 @@ describe('formatDate', () => {
     // voltaria um dia.
     expect(formatDate('2026-01-01')).toBe('01/01/2026');
     expect(formatDate('2026-12-31T00:00:00Z')).toBe('31/12/2026');
+  });
+});
+
+describe('formatTimestampDate', () => {
+  it('mostra a data civil de São Paulo para um instante UTC', () => {
+    expect(formatTimestampDate('2026-09-21T01:30:00Z')).toBe('20/09/2026');
+    expect(formatTimestampDate('2026-09-21T12:00:00Z')).toBe('21/09/2026');
+  });
+});
+
+describe('formatTimestampDateTime', () => {
+  it('mostra data e hora no fuso de São Paulo', () => {
+    expect(formatTimestampDateTime('2026-09-21T01:30:00Z')).toBe('20/09/2026 às 22:30');
   });
 });
 

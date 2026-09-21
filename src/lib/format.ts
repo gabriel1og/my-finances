@@ -20,6 +20,27 @@ export function formatDate(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
+/** Formata um instante na data civil de São Paulo, sem risco de exibir D-1. */
+export function formatTimestampDate(iso: string): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date(iso));
+}
+
+/** Data e hora civis de São Paulo para eventos registrados como instante UTC. */
+export function formatTimestampDateTime(iso: string): string {
+  const time = new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date(iso));
+  return `${formatTimestampDate(iso)} às ${time}`;
+}
+
 export function formatMonthLabel(iso: string): string {
   const date = new Date(`${iso.slice(0, 7)}-01T12:00:00`);
   return new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(date).replace('.', '');

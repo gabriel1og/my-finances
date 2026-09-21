@@ -47,6 +47,16 @@ describe('Modal — semântica', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('usa painel lateral no desktop quando placement é drawer', () => {
+    renderWithProviders(
+      <Modal open onClose={vi.fn()} title="Histórico" placement="drawer">
+        <p>Alterações</p>
+      </Modal>,
+    );
+
+    expect(screen.getByRole('dialog')).toHaveClass('sm:h-full', 'sm:max-w-md', 'sm:rounded-none');
+  });
 });
 
 describe('Modal — foco', () => {
