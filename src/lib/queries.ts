@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
 import { monthRange } from '@/lib/format';
-import { paymentStatementMonth } from '@/lib/statements';
 import type {
   AccountBalance,
   AccountMonthTotals,
@@ -166,6 +165,10 @@ export async function getCards(includeArchived = false) {
 /** Faturas de um mês específico (o mês da fatura, não o da compra). */
 export async function getCardStatements(month: string) {
   const supabase = await createClient();
+  const { error: cycleError } = await supabase.rpc('ensure_statement_month', {
+    p_month: `${month.slice(0, 7)}-01`,
+  });
+  if (cycleError) throw cycleError;
   const { data, error } = await supabase
     .from('card_statements')
     .select('*')
@@ -200,6 +203,10 @@ export async function getCard(id: string) {
 /** A fatura de um cartão num mês. null quando a view ainda não tem a linha. */
 export async function getCardStatement(cardId: string, month: string) {
   const supabase = await createClient();
+  const { error: cycleError } = await supabase.rpc('ensure_statement_month', {
+    p_month: `${month.slice(0, 7)}-01`,
+  });
+  if (cycleError) throw cycleError;
   const { data, error } = await supabase
     .from('card_statements')
     .select('*')
@@ -246,30 +253,30 @@ export async function getStatementTransactions(cardId: string, month: string) {
 /**
  * Pagamentos registrados para a fatura do mês informado.
  *
- * O filtro do mês acontece aqui, e não no `.eq()`: desde a 0018 quem manda é
- * `card_payment_month`, mas lançamentos importados antes dela têm a coluna
- * nula e a view cai no mês deduzido da data. `paymentStatementMonth()` é o
- * espelho dessa mesma regra — sem ele, um pagamento antigo apareceria como
- * "sem pagamento" numa fatura que a view mostra como paga.
+ * A identidade persistida é compartilhada com a view. Não inferir o vínculo
+ * pela data do pagamento ou pelos dias atuais do cartão.
  */
 export async function getStatementPayments(card: CreditCard, month: string) {
   const supabase = await createClient();
+  const { data: cycle, error: cycleError } = await supabase
+    .from('statement_cycles')
+    .select('id')
+    .eq('card_id', card.id)
+    .eq('statement_month', `${month.slice(0, 7)}-01`)
+    .maybeSingle();
+  if (cycleError) throw cycleError;
+  if (!cycle) return [];
   const { data, error } = await supabase
     .from('transactions')
     .select(TRANSACTION_SELECT)
     .eq('card_payment_for', card.id)
     .eq('is_card_payment', true)
+    .eq('statement_id', cycle.id)
     .order('date', { ascending: false });
 
   if (error) throw error;
 
-  const target = `${month.slice(0, 7)}-01`;
-  return ((data ?? []) as unknown as TransactionWithCategory[]).filter((payment) => {
-    const statement =
-      payment.card_payment_month?.slice(0, 10) ??
-      paymentStatementMonth(payment.date, card.closing_day);
-    return statement === target;
-  });
+  return (data ?? []) as unknown as TransactionWithCategory[];
 }
 
 export async function getTags() {

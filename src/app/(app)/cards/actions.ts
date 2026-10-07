@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidateFinance } from '@/lib/cache';
+import type { Json } from '@/types/database.types';
 
 export type CardInput = {
   name: string;
@@ -11,6 +12,8 @@ export type CardInput = {
   creditLimit: number;
   closingDay: number;
   dueDay: number;
+  effectiveMonth?: string;
+  ruleFingerprint?: string;
 };
 
 type Result = { error: string | null };
@@ -72,18 +75,16 @@ export async function updateCard(id: string, input: CardInput): Promise<Result> 
   if (invalid) return { error: invalid };
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from('credit_cards')
-    .update({
-      account_id: input.accountId,
-      name: input.name.trim(),
-      brand: input.brand?.trim() || null,
-      color: input.color,
-      credit_limit: input.creditLimit,
-      closing_day: input.closingDay,
-      due_day: input.dueDay,
-    })
-    .eq('id', id);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: 'Sessão expirada.' };
+  const { error } = await supabase.rpc('update_card_with_rule', {
+    p_card: id,
+    p_input: input as unknown as Json,
+    p_effective_month: input.effectiveMonth ?? null,
+    p_fingerprint: input.ruleFingerprint ?? null,
+  });
 
   if (error) {
     return { error: error.code === '23505' ? 'Já existe um cartão com esse nome.' : error.message };
@@ -138,6 +139,7 @@ export async function deleteCard(id: string): Promise<Result> {
 export async function payStatement(input: {
   cardId: string;
   statementMonth: string;
+  statementId?: string;
   amount: number;
   date: string;
 }): Promise<Result> {
@@ -179,6 +181,7 @@ export async function payStatement(input: {
     // Qual fatura está sendo paga — a data do pagamento não diz isso, já que
     // a fatura vence no mês seguinte.
     card_payment_month: `${input.statementMonth.slice(0, 7)}-01`,
+    ...(input.statementId ? { statement_id: input.statementId } : {}),
     category_id: null,
   });
 

@@ -16,7 +16,7 @@ import { vi } from 'vitest';
 
 export type RecordedCall = {
   table: string;
-  op: 'select' | 'insert' | 'upsert' | 'update' | 'delete';
+  op: 'select' | 'insert' | 'upsert' | 'update' | 'delete' | 'rpc';
   payload?: unknown;
   filters: Array<{ kind: string; column: string; value: unknown }>;
   single?: boolean;
@@ -96,6 +96,10 @@ export function createSupabaseMock({
         call.filters.push({ kind: 'eq', column, value });
         return chain;
       },
+      is(column: string, value: unknown) {
+        call.filters.push({ kind: 'is', column, value });
+        return chain;
+      },
       neq(column: string, value: unknown) {
         call.filters.push({ kind: 'neq', column, value });
         return chain;
@@ -152,6 +156,11 @@ export function createSupabaseMock({
   }
 
   const client = {
+    rpc(name: string, payload: unknown) {
+      const call: RecordedCall = { table: name, op: 'rpc', payload, filters: [] };
+      calls.push(call);
+      return builder(call);
+    },
     from(table: string) {
       const call: RecordedCall = { table, op: 'select', filters: [] };
       calls.push(call);
