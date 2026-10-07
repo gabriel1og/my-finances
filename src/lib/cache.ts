@@ -15,6 +15,7 @@ import { revalidatePath } from 'next/cache';
  * aqui.
  */
 export const FINANCE_ROUTES = [
+  '/assistant',
   '/dashboard',
   '/transactions',
   '/accounts',

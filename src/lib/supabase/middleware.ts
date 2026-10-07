@@ -56,6 +56,12 @@ export async function updateSession(request: NextRequest) {
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 
   if (!user && !isPublic) {
+    if (pathname.startsWith('/api/assistant/')) {
+      return NextResponse.json(
+        { code: 'unauthorized', message: 'Sua sessão expirou. Entre novamente.' },
+        { status: 401, headers: { 'Cache-Control': 'private, no-store' } },
+      );
+    }
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
@@ -93,7 +99,12 @@ function expire(request: NextRequest) {
   url.pathname = '/login';
   url.search = '?expired=1';
 
-  const redirect = NextResponse.redirect(url);
+  const redirect = request.nextUrl.pathname.startsWith('/api/assistant/')
+    ? NextResponse.json(
+        { code: 'unauthorized', message: 'Sua sessão expirou. Entre novamente.' },
+        { status: 401, headers: { 'Cache-Control': 'private, no-store' } },
+      )
+    : NextResponse.redirect(url);
   for (const cookie of request.cookies.getAll()) {
     if (cookie.name.startsWith('sb-')) redirect.cookies.delete({ name: cookie.name, path: '/' });
   }

@@ -3,6 +3,8 @@
 App desktop web de finanças pessoais com lançamento 100% manual (sem integração bancária).
 Referências: YNAB (orçamento base zero) + Organizze (UX limpa).
 
+O assistente de IA está disponível em `/assistant`. Consulte [configuração, contratos e validação](docs/assistant.md).
+
 ## Stack
 
 Next.js 15 (App Router) · TypeScript · Supabase (auth + Postgres + RLS) · Tailwind CSS · Recharts · Deploy na Vercel.

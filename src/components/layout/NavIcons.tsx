@@ -186,6 +186,7 @@ export function TrashIcon(props: IconProps) {
 }
 
 export const NAV_ICONS: Record<string, (props: IconProps) => React.ReactElement> = {
+  '/assistant': AssistantIcon,
   '/dashboard': DashboardIcon,
   '/transactions': TransactionsIcon,
   '/accounts': AccountsIcon,
@@ -196,3 +197,12 @@ export const NAV_ICONS: Record<string, (props: IconProps) => React.ReactElement>
   '/reports': ReportsIcon,
   '/settings': SettingsIcon,
 };
+
+function AssistantIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 5h16v12H9l-5 4V5Z" />
+      <path d="M8 9h8M8 13h5" />
+    </svg>
+  );
+}

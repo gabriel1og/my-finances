@@ -34,6 +34,14 @@ export const DEFAULT_REPORT_RANGE = 12;
  */
 export const NAV_ITEMS = [
   {
+    href: '/assistant',
+    label: 'Assistente IA',
+    title: 'Assistente IA',
+    subtitle: 'Converse sobre seus dados financeiros',
+    section: 'menu',
+    monthAware: true,
+  },
+  {
     href: '/dashboard',
     label: 'Dashboard',
     title: 'Dashboard',
