@@ -42,12 +42,13 @@ describe('assistant projections', () => {
     const fake = new FakeProjectionDatabase({
       responses: {
         'card_statements.select': {
+          // Sem pagamentos parciais: este cenário isola a deduplicação de recorrências.
           data: [
             {
               card_id: 'card',
               statement_month: '2026-10-01',
               due_date: '2026-10-10',
-              total: 250,
+              total: 200,
               open_amount: 200,
             },
             {
