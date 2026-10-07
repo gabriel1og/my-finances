@@ -17,6 +17,27 @@ export type TransactionType = 'income' | 'expense';
 export type AccountKind = 'checking' | 'savings' | 'cash' | 'investment';
 export type SettlementKind = 'account' | 'card';
 export type PaymentMethod = 'debit' | 'pix' | 'cash' | 'transfer' | 'boleto' | 'credit';
+export type StatementCycle = {
+  id: string;
+  user_id: string;
+  card_id: string;
+  statement_month: string;
+  period_start: string;
+  closing_date: string;
+  due_date: string;
+  merged_into: string | null;
+  is_adjusted: boolean;
+};
+export type StatementAdjustmentHistory = {
+  id: string;
+  user_id: string;
+  card_id: string;
+  operation: string;
+  reason: string;
+  before_state: Json;
+  after_state: Json;
+  created_at: string;
+};
 export type AccountBalanceHistoryKind =
   | 'account_created'
   | 'opening_balance_updated'
@@ -29,6 +50,36 @@ export type AccountBalanceHistoryKind =
 export interface Database {
   public: {
     Tables: {
+      statement_cycles: { Row: StatementCycle; Insert: never; Update: never; Relationships: [] };
+      statement_adjustments: { Row: StatementAdjustmentHistory; Insert: never; Update: never; Relationships: [] };
+      card_billing_rules: {
+        Row: { id: string; user_id: string; card_id: string; effective_month: string; closing_day: number; due_day: number; created_at: string };
+        Insert: never; Update: never; Relationships: [];
+      };
+      assistant_usage: {
+        Row: { user_id: string; usage_day: string; completed: number };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      assistant_conversations: {
+        Row: { id: string; user_id: string; title: string; created_at: string; updated_at: string };
+        Insert: { id?: string; user_id: string; title: string };
+        Update: { title?: string };
+        Relationships: [];
+      };
+      assistant_messages: {
+        Row: { id: number; conversation_id: string; user_id: string; request_id: string; role: 'user' | 'assistant'; content: Json; created_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      assistant_executions: {
+        Row: { user_id: string; request_id: string; conversation_id: string; message: string; selected_month: string; usage_day: string; status: string; lease_id: string; expires_at: string; response: Json };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -114,6 +165,8 @@ export interface Database {
           is_card_payment: boolean;
           card_payment_for: string | null;
           card_payment_month: string | null;
+          statement_id: string | null;
+          statement_manual: boolean;
           recurring_id: string | null;
           recurring_month: string | null;
           installment_group: string | null;
@@ -140,6 +193,8 @@ export interface Database {
           is_card_payment?: boolean;
           card_payment_for?: string | null;
           card_payment_month?: string | null;
+          statement_id?: string | null;
+          statement_manual?: boolean;
           recurring_id?: string | null;
           recurring_month?: string | null;
           installment_group?: string | null;
@@ -510,6 +565,7 @@ export interface Database {
       };
       card_statement_items: {
         Row: {
+          statement_id: string;
           user_id: string;
           card_id: string;
           statement_month: string;
@@ -570,6 +626,11 @@ export interface Database {
       };
       card_statements: {
         Row: {
+          statement_id: string;
+          period_start: string;
+          is_adjusted: boolean;
+          merged_into: string | null;
+          merged_into_month: string | null;
           user_id: string;
           card_id: string;
           name: string;
@@ -603,7 +664,25 @@ export interface Database {
       };
     };
     Functions: {
-      [_ in never]: never;
+      statement_adjustment: { Args: { p_change: Json; p_fingerprint?: string | null }; Returns: Json };
+      ensure_statement_month: { Args: { p_month: string }; Returns: undefined };
+      update_card_with_rule: { Args: { p_card: string; p_input: Json; p_effective_month?: string | null; p_fingerprint?: string | null }; Returns: undefined };
+      assistant_delete: {
+        Args: { p_conversation_id: string };
+        Returns: string;
+      };
+      assistant_reserve: {
+        Args: { p_conversation_id: string; p_request_id: string; p_message: string; p_selected_month: string };
+        Returns: Json;
+      };
+      assistant_finish: {
+        Args: { p_request_id: string; p_lease_id: string; p_response: Json };
+        Returns: boolean;
+      };
+      assistant_transaction_totals: {
+        Args: { p_start: string; p_end: string; p_category_id: string | null; p_account_id: string | null; p_card_id: string | null; p_tag_id: string | null; p_search: string | null };
+        Returns: Json;
+      };
     };
     Enums: {
       transaction_type: TransactionType;
