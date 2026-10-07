@@ -3,7 +3,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { buildForecast, monthSequence } from '@/lib/forecast';
 import { currentMonth } from '@/lib/format';
-import { getPostedRecurringIds, getRecurring, getUpcomingStatements } from '@/lib/queries';
+import { getPostedRecurringIds, getRecurring } from '@/lib/queries';
+import { getStatementsDue } from '@/lib/statement-queries';
 
 const MONTHS_AHEAD = 6;
 
@@ -15,7 +16,7 @@ export default async function ForecastPage({
   const { month = currentMonth() } = await searchParams;
 
   const [statements, recurring, posted] = await Promise.all([
-    getUpcomingStatements(month, MONTHS_AHEAD),
+    getStatementsDue(month, MONTHS_AHEAD),
     getRecurring(),
     getPostedRecurringIds(month),
   ]);
@@ -49,7 +50,7 @@ export default async function ForecastPage({
         <KpiCard
           label="Faturas de cartão"
           value={totalCards}
-          subtitle="Compras e parcelas já feitas"
+          subtitle="Saldo a pagar por mês de vencimento"
         />
         <KpiCard
           label="Fixos previstos"
@@ -74,8 +75,8 @@ export default async function ForecastPage({
       )}
 
       <p className="mt-4 text-2xs text-textMuted">
-        Faturas vêm de compras já registradas — parcela futura é transação real com data futura, não
-        estimativa. Fixos são previsão: o valor pode mudar na hora de lançar.
+        Faturas mostram o saldo a pagar no mês do vencimento real, descontando pagamentos
+        registrados. Fixos são previsão: o valor pode mudar na hora de lançar.
       </p>
     </>
   );

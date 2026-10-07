@@ -44,7 +44,10 @@ export function ForecastMonthCard({
       <div className="mt-3 space-y-1.5">
         {data.statements.length ? (
           data.statements.map((statement) => (
-            <div key={statement.card_id} className="flex items-center justify-between">
+            <div
+              key={statement.statement_id ?? `${statement.card_id}-${statement.statement_month}`}
+              className="flex items-center justify-between"
+            >
               <span className="flex items-center gap-2 text-xs text-textSecondary">
                 <span
                   className="h-1.5 w-1.5 rounded-full"
@@ -55,7 +58,9 @@ export function ForecastMonthCard({
                   venc. {formatDate(statement.due_date)}
                 </span>
               </span>
-              <span className="num text-xs text-textPrimary">{money(Number(statement.total))}</span>
+              <span className="num text-xs text-textPrimary">
+                {money(Math.max(Number(statement.open_amount), 0))}
+              </span>
             </div>
           ))
         ) : (
