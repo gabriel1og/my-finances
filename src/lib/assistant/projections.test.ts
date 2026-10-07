@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSupabaseMock } from '@/test/supabaseMock';
+import { createSupabaseMock, type RecordedCall } from '@/test/supabaseMock';
 import { budgets, forecast } from './projections';
 import { parseFinancialQuery, type AssistantDatabase } from './tools';
 
@@ -16,12 +16,22 @@ const query = {
 };
 class FakeProjectionDatabase {
   readonly db: AssistantDatabase;
+  readonly calls: RecordedCall[];
   constructor(responses: Parameters<typeof createSupabaseMock>[0]) {
     const fake = createSupabaseMock(responses);
+    this.calls = fake.calls;
     this.db = {
       from: (table: string) => {
         const builder = fake.client.from(table);
-        Object.assign(builder, { abortSignal: () => builder, not: () => builder });
+        const call = fake.calls[fake.calls.length - 1];
+        Object.assign(builder, {
+          abortSignal: () => builder,
+          not: () => builder,
+          is: (column: string, value: unknown) => {
+            call.filters.push({ kind: 'is', column, value });
+            return builder;
+          },
+        });
         return builder;
       },
     } as unknown as AssistantDatabase;
@@ -74,6 +84,11 @@ describe('assistant projections', () => {
     expect(result.estimate).toBe(true);
     expect(result.months.map((row) => row.committed)).toEqual([200, 150]);
     expect(result.months.map((row) => row.recurringExpense)).toEqual([0, 50]);
+    expect(fake.calls.find((call) => call.table === 'card_statements')?.filters).toContainEqual({
+      kind: 'is',
+      column: 'merged_into',
+      value: null,
+    });
   });
   it('uses monthly override and rollover, including a month with no spending row', async () => {
     const fake = new FakeProjectionDatabase({
