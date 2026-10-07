@@ -19,6 +19,7 @@ export function PayStatementForm({
   card,
   account,
   month,
+  statementId,
   suggested,
   onDone,
   onCancel,
@@ -26,6 +27,7 @@ export function PayStatementForm({
   card: CreditCard;
   account?: Account;
   month: string;
+  statementId?: string;
   suggested: number;
   onDone: () => void;
   onCancel: () => void;
@@ -41,6 +43,7 @@ export function PayStatementForm({
       const result = await payStatement({
         cardId: card.id,
         statementMonth: month,
+        statementId,
         amount: Number(amount.replace(',', '.') || '0'),
         date,
       });
