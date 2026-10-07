@@ -45,14 +45,14 @@ describe('assistant projections', () => {
           data: [
             {
               card_id: 'card',
-              statement_month: '2026-09-01',
+              statement_month: '2026-10-01',
               due_date: '2026-10-10',
               total: 250,
               open_amount: 200,
             },
             {
               card_id: 'card',
-              statement_month: '2026-10-01',
+              statement_month: '2026-11-01',
               due_date: '2026-11-10',
               total: 100,
               open_amount: 100,
