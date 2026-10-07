@@ -7,6 +7,9 @@
  *
  * Se a regra mudar no SQL, mude aqui também: os testes cobrem os dois lados do
  * limite (véspera do fechamento e dia do fechamento).
+ * Após a migration 0021, estas funções descrevem apenas a regra mensal
+ * original. Ciclos reais e pagamentos são resolvidos pelo banco; a UI não
+ * deve usar estes cálculos para inferir uma fatura histórica ou ajustada.
  */
 
 function lastDayOfMonth(year: number, monthIndex: number): number {

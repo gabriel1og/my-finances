@@ -8,7 +8,6 @@ import { PayStatementForm } from '@/components/cards/PayStatementForm';
 import { UpcomingStatements } from '@/components/cards/UpcomingStatements';
 import { archiveCard, deleteCard, restoreCard } from '@/app/(app)/cards/actions';
 import { formatDate } from '@/lib/format';
-import { dueDateFor } from '@/lib/statements';
 import { useMoney } from '@/lib/currency';
 import type { Account, CardStatement, CardStatementItem, CreditCard } from '@/types/database.types';
 
@@ -38,12 +37,12 @@ export function CardPanel({
   const open = statement ? Number(statement.open_amount) : 0;
   const usedPct = card.credit_limit > 0 ? (total / Number(card.credit_limit)) * 100 : 0;
 
-  // Sem linha na view ainda: a regra mora em lib/statements, espelhando a
-  // migration 0017. Não recalcular aqui.
-  const dueDate = statement?.due_date ?? dueDateFor(month, card.due_day);
+  // Dates belong to the persisted cycle; current card settings cannot infer history.
+  const dueDate = statement?.due_date;
 
   const account = accounts.find((item) => item.id === card.account_id);
-  const statementHref = `/cards/${card.id}?month=${month.slice(0, 7)}-01` as Route;
+  const statementHref =
+    `/cards/${card.id}?month=${statement?.merged_into_month ?? `${month.slice(0, 7)}-01`}` as Route;
 
   function run(action: () => Promise<{ error: string | null }>) {
     setError(null);
@@ -69,12 +68,32 @@ export function CardPanel({
 
         <div className="text-right">
           <p className="num text-2xs text-textMuted">
-            fecha dia {card.closing_day} · vence dia {card.due_day}
+            regra mensal: fecha dia {card.closing_day} · vence dia {card.due_day}
           </p>
-          <p className="num text-2xs text-textSecondary">venc. {formatDate(dueDate)}</p>
+          <p className="num text-2xs text-textSecondary">
+            venc. {dueDate ? formatDate(dueDate) : '—'}
+          </p>
         </div>
       </div>
 
+      {statement?.merged_into_month ? (
+        <p className="mt-3 text-xs text-warning">
+          Fatura incorporada em {statement.merged_into_month.slice(0, 7)}.{' '}
+          <Link href={statementHref} className="text-accent">
+            Ver fatura resultante
+          </Link>
+        </p>
+      ) : (
+        statement && (
+          <p className="mt-2 text-2xs text-textMuted">
+            Período: {formatDate(statement.period_start)} até {formatDate(statement.closing_date)}
+            {statement.is_adjusted ? ' · Ajustada' : ''}
+          </p>
+        )
+      )}
+      {open < 0 && (
+        <p className="mt-2 text-xs text-income">Crédito nesta fatura: {money(Math.abs(open))}</p>
+      )}
       <div className="mt-4 flex items-baseline justify-between">
         <span className="label-caps">Fatura do mês</span>
         <span className={`num text-xl tracking-tight ${open > 0 ? 'text-expense' : 'text-income'}`}>
@@ -150,6 +169,7 @@ export function CardPanel({
             card={card}
             account={account}
             month={month}
+            statementId={statement?.statement_id}
             suggested={open > 0 ? open : total}
             onDone={() => setPaying(false)}
             onCancel={() => setPaying(false)}

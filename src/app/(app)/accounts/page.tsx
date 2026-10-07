@@ -5,7 +5,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { PageActions } from '@/components/ui/PageActions';
 import { currentMonth } from '@/lib/format';
-import { getAccountBalances, getAccounts, getCardStatements, getCards } from '@/lib/queries';
+import { getAccountBalances, getAccounts, getCards } from '@/lib/queries';
+import { getCardCommitmentsForMonth } from '@/lib/statement-queries';
 
 export default async function AccountsPage({
   searchParams,
@@ -18,11 +19,13 @@ export default async function AccountsPage({
     getAccounts(true),
     getAccountBalances(),
     getCards(true),
-    getCardStatements(month),
+    getCardCommitmentsForMonth(month),
   ]);
 
   const balanceById = new Map(balances.map((row) => [row.account_id, Number(row.balance)]));
-  const openByCard = new Map(statements.map((row) => [row.card_id, Number(row.open_amount)]));
+  const openByCard = new Map(
+    statements.map((row) => [row.card_id, Math.max(Number(row.open_amount), 0)]),
+  );
 
   const active = accounts.filter((account) => !account.is_archived);
   const archived = accounts.filter((account) => account.is_archived);

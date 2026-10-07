@@ -29,6 +29,8 @@ export function recurringAppliesTo(item: RecurringWithRelations, month: string):
 /**
  * Junta o que já está comprometido em cada mês: faturas de cartão (que já
  * contêm as parcelas futuras) e os lançamentos fixos previstos.
+ * Faturas são agrupadas pelo vencimento real, descontando pagamentos;
+ * ciclos incorporados e créditos não geram novos compromissos.
  *
  * `postedRecurringIds` evita contar duas vezes um fixo já lançado — só faz
  * sentido no mês corrente, já que nos futuros nada foi lançado ainda.
@@ -46,9 +48,15 @@ export function buildForecast({
 }): ForecastMonth[] {
   return months.map((month) => {
     const monthStatements = statements.filter(
-      (row) => row.statement_month.slice(0, 7) === month.slice(0, 7),
+      (row) =>
+        !row.merged_into &&
+        Number(row.open_amount) > 0 &&
+        row.due_date.slice(0, 7) === month.slice(0, 7),
     );
-    const cardTotal = monthStatements.reduce((sum, row) => sum + Number(row.total), 0);
+    const cardTotal = monthStatements.reduce(
+      (sum, row) => sum + Math.max(Number(row.open_amount), 0),
+      0,
+    );
 
     const applicable = recurring.filter(
       (item) => recurringAppliesTo(item, month) && !postedRecurringIds.has(item.id),
@@ -96,7 +104,7 @@ export function upcomingStatementsByCard(
 
   for (const row of statements) {
     const month = `${row.statement_month.slice(0, 7)}-01`;
-    if (!wanted.has(month) || Number(row.total) <= 0) continue;
+    if (!wanted.has(month) || row.merged_into || Number(row.total) <= 0) continue;
 
     const list = grouped.get(row.card_id) ?? [];
     list.push(row);

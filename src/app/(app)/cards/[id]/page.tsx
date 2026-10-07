@@ -6,8 +6,9 @@ import { Money } from '@/lib/currency';
 import { StatementCategories } from '@/components/cards/StatementCategories';
 import { StatementItems } from '@/components/cards/StatementItems';
 import { StatementPayPanel } from '@/components/cards/StatementPayPanel';
+import { StatementAdjustmentModal } from '@/components/cards/StatementAdjustmentModal';
+import { getStatementAdjustments } from '@/lib/statement-queries';
 import { currentMonth, formatDate, formatMonthLong } from '@/lib/format';
-import { dayInMonth, dueDateFor } from '@/lib/statements';
 import {
   getAccounts,
   getCard,
@@ -42,15 +43,35 @@ export default async function CardStatementPage({
   const card = await getCard(id);
   if (!card) notFound();
 
-  const [accounts, statement, transactions, payments, categories, cards, tags] = await Promise.all([
-    getAccounts(true),
-    getCardStatement(card.id, month),
-    getStatementTransactions(card.id, month),
-    getStatementPayments(card, month),
-    getCategories(),
-    getCards(true),
-    getTags(),
-  ]);
+  const [accounts, statement, transactions, payments, categories, cards, tags, adjustments] =
+    await Promise.all([
+      getAccounts(true),
+      getCardStatement(card.id, month),
+      getStatementTransactions(card.id, month),
+      getStatementPayments(card, month),
+      getCategories(),
+      getCards(true),
+      getTags(),
+      getStatementAdjustments(card.id),
+    ]);
+  if (!statement) notFound();
+
+  if (statement?.merged_into_month)
+    return (
+      <section className="card space-y-3">
+        <h1 className="text-lg">Fatura de {formatMonthLong(month)} incorporada</h1>
+        <p className="text-sm text-textSecondary">
+          As compras e os pagamentos deste ciclo foram reunidos na fatura de{' '}
+          {formatMonthLong(statement.merged_into_month)}.
+        </p>
+        <Link
+          className="btn-primary inline-block"
+          href={`/cards/${card.id}?month=${statement.merged_into_month}` as Route}
+        >
+          Ver fatura resultante
+        </Link>
+      </section>
+    );
 
   const account = accounts.find((item) => item.id === card.account_id);
 
@@ -58,9 +79,8 @@ export default async function CardStatementPage({
   const paid = statement ? Number(statement.paid) : 0;
   const open = statement ? Number(statement.open_amount) : total - paid;
 
-  const dueDate = statement?.due_date ?? dueDateFor(month, card.due_day);
-  const closingDate =
-    statement?.closing_date ?? dayInMonth(`${month.slice(0, 7)}-01`, card.closing_day);
+  const dueDate = statement.due_date;
+  const closingDate = statement.closing_date;
   const overdue = open > 0 && dueDate < new Date().toISOString().slice(0, 10);
 
   const status =
@@ -70,7 +90,10 @@ export default async function CardStatementPage({
         ? overdue
           ? { label: 'Vencida', className: 'border-expense/40 bg-expenseDim text-expense' }
           : { label: 'Em aberto', className: 'border-warning/40 bg-warningDim text-warning' }
-        : { label: 'Paga', className: 'border-income/40 bg-incomeDim text-income' };
+        : {
+            label: open < 0 ? 'Com crédito' : 'Paga',
+            className: 'border-income/40 bg-incomeDim text-income',
+          };
 
   const backHref = `/cards?month=${month.slice(0, 7)}-01` as Route;
 
@@ -108,11 +131,32 @@ export default async function CardStatementPage({
           <p className="num mt-0.5 text-2xs text-textMuted">
             fecha em {formatDate(closingDate)} · vence em {formatDate(dueDate)}
           </p>
+          {statement && (
+            <p className="mt-1 text-xs text-textSecondary">
+              Período: {formatDate(statement.period_start)} até {formatDate(closingDate)}{' '}
+              (fechamento exclusivo){statement.is_adjusted ? ' · Ajustada' : ''}
+            </p>
+          )}
         </div>
 
-        {open > 0 ? (
-          <StatementPayPanel card={card} account={account} month={month} suggested={open} />
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {statement && (
+            <StatementAdjustmentModal
+              card={card}
+              statement={statement}
+              transactions={transactions}
+            />
+          )}
+          {open > 0 && (
+            <StatementPayPanel
+              card={card}
+              account={account}
+              month={month}
+              statementId={statement?.statement_id}
+              suggested={open}
+            />
+          )}
+        </div>
       </header>
 
       <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -134,10 +178,16 @@ export default async function CardStatementPage({
           }
         />
         <KpiCard
-          label="Em aberto"
-          value={open}
+          label={open < 0 ? 'Crédito nesta fatura' : 'Em aberto'}
+          value={Math.abs(open)}
           tone={open > 0 ? 'expense' : 'income'}
-          subtitle={open > 0 ? `Vence em ${formatDate(dueDate)}` : 'Fatura quitada'}
+          subtitle={
+            open > 0
+              ? `Vence em ${formatDate(dueDate)}`
+              : open < 0
+                ? 'Sem transferência automática para outra fatura'
+                : 'Fatura quitada'
+          }
         />
       </section>
 
@@ -154,6 +204,23 @@ export default async function CardStatementPage({
 
         <aside className="space-y-4">
           <StatementCategories transactions={transactions} />
+          {adjustments.length > 0 && (
+            <section className="card">
+              <h2 className="label-caps">Histórico de ajustes do cartão</h2>
+              <ul className="mt-2 space-y-2 text-xs">
+                {adjustments.map((entry) => (
+                  <li key={entry.id}>
+                    <time dateTime={entry.created_at}>
+                      {new Date(entry.created_at).toLocaleString('pt-BR', {
+                        timeZone: 'America/Sao_Paulo',
+                      })}
+                    </time>
+                    <p className="text-textSecondary">{entry.reason}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section className="card">
             <h2 className="label-caps">Pagamentos</h2>

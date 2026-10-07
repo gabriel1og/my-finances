@@ -13,11 +13,13 @@ export function StatementPayPanel({
   card,
   account,
   month,
+  statementId,
   suggested,
 }: {
   card: CreditCard;
   account?: Account;
   month: string;
+  statementId?: string;
   suggested: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -36,6 +38,7 @@ export function StatementPayPanel({
         card={card}
         account={account}
         month={month}
+        statementId={statementId}
         suggested={suggested}
         onDone={() => setOpen(false)}
         onCancel={() => setOpen(false)}

@@ -5,6 +5,11 @@ import { Modal, ModalTrigger } from '@/components/ui/Modal';
 import { CATEGORY_PALETTE } from '@/lib/constants';
 import { createCard, updateCard } from '@/app/(app)/cards/actions';
 import type { Account, CreditCard } from '@/types/database.types';
+import { cardRuleChange, type StatementPreview } from '@/lib/statement-adjustments';
+import { previewStatementChange } from '@/app/(app)/cards/statement-actions';
+import { StatementAdjustmentReview } from './StatementAdjustmentReview';
+import { currentMonth } from '@/lib/format';
+import { MonthField } from '@/components/ui/MonthField';
 
 const DAYS = Array.from({ length: 31 }, (_, index) => index + 1);
 
@@ -28,6 +33,9 @@ export function CardFormModal({
   );
   const [closingDay, setClosingDay] = useState(card?.closing_day ?? 1);
   const [dueDay, setDueDay] = useState(card?.due_day ?? 10);
+  const [effectiveMonth, setEffectiveMonth] = useState(currentMonth());
+  const [rulePreview, setRulePreview] = useState<StatementPreview | null>(null);
+  const daysChanged = Boolean(card && (card.closing_day !== closingDay || card.due_day !== dueDay));
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -41,11 +49,25 @@ export function CardFormModal({
       creditLimit: Number(creditLimit.replace(',', '.') || '0'),
       closingDay,
       dueDay,
+      ...(daysChanged ? { effectiveMonth, ruleFingerprint: rulePreview?.fingerprint } : {}),
     };
 
     startTransition(async () => {
+      if (daysChanged && !rulePreview) {
+        const result = await previewStatementChange(
+          cardRuleChange(card!.id, effectiveMonth, closingDay, dueDay),
+        );
+        setRulePreview(result.preview);
+        setError(result.error);
+        return;
+      }
       const result = editing ? await updateCard(card!.id, input) : await createCard(input);
-      if (result.error) return setError(result.error);
+      if (result.error) {
+        setRulePreview(null);
+        setError(result.error);
+        return;
+      }
+      setRulePreview(null);
       setOpen(false);
       if (!editing) {
         setName('');
@@ -105,7 +127,10 @@ export function CardFormModal({
               <select
                 className="select-base num mt-1"
                 value={closingDay}
-                onChange={(e) => setClosingDay(Number(e.target.value))}
+                onChange={(e) => {
+                  setClosingDay(Number(e.target.value));
+                  setRulePreview(null);
+                }}
               >
                 {DAYS.map((day) => (
                   <option key={day} value={day}>
@@ -119,7 +144,10 @@ export function CardFormModal({
               <select
                 className="select-base num mt-1"
                 value={dueDay}
-                onChange={(e) => setDueDay(Number(e.target.value))}
+                onChange={(e) => {
+                  setDueDay(Number(e.target.value));
+                  setRulePreview(null);
+                }}
               >
                 {DAYS.map((day) => (
                   <option key={day} value={day}>
@@ -130,9 +158,31 @@ export function CardFormModal({
             </div>
           </div>
 
+          {daysChanged && (
+            <div className="space-y-2">
+              <div className="text-xs">
+                <p>Primeiro ciclo da nova regra</p>
+                <MonthField
+                  className="mt-1"
+                  label="Primeiro ciclo da nova regra"
+                  value={effectiveMonth.slice(0, 7)}
+                  onChange={(value) => {
+                    setEffectiveMonth(`${value}-01`);
+                    setRulePreview(null);
+                  }}
+                />
+              </div>
+              <p className="text-xs text-textMuted">
+                Faturas anteriores serão preservadas. Se o banco reuniu meses na transição, use
+                “Ajustar fatura → Reunir faturas” e informe a nova regra nesse ajuste.
+              </p>
+              {rulePreview && <StatementAdjustmentReview preview={rulePreview} />}
+            </div>
+          )}
           <p className="text-2xs text-textMuted">
-            Compras feitas antes do dia {closingDay} entram na fatura do próprio mês; do dia{' '}
-            {closingDay} em diante, na fatura do mês seguinte.
+            A regra mensal fecha no dia {closingDay} e vence no dia {dueDay} do mês seguinte.
+            Compras no dia do fechamento entram no próximo ciclo. A transição preserva o fim do
+            ciclo anterior.
             {closingDay > 28 || dueDay > 28
               ? ' Em meses mais curtos, como fevereiro, vale o último dia do mês.'
               : ''}
@@ -189,7 +239,11 @@ export function CardFormModal({
             Cancelar
           </button>
           <button onClick={submit} disabled={pending} className="btn-primary">
-            {pending ? 'Salvando...' : 'Salvar'}
+            {pending
+              ? 'Calculando...'
+              : daysChanged && !rulePreview
+                ? 'Revisar nova regra'
+                : 'Salvar'}
           </button>
         </div>
       </Modal>

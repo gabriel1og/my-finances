@@ -20,8 +20,8 @@ function statement(
     is_archived: false,
     total: 0,
     paid: 0,
-    open_amount: 0,
-    due_date: '2026-10-10',
+    open_amount: Number(overrides.total ?? 0) - Number(overrides.paid ?? 0),
+    due_date: `${overrides.statement_month.slice(0, 7)}-10`,
     closing_date: '2026-09-28',
     ...overrides,
   } as CardStatement;
@@ -143,6 +143,34 @@ describe('buildForecast', () => {
     });
 
     expect(forecast.map((item) => item.cardTotal)).toEqual([100, 100, 100]);
+  });
+
+  it('adiamento usa o vencimento real e desconta pagamentos sem duplicar ciclos incorporados', () => {
+    const forecast = buildForecast({
+      months,
+      recurring: [],
+      postedRecurringIds: new Set(),
+      statements: [
+        statement({
+          card_id: 'c1',
+          statement_month: '2026-08-01',
+          total: 300,
+          paid: 70,
+          due_date: '2026-11-05',
+        }),
+        statement({
+          card_id: 'c1',
+          statement_month: '2026-09-01',
+          total: 80,
+          merged_into: 'dest',
+          due_date: '2026-09-10',
+        }),
+        statement({ card_id: 'c2', statement_month: '2026-10-01', total: 100, paid: 100 }),
+        statement({ card_id: 'c3', statement_month: '2026-10-01', total: 100, paid: 120 }),
+      ],
+    });
+    expect(forecast.map((item) => item.cardTotal)).toEqual([0, 0, 230]);
+    expect(forecast[2].statements).toHaveLength(1);
   });
 
   it('respeita o fim do modelo ao longo dos meses', () => {
