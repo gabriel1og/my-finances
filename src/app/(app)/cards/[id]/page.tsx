@@ -1,3 +1,4 @@
+import { CardRefundButton } from '@/components/cards/CardRefundButton';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
@@ -84,7 +85,7 @@ export default async function CardStatementPage({
   const overdue = open > 0 && dueDate < new Date().toISOString().slice(0, 10);
 
   const status =
-    total === 0 && paid === 0
+    transactions.length === 0 && paid === 0
       ? { label: 'Sem lançamentos', className: 'border-border text-textMuted' }
       : open > 0
         ? overdue
@@ -140,6 +141,15 @@ export default async function CardStatementPage({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <CardRefundButton
+            cardId={card.id}
+            statementId={statement.statement_id}
+            month={month}
+            categories={categories}
+            accounts={accounts}
+            cards={cards}
+            tags={tags}
+          />
           {statement && (
             <StatementAdjustmentModal
               card={card}
@@ -163,7 +173,12 @@ export default async function CardStatementPage({
         <KpiCard
           label="Total da fatura"
           value={total}
-          subtitle={`${transactions.length} lançamento${transactions.length === 1 ? '' : 's'}`}
+          subtitle={
+            <span className="num">
+              Compras <Money value={Number(statement.purchases_total ?? total)} /> · estornos{' '}
+              <Money value={Number(statement.refund_total ?? 0)} />
+            </span>
+          }
         />
         <KpiCard
           label="Pago"

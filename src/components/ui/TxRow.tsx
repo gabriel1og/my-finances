@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { isCardRefund } from '@/lib/card-refunds';
 import { TransactionModal } from '@/components/ui/AddModal';
 import {
   deleteInstallmentGroup,
@@ -48,6 +49,7 @@ export function TxRow({
   cards = [],
   tags = [],
   showInstallment = false,
+  statementContext = false,
 }: {
   tx: TransactionWithCategory;
   categories?: Category[];
@@ -55,9 +57,11 @@ export function TxRow({
   cards?: CreditCard[];
   tags?: Tag[];
   showInstallment?: boolean;
+  statementContext?: boolean;
 }) {
   const money = useMoney();
   const isIncome = tx.type === 'income';
+  const refund = isCardRefund(tx);
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +91,7 @@ export function TxRow({
   const tone = isIncome ? 'text-income' : 'text-expense';
   // Sinal e valor numa string só, com espaço inquebrável entre eles: soltos, o
   // "−" caía numa linha e o valor na seguinte assim que a coluna apertava.
-  const amount = `${isIncome ? '+' : '−'} ${money(tx.amount)}`;
+  const amount = `${isIncome && !(refund && statementContext) ? '+' : '−'} ${money(tx.amount)}`;
 
   const chips = tx.tags?.length
     ? tx.tags.map((tag) => <TagChip key={tag.id} name={tag.name} color={tag.color} />)
@@ -114,6 +118,7 @@ export function TxRow({
               {tx.description}
             </p>
 
+            {refund && <span className="shrink-0 text-2xs text-income">Estorno</span>}
             {showInstallment && tx.installment_no && tx.installment_total ? (
               <span
                 title={`Parcela ${tx.installment_no} de ${tx.installment_total}`}
@@ -137,6 +142,7 @@ export function TxRow({
                 style={{ backgroundColor: tx.category?.color ?? '#4A5070' }}
               />
               {tx.is_transfer ? 'Transferência' : (tx.category?.name ?? 'Sem categoria')}
+              {refund && tx.related_purchase_id ? ' · Compra referenciada' : ''}
               {tx.card ? ` · ${tx.card.name}` : tx.account ? ` · ${tx.account.name}` : ''}
             </p>
 

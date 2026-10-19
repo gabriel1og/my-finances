@@ -44,6 +44,7 @@ export function UpcomingStatements({
               </span>
               <span className="num text-xs text-textSecondary transition-colors group-hover:text-textPrimary">
                 {money(Number(statement.total))}
+                {Number(statement.total) < 0 ? ' · crédito' : ''}
               </span>
             </Link>
           );

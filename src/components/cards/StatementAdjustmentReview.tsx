@@ -79,7 +79,7 @@ export function StatementAdjustmentReview({ preview }: { preview: StatementPrevi
             const to = preview.after.cycles.find((row) => row.statement_id === tx.statement_id);
             return (
               <li key={tx.id}>
-                {tx.is_card_payment ? 'Pagamento · ' : ''}
+                {tx.is_card_payment ? 'Pagamento · ' : tx.type === 'income' ? 'Estorno · ' : ''}
                 {tx.description} · {formatDate(tx.date)} · {money(Number(tx.amount))} ·{' '}
                 {from?.statement_month.slice(0, 7)} → {to?.statement_month.slice(0, 7)}
               </li>

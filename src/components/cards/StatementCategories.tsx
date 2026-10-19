@@ -1,5 +1,6 @@
 'use client';
 
+import { statementEffect } from '@/lib/card-refunds';
 import { formatPercent } from '@/lib/format';
 import { useMoney } from '@/lib/currency';
 import type { TransactionWithCategory } from '@/types/database.types';
@@ -26,7 +27,7 @@ export function StatementCategories({ transactions }: { transactions: Transactio
       amount: 0,
       count: 0,
     };
-    current.amount += Number(tx.amount);
+    current.amount += statementEffect(tx);
     current.count += 1;
     totals.set(category.id, current);
   }
@@ -37,8 +38,8 @@ export function StatementCategories({ transactions }: { transactions: Transactio
 
   if (rows.length === 0) return null;
 
-  const total = rows.reduce((sum, row) => sum + row.amount, 0);
-  const largest = rows[0].amount;
+  const total = rows.reduce((sum, row) => sum + Math.max(row.amount, 0), 0);
+  const largest = Math.max(...rows.map((row) => row.amount), 0);
 
   return (
     <section className="card">
@@ -62,15 +63,17 @@ export function StatementCategories({ transactions }: { transactions: Transactio
               <div
                 className="h-1 origin-left animate-barGrow rounded-sm"
                 style={{
-                  width: `${largest > 0 ? (row.amount / largest) * 100 : 0}%`,
+                  width: `${largest > 0 ? (Math.max(row.amount, 0) / largest) * 100 : 0}%`,
                   backgroundColor: row.color,
                 }}
               />
             </div>
 
             <p className="num mt-1 text-3xs text-textMuted">
-              {formatPercent(total > 0 ? (row.amount / total) * 100 : 0)} da fatura · {row.count}{' '}
-              lançamento{row.count === 1 ? '' : 's'}
+              {row.amount < 0
+                ? 'Crédito líquido'
+                : `${formatPercent(total > 0 ? (row.amount / total) * 100 : 0)} dos gastos positivos`}{' '}
+              · {row.count} lançamento{row.count === 1 ? '' : 's'}
             </p>
           </div>
         ))}

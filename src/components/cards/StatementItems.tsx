@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { statementEffect } from '@/lib/card-refunds';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { TxRow } from '@/components/ui/TxRow';
 import { useMoney } from '@/lib/currency';
@@ -62,7 +63,7 @@ export function StatementItems({
     });
   }, [transactions, search, categoryId]);
 
-  const subtotal = filtered.reduce((sum, tx) => sum + Number(tx.amount), 0);
+  const subtotal = filtered.reduce((sum, tx) => sum + statementEffect(tx), 0);
   const filtering = Boolean(search.trim() || categoryId);
 
   return (
@@ -130,6 +131,7 @@ export function StatementItems({
               cards={cards}
               tags={tags}
               showInstallment
+              statementContext
             />
           ))
         ) : (
@@ -137,7 +139,7 @@ export function StatementItems({
             message={
               transactions.length
                 ? 'Nenhum lançamento com esses filtros.'
-                : 'Nenhuma compra nesta fatura.'
+                : 'Nenhum lançamento nesta fatura.'
             }
           />
         )}

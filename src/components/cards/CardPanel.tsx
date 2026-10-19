@@ -119,7 +119,7 @@ export function CardPanel({
             <div
               className="h-1 origin-left animate-barGrow rounded-sm"
               style={{
-                width: `${Math.min(usedPct, 100)}%`,
+                width: `${Math.max(0, Math.min(usedPct, 100))}%`,
                 backgroundColor: usedPct >= 85 ? '#F5A623' : card.color,
               }}
             />
@@ -136,7 +136,9 @@ export function CardPanel({
             <div key={item.transaction_id} className="flex items-center justify-between py-1">
               <span className="truncate pr-2 text-xs text-textSecondary">{item.description}</span>
               <span className="num shrink-0 text-xs text-textPrimary">
+                {item.type === 'income' ? '− ' : ''}
                 {money(Number(item.amount))}
+                {item.type === 'income' ? ' · Estorno' : ''}
               </span>
             </div>
           ))}
@@ -153,7 +155,7 @@ export function CardPanel({
         </div>
       ) : (
         <p className="mt-3 border-t border-border pt-3 text-xs text-textMuted">
-          Nenhuma compra nesta fatura.
+          Nenhum lançamento nesta fatura.
         </p>
       )}
 
