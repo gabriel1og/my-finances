@@ -182,7 +182,10 @@ function describe(item: PlanItem) {
   return {
     line: String(row.line),
     date: row.date,
-    description: row.description,
+    description:
+      row.nature === 'card_refund'
+        ? `Estorno · ${row.description} · fatura ${row.statementMonth}`
+        : row.description,
     category:
       row.nature === 'card_payment' ? `Fatura · ${row.paidCard ?? ''}` : (row.category ?? '—'),
     origin: row.origin ?? '—',

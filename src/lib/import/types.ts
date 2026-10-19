@@ -9,7 +9,8 @@ export type ImportFormat = 'flowly' | 'fortuno';
  * de fatura precisa saber de qual cartão — senão vira despesa comum e conta
  * duas vezes nos KPIs.
  */
-export type ImportNature = 'transaction' | 'transfer_out' | 'transfer_in' | 'card_payment';
+export type ImportNature =
+  'transaction' | 'transfer_out' | 'transfer_in' | 'card_payment' | 'card_refund';
 
 /** Uma linha do arquivo já traduzida para o vocabulário do flowly. */
 export type ParsedRow = {
@@ -28,6 +29,9 @@ export type ParsedRow = {
   paidCard: string | null;
   /** Pagamento de fatura: mês da fatura (YYYY-MM). Null = o banco deduz pela data. */
   paidMonth: string | null;
+  statementMonth?: string | null;
+  sourceId?: string | null;
+  relatedPurchaseSourceId?: string | null;
   method: PaymentMethod | null;
   tags: string[];
   notes: string | null;

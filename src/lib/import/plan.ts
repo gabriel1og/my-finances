@@ -131,18 +131,19 @@ export function collectCategories(items: PlanItem[]): ImportCategory[] {
 
   for (const item of items) {
     if (item.kind !== 'transaction' || !item.row.category) continue;
+    const categoryKind = item.row.nature === 'card_refund' ? 'expense' : item.row.type;
     const key = categoryKey(item.row.category);
     const entry = map.get(key) ?? {
       key,
       name: item.row.category.trim(),
-      kind: item.row.type,
+      kind: categoryKind,
       uses: 0,
       mixed: false,
       income: 0,
       expense: 0,
     };
     entry.uses += 1;
-    entry[item.row.type] += 1;
+    entry[categoryKind] += 1;
     map.set(key, entry);
   }
 
@@ -200,7 +201,8 @@ export function summarize(items: PlanItem[]): PlanSummary {
     summary.transactions += 1;
     if (item.row.warnings.length > 0) summary.warnings += 1;
     if (item.row.nature === 'card_payment') continue; // já contou quando a compra foi feita
-    if (item.row.type === 'income') summary.income += item.row.amount;
+    if (item.row.nature === 'card_refund') summary.expense -= item.row.amount;
+    else if (item.row.type === 'income') summary.income += item.row.amount;
     else summary.expense += item.row.amount;
   }
   summary.income = Math.round(summary.income * 100) / 100;
@@ -215,7 +217,10 @@ export function duplicateKey(date: string, amount: number, description: string):
 
 export function itemDuplicateKeys(item: PlanItem): string[] {
   if (item.kind === 'transaction') {
-    return [duplicateKey(item.row.date, item.row.amount, item.row.description)];
+    return [
+      duplicateKey(item.row.date, item.row.amount, item.row.description) +
+        (item.row.nature === 'card_refund' ? '|card-refund' : ''),
+    ];
   }
   // Transferência: a descrição gravada é gerada pelo servidor, então a
   // checagem olha só data + valor entre as transferências existentes.

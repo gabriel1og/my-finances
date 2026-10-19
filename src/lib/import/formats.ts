@@ -121,6 +121,8 @@ const FLOWLY_COLUMNS = {
   paidCard: 'fatura de',
   paidMonth: 'mês da fatura',
   notes: 'observações',
+  sourceId: 'id do lançamento',
+  relatedPurchaseSourceId: 'compra relacionada',
 } as const;
 
 function parseFlowly(records: string[][]): Omit<ParseResult, 'format'> {
@@ -166,8 +168,22 @@ function parseFlowly(records: string[][]): Omit<ParseResult, 'format'> {
       else warnings.push('Pagamento de fatura sem cartão identificado; entra como despesa comum.');
     }
 
+    const refund = natureLabel === 'estorno no cartão';
+    const statementMonth = clean(at('paidMonth'));
+    if (
+      refund &&
+      (type !== 'income' ||
+        method !== 'credit' ||
+        !/^[0-9]{4}-(0[1-9]|1[0-2])$/.test(statementMonth))
+    ) {
+      return skipped.push({
+        line,
+        reason: 'Estorno exige tipo Receita, forma Crédito e mês da fatura YYYY-MM.',
+      });
+    }
+    if (refund) nature = 'card_refund';
     const settlement = method === 'credit' ? 'card' : 'account';
-    if (settlement === 'card' && type === 'income') {
+    if (settlement === 'card' && type === 'income' && !refund) {
       return skipped.push({ line, reason: 'Receita não entra em fatura de cartão' });
     }
 
@@ -183,9 +199,12 @@ function parseFlowly(records: string[][]): Omit<ParseResult, 'format'> {
       nature,
       settlement,
       origin: emptyToNull(at('origin')),
-      category: nature === 'transaction' ? emptyToNull(at('category')) : null,
+      category: nature === 'transaction' || refund ? emptyToNull(at('category')) : null,
       paidCard,
       paidMonth,
+      statementMonth: refund ? statementMonth : null,
+      sourceId: emptyToNull(at('sourceId')),
+      relatedPurchaseSourceId: refund ? emptyToNull(at('relatedPurchaseSourceId')) : null,
       method,
       tags: clean(at('tags'))
         .split(',')

@@ -1,3 +1,4 @@
+import { isCardRefund } from '@/lib/card-refunds';
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { csvNumber, toCsv } from '@/lib/csv';
@@ -21,12 +22,15 @@ const COLUMNS = [
   { key: 'paidCard', label: 'Fatura de' },
   { key: 'paidMonth', label: 'Mês da fatura' },
   { key: 'notes', label: 'Observações' },
+  { key: 'sourceId', label: 'ID do lançamento' },
+  { key: 'relatedPurchaseSourceId', label: 'Compra relacionada' },
 ];
 
 /** Rótulo do que a linha é de fato — importa para não somar duas vezes ao reimportar. */
 function natureOf(tx: TransactionWithCategory): string {
   if (tx.is_transfer) return 'Transferência';
   if (tx.is_card_payment) return 'Pagamento de fatura';
+  if (isCardRefund(tx)) return 'Estorno no cartão';
   return 'Lançamento';
 }
 
@@ -53,7 +57,8 @@ export async function GET(request: NextRequest) {
         // Pagamento de fatura: qual cartão foi pago. Sem isto, quem reimporta
         // não sabe que a linha não é uma despesa comum.
         ', paid_card:credit_cards!transactions_card_payment_for_fkey(id,name)' +
-        ', tags(id,name,color)',
+        ', tags(id,name,color)' +
+        ', statement:statement_cycles!transactions_statement_id_fkey(statement_month)',
     )
     .order('date', { ascending: false });
 
@@ -66,7 +71,10 @@ export async function GET(request: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const transactions = (data ?? []) as unknown as Array<
-    TransactionWithCategory & { paid_card: { id: string; name: string } | null }
+    TransactionWithCategory & {
+      statement?: { statement_month: string } | null;
+      paid_card: { id: string; name: string } | null;
+    }
   >;
 
   const rows = transactions.map((tx) => ({
@@ -84,8 +92,14 @@ export async function GET(request: NextRequest) {
     tags: (tx.tags ?? []).map((tag) => tag.name).join(', '),
     kind: natureOf(tx),
     paidCard: tx.is_card_payment ? (tx.paid_card?.name ?? '') : '',
-    paidMonth: tx.is_card_payment ? (tx.card_payment_month?.slice(0, 7) ?? '') : '',
+    paidMonth: tx.is_card_payment
+      ? (tx.card_payment_month?.slice(0, 7) ?? '')
+      : isCardRefund(tx)
+        ? (tx.statement?.statement_month?.slice(0, 7) ?? '')
+        : '',
     notes: tx.notes ?? '',
+    sourceId: tx.id,
+    relatedPurchaseSourceId: tx.related_purchase_id ?? '',
   }));
 
   const csv = toCsv(rows, COLUMNS);
