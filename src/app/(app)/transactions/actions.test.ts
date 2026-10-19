@@ -53,7 +53,7 @@ describe('createTransaction — validação', () => {
     expect((await createTransaction({ ...base, date: '10/09/2026' })).error).toBe('Data inválida.');
   });
 
-  it('recusa receita lançada em fatura de cartão', async () => {
+  it('exige fatura explícita para estorno no cartão', async () => {
     const result = await createTransaction({
       ...base,
       type: 'income',
@@ -61,7 +61,7 @@ describe('createTransaction — validação', () => {
       cardId: 'card-1',
     });
 
-    expect(result.error).toBe('Receita não entra em fatura de cartão.');
+    expect(result.error).toBe('Escolha a fatura do estorno.');
   });
 
   it('recusa parcelamento fora do cartão', async () => {

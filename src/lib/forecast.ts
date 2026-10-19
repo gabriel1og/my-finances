@@ -104,7 +104,12 @@ export function upcomingStatementsByCard(
 
   for (const row of statements) {
     const month = `${row.statement_month.slice(0, 7)}-01`;
-    if (!wanted.has(month) || row.merged_into || Number(row.total) <= 0) continue;
+    if (
+      !wanted.has(month) ||
+      row.merged_into ||
+      (Number(row.total) === 0 && Number(row.refund_total ?? 0) === 0)
+    )
+      continue;
 
     const list = grouped.get(row.card_id) ?? [];
     list.push(row);

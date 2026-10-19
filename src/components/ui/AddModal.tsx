@@ -1,5 +1,7 @@
 'use client';
 
+import { CardRefundFields } from '@/components/cards/CardRefundFields';
+import { isCardRefund } from '@/lib/card-refunds';
 import { DateField } from '@/components/ui/DateField';
 import { useState, useTransition } from 'react';
 import { Modal, ModalTrigger } from '@/components/ui/Modal';
@@ -36,7 +38,9 @@ export function TransactionModal({
   trigger,
   open: openProp,
   onOpenChange,
+  initialRefund,
 }: {
+  initialRefund?: { cardId: string; statementId: string; month: string };
   categories: Category[];
   accounts: Account[];
   cards: CreditCard[];
@@ -47,6 +51,7 @@ export function TransactionModal({
   onOpenChange?: (open: boolean) => void;
 }) {
   const editing = Boolean(transaction);
+  const editingRefund = Boolean(transaction && isCardRefund(transaction));
   const controlled = openProp !== undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const open = controlled ? openProp : uncontrolledOpen;
@@ -56,7 +61,9 @@ export function TransactionModal({
     onOpenChange?.(next);
   }
 
-  const [type, setType] = useState<TransactionType>(transaction?.type ?? 'expense');
+  const [type, setType] = useState<TransactionType>(
+    transaction?.type ?? (initialRefund ? 'income' : 'expense'),
+  );
   const [description, setDescription] = useState(transaction?.description ?? '');
   const [amount, setAmount] = useState(
     transaction ? String(transaction.amount).replace('.', ',') : '',
@@ -66,11 +73,20 @@ export function TransactionModal({
   );
   const [categoryId, setCategoryId] = useState(transaction?.category_id ?? '');
   const [settlement, setSettlement] = useState<SettlementKind>(
-    transaction?.settlement ?? 'account',
+    transaction?.settlement ?? (initialRefund ? 'card' : 'account'),
   );
   const [accountId, setAccountId] = useState(transaction?.account_id ?? accounts[0]?.id ?? '');
-  const [cardId, setCardId] = useState(transaction?.card_id ?? cards[0]?.id ?? '');
+  const [cardId, setCardId] = useState(
+    transaction?.card_id ?? initialRefund?.cardId ?? cards[0]?.id ?? '',
+  );
   const [method, setMethod] = useState<PaymentMethod>(transaction?.payment_method ?? 'debit');
+  const [statementId, setStatementId] = useState<string | null>(
+    transaction?.statement_id ?? initialRefund?.statementId ?? null,
+  );
+  const [relatedPurchaseId, setRelatedPurchaseId] = useState(
+    transaction?.related_purchase_id ?? '',
+  );
+  const refund = type === 'income' && settlement === 'card';
   const money = useMoney();
   const [installments, setInstallments] = useState(1);
   const [tagIds, setTagIds] = useState<string[]>(transaction?.tags?.map((tag) => tag.id) ?? []);
@@ -78,11 +94,11 @@ export function TransactionModal({
   const [pending, startTransition] = useTransition();
 
   // Categoria de receita não faz sentido num lançamento de despesa e vice-versa.
-  const options = categories.filter((category) => category.kind === type);
+  const options = categories.filter((category) => category.kind === (refund ? 'expense' : type));
 
   function changeType(next: TransactionType) {
     setType(next);
-    // Receita nunca cai em fatura de cartão.
+    // Receita comum começa na conta; o estorno é escolhido explicitamente.
     if (next === 'income') changeSettlement('account');
     const stillValid = categories.some(
       (category) => category.id === categoryId && category.kind === next,
@@ -105,6 +121,7 @@ export function TransactionModal({
     setOpen(false);
     if (!editing) {
       setDescription('');
+      setRelatedPurchaseId('');
       setAmount('');
       setCategoryId('');
     }
@@ -113,7 +130,7 @@ export function TransactionModal({
   function submit() {
     setError(null);
     const parsed = Number(amount.replace(',', '.'));
-    const onCard = type === 'expense' && settlement === 'card';
+    const onCard = settlement === 'card';
     const input = {
       type,
       description,
@@ -125,8 +142,10 @@ export function TransactionModal({
       cardId: onCard ? cardId || null : null,
       paymentMethod: onCard ? ('credit' as const) : method,
       // Parcelar só faz sentido no cartão; editar uma parcela não re-parcela.
-      installments: onCard && !editing ? installments : 1,
+      installments: onCard && !refund && !editing ? installments : 1,
       tagIds,
+      statementId: refund ? statementId : null,
+      relatedPurchaseId: refund ? relatedPurchaseId || null : null,
     };
 
     startTransition(async () => {
@@ -155,6 +174,7 @@ export function TransactionModal({
             <button
               key={option}
               type="button"
+              disabled={editingRefund}
               onClick={() => changeType(option)}
               className={[
                 'rounded-sm py-1.5 text-sm transition-colors',
@@ -169,6 +189,33 @@ export function TransactionModal({
             </button>
           ))}
         </div>
+
+        {type === 'income' && (!editing || editingRefund) ? (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={editingRefund}
+              className={refund ? 'btn-secondary' : 'btn-primary'}
+              onClick={() => {
+                changeSettlement('account');
+                setCategoryId('');
+              }}
+            >
+              Receita comum
+            </button>
+            <button
+              type="button"
+              disabled={cards.length === 0 || editingRefund}
+              className={refund ? 'btn-primary' : 'btn-secondary'}
+              onClick={() => {
+                changeSettlement('card');
+                setCategoryId('');
+              }}
+            >
+              Estorno no cartão
+            </button>
+          </div>
+        ) : null}
 
         <div className="mt-4 space-y-3">
           <div>
@@ -223,7 +270,18 @@ export function TransactionModal({
             </div>
           ) : null}
 
-          {type === 'expense' && settlement === 'card' ? (
+          {refund ? (
+            <CardRefundFields
+              cards={cards}
+              cardId={cardId}
+              onCardChange={setCardId}
+              initialStatementId={transaction?.statement_id ?? initialRefund?.statementId}
+              initialMonth={initialRefund?.month}
+              onStatementChange={setStatementId}
+              relatedPurchaseId={relatedPurchaseId}
+              onPurchaseChange={setRelatedPurchaseId}
+            />
+          ) : type === 'expense' && settlement === 'card' ? (
             <div>
               <label className="label-caps">Cartão</label>
               <select
@@ -329,7 +387,11 @@ export function TransactionModal({
           <button onClick={close} className="btn-secondary">
             Cancelar
           </button>
-          <button onClick={submit} disabled={pending} className="btn-primary">
+          <button
+            onClick={submit}
+            disabled={pending || (refund && !statementId)}
+            className="btn-primary"
+          >
             {pending ? 'Salvando...' : 'Salvar'}
           </button>
         </div>

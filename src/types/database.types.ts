@@ -167,6 +167,7 @@ export interface Database {
           card_payment_month: string | null;
           statement_id: string | null;
           statement_manual: boolean;
+          related_purchase_id?: string | null;
           recurring_id: string | null;
           recurring_month: string | null;
           installment_group: string | null;
@@ -195,6 +196,7 @@ export interface Database {
           card_payment_month?: string | null;
           statement_id?: string | null;
           statement_manual?: boolean;
+          related_purchase_id?: string | null;
           recurring_id?: string | null;
           recurring_month?: string | null;
           installment_group?: string | null;
@@ -566,6 +568,7 @@ export interface Database {
       card_statement_items: {
         Row: {
           statement_id: string;
+          type?: TransactionType;
           user_id: string;
           card_id: string;
           statement_month: string;
@@ -643,6 +646,8 @@ export interface Database {
           total: number;
           paid: number;
           open_amount: number;
+          purchases_total?: number;
+          refund_total?: number;
           due_date: string;
           closing_date: string;
         };
@@ -664,6 +669,8 @@ export interface Database {
       };
     };
     Functions: {
+      save_card_refund: { Args: { p_id: string | null; p_input: Json }; Returns: string };
+      search_card_purchases: { Args: { p_card: string; p_search: string; p_offset: number }; Returns: Array<{ id: string; description: string; date: string; amount: number }> };
       statement_adjustment: { Args: { p_change: Json; p_fingerprint?: string | null }; Returns: Json };
       ensure_statement_month: { Args: { p_month: string }; Returns: undefined };
       update_card_with_rule: { Args: { p_card: string; p_input: Json; p_effective_month?: string | null; p_fingerprint?: string | null }; Returns: undefined };

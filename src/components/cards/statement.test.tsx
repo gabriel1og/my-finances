@@ -138,7 +138,7 @@ describe('StatementCategories', () => {
     expect(names).toEqual(['Sem categoria', 'Alimentação', 'Lazer']);
 
     // 400 de 710.
-    expect(screen.getByText(/56,3% da fatura/)).toBeInTheDocument();
+    expect(screen.getByText(/56,3% dos gastos positivos/)).toBeInTheDocument();
   });
 
   it('não renderiza nada numa fatura vazia', () => {
@@ -186,5 +186,30 @@ describe('UpcomingStatements', () => {
     );
 
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe('estornos na composição da fatura', () => {
+  const entries = [
+    tx({ amount: 100 }),
+    tx({
+      id: 'refund',
+      type: 'income',
+      settlement: 'card',
+      description: 'Estorno loja',
+      amount: 150,
+    }),
+  ];
+  it('subtrai o crédito do subtotal e identifica sua natureza', () => {
+    renderWithProviders(
+      <StatementItems transactions={entries} categories={[]} accounts={[]} cards={[]} tags={[]} />,
+    );
+    expect(screen.getByText(/subtotal.*-.*50,00/)).toBeInTheDocument();
+    expect(screen.getByText('Estorno')).toBeInTheDocument();
+  });
+  it('preserva categoria credora sem largura negativa', () => {
+    const { container } = renderWithProviders(<StatementCategories transactions={entries} />);
+    expect(screen.getByText(/Crédito líquido/)).toBeInTheDocument();
+    expect(container.querySelector('[style*="width: -"]')).toBeNull();
   });
 });

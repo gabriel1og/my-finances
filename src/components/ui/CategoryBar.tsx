@@ -40,7 +40,7 @@ export function CategoryBar({
         <div
           className="h-1 origin-left animate-barGrow rounded-sm"
           style={{
-            width: `${Math.min(pct, 100)}%`,
+            width: `${Math.max(0, Math.min(pct, 100))}%`,
             backgroundColor: alert ? '#F5A623' : color,
           }}
         />

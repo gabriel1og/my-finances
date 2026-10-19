@@ -260,7 +260,7 @@ async function transactionPage(db: AssistantDatabase, q: FinancialQuery, signal:
   let query = db
     .from('transactions')
     .select(
-      'id,date,description,notes,amount,type,category_id,account_id,card_id,payment_method,is_transfer,transfer_group,is_card_payment,installment_no,installment_total' +
+      'id,date,description,notes,amount,type,settlement,statement_id,related_purchase_id,category_id,account_id,card_id,payment_method,is_transfer,transfer_group,is_card_payment,installment_no,installment_total' +
         tags,
       { count: 'exact' },
     )

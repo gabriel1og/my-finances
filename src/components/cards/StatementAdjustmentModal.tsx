@@ -213,12 +213,12 @@ export function StatementAdjustmentModal({
                       )
                     }
                   />
+                  {tx.type === 'income' ? 'Estorno · ' : ''}
                   {tx.description} · {formatDate(tx.date)}
                 </label>
               ))}
               <p className="text-xs text-textMuted">
-                A seleção move apenas estas compras ou parcelas. Pagamentos permanecem na fatura
-                original.
+                A seleção move apenas estes lançamentos. Pagamentos permanecem na fatura original.
               </p>
             </div>
           )}

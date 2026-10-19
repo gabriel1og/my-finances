@@ -29,7 +29,7 @@ describe('SourceBreakdown', () => {
     );
 
     expect(screen.getByText(/700,00/)).toBeInTheDocument();
-    expect(screen.getByText('70,0% das despesas · 6 compras')).toBeInTheDocument();
+    expect(screen.getByText('70,0% dos gastos positivos · 6 compras')).toBeInTheDocument();
   });
 
   it('abre o detalhe daquela origem', () => {
@@ -99,7 +99,7 @@ describe('SourceBreakdown', () => {
       />,
     );
 
-    expect(screen.getByText('Sem gastos neste mês')).toBeInTheDocument();
+    expect(screen.getByText('Sem gastos líquidos neste mês')).toBeInTheDocument();
   });
 });
 

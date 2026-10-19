@@ -15,6 +15,7 @@ export type StatementChange = {
   dueDay?: number;
 };
 export type StatementSnapshotTransaction = {
+  type?: 'income' | 'expense';
   id: string;
   statement_id: string;
   date: string;

@@ -61,7 +61,7 @@ export function SourceBreakdown({
             <div
               className="h-1 origin-left animate-barGrow rounded-sm"
               style={{
-                width: `${largest > 0 ? (row.expense / largest) * 100 : 0}%`,
+                width: `${largest > 0 ? (Math.max(row.expense, 0) / largest) * 100 : 0}%`,
                 backgroundColor: row.color,
               }}
             />
@@ -70,10 +70,12 @@ export function SourceBreakdown({
           <div className="mt-1 flex items-baseline justify-between gap-3">
             <p className="num text-3xs text-textMuted">
               {row.expense > 0
-                ? `${formatPercent(row.share)} das despesas · ${row.items} ${itemsNoun}${
+                ? `${formatPercent(row.share)} dos gastos positivos · ${row.items} ${itemsNoun}${
                     row.items === 1 ? '' : 's'
                   }`
-                : 'Sem gastos neste mês'}
+                : row.expense < 0
+                  ? 'Crédito líquido de estornos'
+                  : 'Sem gastos líquidos neste mês'}
             </p>
 
             {showIncome && row.income > 0 ? (

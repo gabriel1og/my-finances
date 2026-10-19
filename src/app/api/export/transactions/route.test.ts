@@ -1,3 +1,4 @@
+import { parseImportFile } from '@/lib/import/formats';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NextRequest } from 'next/server';
 import { createSupabaseMock, type SupabaseMock } from '@/test/supabaseMock';
@@ -128,5 +129,31 @@ describe('GET /api/export/transactions', () => {
     const response = await GET(request('?scope=all'));
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({ error: 'permission denied' });
+  });
+});
+
+describe('exportação recuperável de estornos', () => {
+  it('preserva fatura e referência ao passar pelo parser nativo', async () => {
+    supabase = withTransactions([
+      {
+        ...base,
+        type: 'income',
+        settlement: 'card',
+        card: { id: 'card', name: 'Visa' },
+        payment_method: 'credit',
+        statement: { statement_month: '2026-08-01' },
+        related_purchase_id: 'purchase-id',
+      },
+    ]);
+    const csv = await (await GET(request('?scope=all'))).text();
+    const parsed = parseImportFile(csv);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.result.skipped).toEqual([]);
+    expect(parsed.result.rows[0]).toMatchObject({
+      nature: 'card_refund',
+      statementMonth: '2026-08',
+      relatedPurchaseSourceId: 'purchase-id',
+    });
   });
 });

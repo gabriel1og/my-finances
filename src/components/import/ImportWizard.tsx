@@ -99,7 +99,12 @@ export function ImportWizard({
         new Map(list.map((entry) => [normalizeName(entry.name), entry.id]));
       const accountByName = byName(accounts);
       const cardByName = byName(cards);
-      const categoryByName = byName(categories);
+      const categoryByName = new Map(
+        categories.map((category) => [
+          `${category.kind}:${normalizeName(category.name)}`,
+          category.id,
+        ]),
+      );
 
       const nextOrigins: Record<string, OriginMapping> = {};
       for (const origin of plan.origins) {
@@ -138,7 +143,7 @@ export function ImportWizard({
         nextCats[category.key] = {
           name: category.name,
           kind: category.kind,
-          target: categoryByName.get(normalizeName(category.name)) ?? 'new',
+          target: categoryByName.get(`${category.kind}:${normalizeName(category.name)}`) ?? 'new',
         };
       }
       setCats(nextCats);
@@ -161,6 +166,11 @@ export function ImportWizard({
   const blocker = useMemo(() => {
     if (!loaded) return null;
     if (selectedItems.length === 0) return 'Marque ao menos uma linha.';
+    for (const item of selectedItems) {
+      if (item.kind === 'transaction' && item.row.nature === 'card_refund' && !item.row.origin) {
+        return `Linha ${item.row.line}: escolha o cartão do estorno antes de importar.`;
+      }
+    }
     for (const origin of Object.values(origins)) {
       if (!origin.target) return `Escolha o destino de "${origin.name}".`;
       if (origin.target === 'new' && origin.kind === 'card') {
@@ -233,6 +243,11 @@ export function ImportWizard({
               ? `Criado junto: ${createdParts.join(', ')}.`
               : 'Nenhuma conta, cartão ou categoria precisou ser criada.'}
           </p>
+          {outcome.warnings?.map((warning) => (
+            <p key={warning} role="status" className="mt-2 text-xs text-warning">
+              {warning}
+            </p>
+          ))}
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href={target} className="btn-primary">
               Ver transações

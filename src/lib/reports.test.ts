@@ -203,3 +203,22 @@ describe('parseReportRange', () => {
     expect(parseReportRange(null, 6)).toBe(6);
   });
 });
+
+describe('relatórios com estorno excedente', () => {
+  it('mantém origens com crédito e meses cuja soma líquida é zero', () => {
+    const source = {
+      id: 'card',
+      name: 'Visa',
+      color: '#fff',
+      month: '2026-10-01',
+      expense: -150,
+      items: 1,
+    };
+    expect(buildSourceTotals([source])[0]).toMatchObject({ expense: -150, income: 0, share: 0 });
+    const trend = buildTrendRows(
+      [source, { ...source, month: '2026-09-01', expense: 150 }],
+      ['2026-09', '2026-10'],
+    );
+    expect(trend[0]).toMatchObject({ values: [150, -150], total: 0 });
+  });
+});

@@ -1,8 +1,10 @@
 'use server';
 
+import { importCardRefunds, prepareRefundDestinations } from '@/lib/import/refund-writer';
 import { createClient } from '@/lib/supabase/server';
 import { revalidateFinance } from '@/lib/cache';
 import { CATEGORY_PALETTE } from '@/lib/constants';
+import { isCardRefund } from '@/lib/card-refunds';
 import { duplicateKey, normalizeName } from '@/lib/import/plan';
 import type { PlanItem } from '@/lib/import/types';
 import type { AccountKind, Database, TransactionType } from '@/types/database.types';
@@ -25,7 +27,7 @@ export async function findDuplicates(keys: string[]): Promise<Result<{ duplicate
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('transactions')
-    .select('date, amount, description, is_transfer, type')
+    .select('date, amount, description, is_transfer, type, settlement')
     .gte('date', dates[0])
     .lte('date', dates[dates.length - 1]);
 
@@ -35,7 +37,9 @@ export async function findDuplicates(keys: string[]): Promise<Result<{ duplicate
   for (const tx of data ?? []) {
     const date = tx.date.slice(0, 10);
     const amount = Number(tx.amount);
-    existing.add(duplicateKey(date, amount, tx.description));
+    existing.add(
+      duplicateKey(date, amount, tx.description) + (isCardRefund(tx) ? '|card-refund' : ''),
+    );
     // Só a ponta de saída representa a transferência, senão contaria duas vezes.
     if (tx.is_transfer && tx.type === 'expense')
       existing.add(`${date}|${amount.toFixed(2)}|transfer`);
@@ -76,6 +80,7 @@ export type ImportPayload = {
 
 export type ImportOutcome = {
   transactions: number;
+  warnings?: string[];
   transfers: number;
   created: { accounts: number; cards: number; categories: number; tags: number };
   firstMonth: string | null;
@@ -125,7 +130,21 @@ function validatePayload(payload: ImportPayload): string | null {
       if (!Number.isFinite(row.amount) || row.amount <= 0)
         return `Linha ${row.line}: valor inválido.`;
       if (!row.description.trim()) return `Linha ${row.line}: sem descrição.`;
-      if (row.settlement === 'card' && row.type === 'income') {
+      if (
+        row.nature === 'card_refund' &&
+        (row.type !== 'income' ||
+          row.settlement !== 'card' ||
+          !/^[0-9]{4}-(0[1-9]|1[0-2])$/.test(row.statementMonth ?? ''))
+      ) {
+        return `Linha ${row.line}: estorno exige Receita, cartão e mês da fatura YYYY-MM.`;
+      }
+      if (
+        row.nature === 'card_refund' &&
+        (!row.origin || !payload.origins[`card:${normalizeName(row.origin)}`]?.target)
+      ) {
+        return `Linha ${row.line}: escolha o cartão do estorno antes de importar.`;
+      }
+      if (row.settlement === 'card' && row.type === 'income' && row.nature !== 'card_refund') {
         return `Linha ${row.line}: receita não entra em cartão.`;
       }
     } else {
@@ -342,6 +361,9 @@ export async function runImport(
     }
   }
 
+  const preparedRefunds = await prepareRefundDestinations(supabase, payload.items, cardIdByKey);
+  if (preparedRefunds.error) return { error: preparedRefunds.error };
+
   // --- Transações ---------------------------------------------------------
   type TxInsert = Database['public']['Tables']['transactions']['Insert'];
 
@@ -349,7 +371,8 @@ export async function runImport(
   // e preenche o que falta com null — não com o default da coluna. Por isso
   // toda linha (lançamento ou ponta de transferência) carrega o mesmo conjunto
   // completo de colunas; faltar `is_transfer` numa delas derruba o lote inteiro.
-  const rows: Array<{ insert: TxInsert; tags: string[] }> = [];
+  const rows: Array<{ insert: TxInsert; tags: string[]; sourceId?: string | null }> = [];
+  const sourceIds = new Map<string, string>();
   let firstMonth: string | null = null;
 
   const resolveOrigin = (kind: 'account' | 'card', name: string | null) => {
@@ -397,6 +420,10 @@ export async function runImport(
     }
 
     const { row } = item;
+    if (row.nature === 'card_refund') {
+      firstMonth = minDate(firstMonth, row.date);
+      continue;
+    }
     const isCard = row.settlement === 'card';
     const accountId = isCard ? null : resolveOrigin('account', row.origin);
     const cardId = isCard ? resolveOrigin('card', row.origin) : null;
@@ -429,6 +456,7 @@ export async function runImport(
         transfer_group: null,
       },
       tags: row.tags,
+      sourceId: row.sourceId,
     });
     firstMonth = minDate(firstMonth, row.date);
   }
@@ -448,6 +476,10 @@ export async function runImport(
       };
     }
 
+    (data ?? []).forEach((inserted, index) => {
+      const sourceId = chunk[index].sourceId;
+      if (sourceId) sourceIds.set(sourceId, inserted.id);
+    });
     const links = (data ?? []).flatMap((inserted, index) =>
       chunk[index].tags.flatMap((tag) => {
         const tagId = tagIdByName.get(normalizeName(tag));
@@ -465,12 +497,25 @@ export async function runImport(
     }
   }
 
+  const refunds = await importCardRefunds({
+    db: supabase,
+    items: payload.items,
+    cards: cardIdByKey,
+    categories: categoryIdByKey,
+    tags: tagIdByName,
+    sourceIds,
+    statements: preparedRefunds.statements,
+  });
+  transactions += refunds.imported;
   revalidateFinance();
+  if (refunds.error)
+    return { error: `Falha ao gravar (${transactions} lançamentos já entraram): ${refunds.error}` };
 
   return {
     error: null,
     outcome: {
       transactions,
+      warnings: refunds.warnings,
       transfers: Math.round(transfers),
       created,
       firstMonth: firstMonth ? `${firstMonth.slice(0, 7)}-01` : null,

@@ -98,7 +98,9 @@ export function RolloverTable({ rows }: { rows: RolloverRow[] }) {
           const budgeted = isBudgeted(row);
           const over = budgeted && row.spent > row.available;
           const pct =
-            budgeted && row.available > 0 ? Math.min((row.spent / row.available) * 100, 100) : 100;
+            budgeted && row.available > 0
+              ? Math.max(0, Math.min((row.spent / row.available) * 100, 100))
+              : 100;
 
           return (
             <div key={row.categoryId} className="border-b border-border py-3 last:border-b-0">

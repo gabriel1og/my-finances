@@ -59,11 +59,13 @@ export function buildSourceTotals(rows: SourceMonthRow[]): SourceTotal[] {
     totals.set(row.id, current);
   }
 
-  const list = [...totals.values()].filter((item) => item.expense > 0 || item.income > 0);
-  const grandTotal = list.reduce((sum, item) => sum + item.expense, 0);
+  const list = [...totals.values()].filter(
+    (item) => item.expense !== 0 || item.income !== 0 || item.items > 0,
+  );
+  const grandTotal = list.reduce((sum, item) => sum + Math.max(item.expense, 0), 0);
 
   for (const item of list) {
-    item.share = grandTotal > 0 ? (item.expense / grandTotal) * 100 : 0;
+    item.share = grandTotal > 0 ? (Math.max(item.expense, 0) / grandTotal) * 100 : 0;
   }
 
   return list.sort((a, b) => b.expense - a.expense);
@@ -98,7 +100,7 @@ export function buildCategorySpendingTotals(rows: CategorySpending[]): CategoryS
   }
 
   return [...totals.values()]
-    .filter((item) => Number(item.spent) > 0)
+    .filter((item) => Number(item.spent) !== 0)
     .sort((a, b) => Number(b.spent) - Number(a.spent));
 }
 
@@ -132,7 +134,7 @@ export function buildTagTotals(rows: TagTotals[]): TagTotalRow[] {
   }
 
   return [...totals.values()]
-    .filter((item) => item.expense > 0 || item.income > 0)
+    .filter((item) => item.expense !== 0 || item.income !== 0 || item.items > 0)
     .sort((a, b) => b.expense - a.expense);
 }
 
@@ -155,7 +157,7 @@ export function buildTrendRows(rows: SourceMonthRow[], months: string[]): TrendR
       const values = months.map((month) => byKey.get(`${id}:${month.slice(0, 7)}`) ?? 0);
       return { id, ...item, values, total: values.reduce((sum, value) => sum + value, 0) };
     })
-    .filter((item) => item.total > 0)
+    .filter((item) => item.values.some((value) => value !== 0))
     .sort((a, b) => b.total - a.total);
 }
 
