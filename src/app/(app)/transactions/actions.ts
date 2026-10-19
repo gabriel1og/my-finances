@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { isCardRefund } from '@/lib/card-refunds';
 import { revalidateFinance } from '@/lib/cache';
 import { shiftMonths, splitInstallments } from '@/lib/installments';
 import type { PaymentMethod, SettlementKind, TransactionType } from '@/types/database.types';
@@ -18,6 +19,8 @@ export type TransactionInput = {
   /** Só para compra no cartão. 1 = à vista. */
   installments?: number;
   tagIds?: string[];
+  statementId?: string | null;
+  relatedPurchaseId?: string | null;
 };
 
 type Result = { error: string | null };
@@ -29,7 +32,9 @@ function validate(input: TransactionInput): string | null {
     return 'Informe um valor maior que zero.';
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) return 'Data inválida.';
   if (input.settlement === 'card') {
-    if (input.type === 'income') return 'Receita não entra em fatura de cartão.';
+    if (isCardRefund(input) && !input.statementId) return 'Escolha a fatura do estorno.';
+    if (isCardRefund(input) && (input.installments ?? 1) !== 1)
+      return 'Estorno não pode ser parcelado.';
     if (!input.cardId) return 'Escolha o cartão.';
   }
 
@@ -49,6 +54,8 @@ function validate(input: TransactionInput): string | null {
 export async function createTransaction(input: TransactionInput): Promise<Result> {
   const invalid = validate(input);
   if (invalid) return { error: invalid };
+
+  if (isCardRefund(input)) return saveRefund(null, input);
 
   const supabase = await createClient();
   const {
@@ -111,6 +118,7 @@ export async function createTransaction(input: TransactionInput): Promise<Result
 export async function updateTransaction(id: string, input: TransactionInput): Promise<Result> {
   const invalid = validate(input);
   if (invalid) return { error: invalid };
+  if (isCardRefund(input)) return saveRefund(id, input);
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -154,6 +162,17 @@ export async function updateTransaction(id: string, input: TransactionInput): Pr
     }
   }
 
+  revalidateFinance();
+  return { error: null };
+}
+
+async function saveRefund(id: string | null, input: TransactionInput): Promise<Result> {
+  const db = await createClient();
+  const { error } = await db.rpc('save_card_refund', {
+    p_id: id,
+    p_input: { ...input, tagIds: input.tagIds ?? [] },
+  });
+  if (error) return { error: error.message };
   revalidateFinance();
   return { error: null };
 }
