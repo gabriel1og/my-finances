@@ -23,7 +23,7 @@ export function GoalProgress({
   if (target === null || target <= 0) return null;
 
   const isSaving = variant === 'saving';
-  const value = isSaving ? current : Math.max(current, 0);
+  const value = current;
   const pct = (value / target) * 100;
   const reached = isSaving ? pct >= 100 : pct >= 100;
   const nearLimit = !isSaving && pct >= ALERT_AT && pct < 100;
@@ -39,7 +39,7 @@ export function GoalProgress({
         ? '#F5A623'
         : '#5B6EF5';
 
-  const width = negative ? 0 : Math.min(Math.abs(pct), 100);
+  const width = Math.max(0, Math.min(pct, 100));
 
   const label = isSaving ? 'Meta de economia' : 'Teto de gastos';
   const remaining = isSaving ? target - current : target - current;
@@ -71,7 +71,7 @@ export function GoalProgress({
       <div className="flex items-baseline justify-between">
         <span className="label-caps">{label}</span>
         <span className="num text-xs text-textSecondary">
-          {formatCurrency(Math.max(current, 0), currency)} / {formatCurrency(target, currency)}
+          {formatCurrency(current, currency)} / {formatCurrency(target, currency)}
         </span>
       </div>
 

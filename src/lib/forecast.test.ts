@@ -238,3 +238,24 @@ describe('upcomingStatementsByCard', () => {
     expect(grouped.get('card-1')).toHaveLength(1);
   });
 });
+
+describe('crédito futuro de estorno', () => {
+  it('aparece na navegação de faturas, mas não vira compromisso negativo', () => {
+    const credit = statement({
+      card_id: 'card',
+      statement_month: '2026-10-01',
+      total: -50,
+      refund_total: 150,
+      purchases_total: 100,
+    });
+    expect(upcomingStatementsByCard([credit], '2026-09-01', 3).get('card')).toHaveLength(1);
+    expect(
+      buildForecast({
+        months: ['2026-10-01'],
+        statements: [credit],
+        recurring: [],
+        postedRecurringIds: new Set(),
+      })[0].cardTotal,
+    ).toBe(0);
+  });
+});

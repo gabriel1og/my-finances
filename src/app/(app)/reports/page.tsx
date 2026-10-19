@@ -140,7 +140,7 @@ export default async function ReportsPage({
       ? formatMonthLong(month)
       : `${range} meses até ${formatMonthLong(month)}`;
   const compositionHasExpenses = compositionRows.some(
-    (row) => row.kind === 'expense' && Number(row.spent) > 0,
+    (row) => row.kind === 'expense' && Number(row.spent) !== 0,
   );
 
   const tagRows = buildTagTotals(tagScope === 'month' ? tagTotals.filter(inMonth) : tagTotals);

@@ -171,3 +171,14 @@ describe('EmptyState', () => {
     expect(screen.getByText('Nenhum lançamento neste mês.')).toBeInTheDocument();
   });
 });
+
+describe('meta com estorno excedente', () => {
+  it('mostra despesa negativa com barra vazia e disponibilidade ampliada', () => {
+    const { container } = renderWithProviders(
+      <GoalProgress variant="cap" current={-50} target={1000} />,
+    );
+    expect(screen.getByText(/-.*50,00.*1.000,00/)).toBeInTheDocument();
+    expect(screen.getByText(/Restam.*1.050,00/)).toBeInTheDocument();
+    expect(container.querySelector('[style*="width: 0%"]')).not.toBeNull();
+  });
+});
