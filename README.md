@@ -1,35 +1,33 @@
-# Flowly — Finanças Pessoais
+# Flowly — Personal Finance
 
-App desktop web de finanças pessoais com lançamento 100% manual (sem integração bancária).
-Referências: YNAB (orçamento base zero) + Organizze (UX limpa).
-
-O assistente de IA está disponível em `/assistant`. Consulte [configuração, contratos e validação](docs/assistant.md).
+A desktop web app for personal finance with 100% manual entry (no bank integration).
+Inspiration: YNAB (zero-based budgeting) + Organizze (clean UX).
 
 ## Stack
 
 Next.js 15 (App Router) · TypeScript · Supabase (auth + Postgres + RLS) · Tailwind CSS · Recharts · Deploy na Vercel.
 
-## Estrutura
+## Structure
 
 ```
 src/
   app/
-    (app)/            layout com Sidebar + rotas autenticadas
-      dashboard/      KPIs, fluxo mensal, orçamento, últimas transações
-      transactions/   listagem com filtros + server actions
-      categories/     cards com barra de progresso e alerta de 85%
-      reports/        resumo trimestral + despesas por categoria
-      settings/       metas e preferências
-    login/            signin / signup via Supabase Auth
-  components/         layout, ui, charts, transactions
-  lib/                supabase (client/server/middleware), format, queries, constants
+    (app)/            layout with sidebar + authenticated routes
+      dashboard/      KPIs, monthly flow, budget, latest transactions
+      transactions/   list with filters + server actions
+      categories/     cards with progress bar and 85% alert
+      reports/        quarterly summary + expenses by category
+      settings/       goals and preferences
+    login/            sign-in / sign-up via Supabase Auth
+  components/         layout, UI, charts, transactions
+  lib/                Supabase (client/server/middleware), format, queries, constants
   types/              database.types.ts
-supabase/migrations/  schema, views e seeds
+supabase/migrations/  schema, views, and seeds
 ```
 
-## Convenções do design system
+## Design System Conventions
 
-- Tokens de cor e animações estão em `tailwind.config.ts` — usar sempre as classes (`bg-surface`, `text-income`, ...).
-- **JetBrains Mono (`font-mono` / classe `.num`) é obrigatório para todo valor monetário, data e percentual.**
-- Border-radius: sm 4 / md 8 / lg 12. Sem glassmorphism, sem gradientes genéricos, sombras mínimas.
-- Alerta de orçamento a partir de 85% do limite (`BUDGET_ALERT_THRESHOLD`).
+- Color tokens and animations are in `tailwind.config.ts` — always use the classes (`bg-surface`, `text-income`, ...).
+- **JetBrains Mono (`font-mono` / `.num` class) is required for all monetary values, dates, and percentages.**
+- Border-radius: sm 4 / md 8 / lg 12. No glassmorphism, no generic gradients, minimal shadows.
+- Budget alert starting at 85% of the limit (`BUDGET_ALERT_THRESHOLD`).
